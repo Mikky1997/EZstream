@@ -1,117 +1,174 @@
-# Movie Streaming Platform
+# MikkyStream
 
-A modern web application for searching and streaming movies, TV series, and anime using multiple streaming sources.
+A modern, high-performance streaming platform built with Next.js 14, featuring movies, TV shows, and anime with a sleek dark-themed UI.
+
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css)
+![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?style=flat-square&logo=sqlite)
 
 ## Features
 
-- 🔍 **Search Movies & TV Shows** - Search using TMDB API
-- 🎬 **Multiple Streaming Sources** - 12+ streaming providers with automatic fallback
-- 🎌 **Anime Support** - Dedicated anime section with sub/dub preferences
-- 🌍 **Arabic Content Support** - Special handling for Arabic movies with TMDB ID fallback
-- 📺 **TV Show Support** - Full season/episode selection
-- 🎨 **Modern UI** - Clean, dark-themed interface built with Tailwind CSS
-- ⚡ **Fast & Responsive** - Built with Next.js 14 for optimal performance
+- **User Authentication** - Secure login with JWT sessions and bcrypt password hashing
+- **Watch History** - Continue watching from where you left off
+- **Watchlist** - Save movies and shows to watch later
+- **Multi-Source Streaming** - 12+ streaming providers with automatic fallback
+- **Real-time Search** - Instant search with live results as you type
+- **Infinite Scroll** - Seamless content discovery with lazy loading
+- **Responsive Design** - Optimized for all screen sizes
+- **Performance Optimized** - Fast image loading, API caching, and minimal bundle size
 
-## Streaming Sources
+## Tech Stack
 
-The platform supports multiple streaming providers:
-- VidSrc.me (primary)
-- VidSrc.cc
-- VidSrc.xyz
-- VidSrc.pro
-- 2Embed
-- SmashyStream
-- MoviesAPI
-- MultiEmbed
-- Embed.su
-- AutoEmbed
-- VidLink
-- Nontongo
-
-Each source is tried automatically if the previous one doesn't work.
-
-## Prerequisites
-
-- Node.js 18+ and npm
-- TMDB API key (free at [themoviedb.org](https://www.themoviedb.org/))
-
-## Installation
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Set up environment variables:**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   TMDB_API_KEY=your_tmdb_api_key_here
-   TMDB_ACCESS_TOKEN=your_tmdb_access_token_here
-   ```
-
-3. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser:**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-## Usage
-
-1. **Search for content:**
-   - Enter a movie or TV show title in the search bar
-   - Browse through the results
-
-2. **Watch content:**
-   - Click on any movie or TV show card
-   - Use the source selector to try different streaming providers
-   - Sources with "(TMDB)" work better for non-English content
-
-3. **Watch Anime:**
-   - Browse the Anime section for Japanese animation
-   - Select sub (Japanese audio) or dub (English audio) preference
-   - Choose your preferred streaming source
-
-4. **Watch TV Shows:**
-   - Select season and episode from the dropdowns
-   - Sources automatically update when you change episodes
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Database | SQLite with better-sqlite3 (WAL mode) |
+| Auth | JWT (jose) + bcryptjs |
+| API | TMDB for metadata |
+| Deployment | PM2 + Nginx + Cloudflare |
 
 ## Project Structure
 
 ```
-/
+mikkystream/
 ├── app/
-│   ├── api/              # API routes
-│   ├── browse/           # Browse pages (movies, tv, anime, arabic)
-│   ├── components/       # React components
-│   ├── watch/            # Watch page
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── lib/
-│   ├── tmdb.ts           # TMDB API client
-│   └── vidsrc.ts         # Streaming sources
-└── types/
-    └── index.ts          # TypeScript types
+│   ├── api/                 # API routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── browse/          # Content discovery
+│   │   ├── movie/           # Movie details
+│   │   ├── tv/              # TV show details
+│   │   ├── search/          # Search functionality
+│   │   └── user/            # User data (history, watchlist)
+│   ├── browse/              # Browse pages
+│   │   ├── anime/           # Anime section
+│   │   ├── movies/          # Movies section
+│   │   └── tv/              # TV shows section
+│   ├── components/          # Reusable components
+│   ├── contexts/            # React contexts
+│   ├── hooks/               # Custom hooks
+│   └── watch/               # Video player page
+├── lib/                     # Utility libraries
+│   ├── auth.ts              # Authentication helpers
+│   ├── db.ts                # Database setup & queries
+│   ├── tmdb.ts              # TMDB API client
+│   └── vidsrc.ts            # Streaming sources
+├── types/                   # TypeScript definitions
+└── public/                  # Static assets
 ```
 
-## Technologies
+## Getting Started
 
-- **Next.js 14** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **TMDB API** - Movie/TV show data
-- **VidSrc & Other Providers** - Streaming embeds
+### Prerequisites
 
-## Notes
+- Node.js 18+
+- npm or yarn
+- TMDB API key ([Get one free](https://www.themoviedb.org/settings/api))
 
-- Streaming availability depends on external sources
-- Not all content is available on all sources - try different providers
-- Arabic content has limited availability - sources with "(TMDB)" tag work best
-- Some sources may have ads - try different sources for a better experience
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/mikkystream.git
+   cd mikkystream
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Edit `.env.local` and add your TMDB API key:
+   ```env
+   TMDB_API_KEY=your_api_key_here
+   JWT_SECRET=your_random_secret_here
+   ```
+
+4. **Seed the database** (optional - creates demo users)
+   ```bash
+   npm run seed
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open** [http://localhost:3000](http://localhost:3000)
+
+## Performance Optimizations
+
+This project implements several performance best practices:
+
+- **Image Optimization** - Smaller thumbnails (w154), lazy loading, blur placeholders
+- **API Caching** - Server-side caching for TMDB responses (5min browse, 1hr details)
+- **Code Splitting** - Automatic route-based code splitting
+- **React Optimizations** - `React.memo`, `useMemo`, `useCallback` for efficient re-renders
+- **Database** - SQLite with WAL mode for concurrent read/write access
+- **CDN Ready** - Cloudflare integration for edge caching
+
+## Deployment
+
+### Production Build
+
+```bash
+npm run build
+npm start
+```
+
+### PM2 (Recommended)
+
+```bash
+pm2 start ecosystem.config.js
+```
+
+### With Nginx
+
+See `DEPLOY.md` for detailed Nginx configuration and Cloudflare setup.
+
+## API Routes
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/login` | POST | User login |
+| `/api/auth/logout` | POST | User logout |
+| `/api/auth/me` | GET | Get current user |
+| `/api/search` | GET | Search movies/TV |
+| `/api/trending` | GET | Trending content |
+| `/api/popular` | GET | Popular content |
+| `/api/movie/[id]` | GET | Movie details |
+| `/api/tv/[id]` | GET | TV show details |
+| `/api/user/history` | GET/POST/DELETE | Watch history |
+| `/api/user/watchlist` | GET/POST/DELETE | User watchlist |
+
+## Streaming Sources
+
+The platform supports multiple streaming providers with automatic fallback:
+
+- VidSrc (primary)
+- 2Embed
+- SmashyStream
+- MoviesAPI
+- AutoEmbed
+- And more...
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is for educational purposes only.
+This project is for educational purposes only. All streaming content is provided by third-party services.
+
+## Acknowledgments
+
+- [TMDB](https://www.themoviedb.org/) for the comprehensive movie/TV database
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
