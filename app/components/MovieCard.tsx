@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -15,12 +15,13 @@ interface MovieCardProps {
 const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
   const { user } = useAuth();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
+  const [isLoaded, setIsLoaded] = useState(false);
   
   const title = 'title' in item ? item.title : item.name;
   const releaseDate = 'release_date' in item ? item.release_date : item.first_air_date;
-  // Use w342 instead of w500 for faster loading (smaller images)
+  // Use w185 for thumbnails - much faster loading
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
     : null;
 
   const inWatchlist = isInWatchlist(mediaType, item.id);
@@ -44,14 +45,23 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
         <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2">
             {posterPath ? (
-              <Image
-                src={posterPath}
-                alt={title}
-                fill
-                className="object-cover group-hover:brightness-110 transition-[filter]"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                loading="lazy"
-              />
+              <>
+                {/* Skeleton loader */}
+                {!isLoaded && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
+                )}
+                <Image
+                  src={posterPath}
+                  alt={title}
+                  fill
+                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${
+                    isLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, (max-width: 1024px) 22vw, 15vw"
+                  loading="lazy"
+                  onLoad={() => setIsLoaded(true)}
+                />
+              </>
             ) : (
               <div className="w-full h-full bg-gray-800 flex items-center justify-center">
                 <span className="text-gray-500 text-sm">No Image</span>

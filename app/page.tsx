@@ -20,8 +20,9 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
   mediaType: 'movie' | 'tv';
   onRemove?: () => void;
 }) {
+  const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
     : null;
   
   const progress = item.progress_seconds && item.duration_seconds 
@@ -34,14 +35,20 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
         <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
             {posterPath ? (
-              <Image
-                src={posterPath}
-                alt={item.title}
-                fill
-                className="object-cover group-hover:brightness-110 transition-[filter]"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                loading="lazy"
-              />
+              <>
+                {!isLoaded && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
+                )}
+                <Image
+                  src={posterPath}
+                  alt={item.title}
+                  fill
+                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
+                  loading="lazy"
+                  onLoad={() => setIsLoaded(true)}
+                />
+              </>
             ) : (
               <div className="w-full h-full bg-gray-800 flex items-center justify-center">
                 <span className="text-gray-500 text-sm">No Image</span>
@@ -96,8 +103,9 @@ const WatchlistCard = memo(function WatchlistCard({
   mediaType: 'movie' | 'tv';
   onRemove?: () => void;
 }) {
+  const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
     : null;
 
   return (
@@ -106,14 +114,20 @@ const WatchlistCard = memo(function WatchlistCard({
         <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
             {posterPath ? (
-              <Image
-                src={posterPath}
-                alt={item.title}
-                fill
-                className="object-cover group-hover:brightness-110 transition-[filter]"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                loading="lazy"
-              />
+              <>
+                {!isLoaded && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
+                )}
+                <Image
+                  src={posterPath}
+                  alt={item.title}
+                  fill
+                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
+                  loading="lazy"
+                  onLoad={() => setIsLoaded(true)}
+                />
+              </>
             ) : (
               <div className="w-full h-full bg-gray-800 flex items-center justify-center">
                 <span className="text-gray-500 text-sm">No Image</span>
