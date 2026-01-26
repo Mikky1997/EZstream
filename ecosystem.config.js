@@ -5,16 +5,18 @@ module.exports = {
       script: 'npm',
       args: 'start',
       cwd: '/var/www/mikkystream',
-      interpreter: '/root/.local/share/fnm/node-versions/v24.13.0/installation/bin/node',
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        PATH: '/root/.local/share/fnm/node-versions/v24.13.0/installation/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
       },
       instances: 1,
+      exec_mode: 'cluster',
       autorestart: true,
       watch: false,
-      max_memory_restart: '1G',
+      max_memory_restart: '500M',
+      error_file: './logs/error.log',
+      out_file: './logs/out.log',
+      merge_logs: true,
     },
   ],
 };
