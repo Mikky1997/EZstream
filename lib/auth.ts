@@ -81,7 +81,8 @@ export async function getCurrentUser(): Promise<User | null> {
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   // Only set secure flag if we're actually using HTTPS
-  const isSecure = process.env.NODE_ENV === 'production' && process.env.FORCE_SECURE_COOKIES === 'true';
+  // For HTTP, we need secure=false for cookies to work
+  const isSecure = process.env.FORCE_SECURE_COOKIES === 'true';
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isSecure,
