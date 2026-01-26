@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "MikkyStream",
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.png?v=2',
         width: 1200,
         height: 630,
         alt: 'MikkyStream - Movie Streaming Platform',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "MikkyStream - Movie Streaming Platform",
     description: "Stream movies, TV series, and anime",
-    images: ['/og-image.png'],
+    images: ['/og-image.png?v=2'],
   },
   robots: {
     index: true,
