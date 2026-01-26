@@ -73,9 +73,20 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  background: linear-gradient(90deg, #1f2937 0%, #374151 50%, #1f2937 100%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+/* Faster spin for loading indicators */
+@keyframes spin-fast {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin-fast 0.6s linear infinite;
 }
 
 /* Optimize hover transitions */

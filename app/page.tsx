@@ -22,7 +22,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
     : null;
   
   const progress = item.progress_seconds && item.duration_seconds 
@@ -37,16 +37,19 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
             {posterPath ? (
               <>
                 {!isLoaded && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
+                  <div className="absolute inset-0 bg-gray-800 animate-shimmer flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin" />
+                  </div>
                 )}
                 <Image
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
+                  className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  sizes="154px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
+                  unoptimized
                 />
               </>
             ) : (
@@ -105,7 +108,7 @@ const WatchlistCard = memo(function WatchlistCard({
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
     : null;
 
   return (
@@ -116,16 +119,19 @@ const WatchlistCard = memo(function WatchlistCard({
             {posterPath ? (
               <>
                 {!isLoaded && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
+                  <div className="absolute inset-0 bg-gray-800 animate-shimmer flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin" />
+                  </div>
                 )}
                 <Image
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
+                  className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  sizes="154px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
+                  unoptimized
                 />
               </>
             ) : (

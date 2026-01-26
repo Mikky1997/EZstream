@@ -12,16 +12,20 @@ interface MovieCardProps {
   mediaType: 'movie' | 'tv';
 }
 
+// Tiny blurred placeholder - instant display
+const shimmerPlaceholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTg1IiBoZWlnaHQ9IjI3OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWYyOTM3Ii8+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNnKSIvPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFmMjkzNyIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMzc0MTUxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWYyOTM3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+';
+
 const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
   const { user } = useAuth();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
   
   const title = 'title' in item ? item.title : item.name;
   const releaseDate = 'release_date' in item ? item.release_date : item.first_air_date;
-  // Use w185 for thumbnails - much faster loading
+  // Use w154 for even faster thumbnails
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
     : null;
 
   const inWatchlist = isInWatchlist(mediaType, item.id);
@@ -44,22 +48,28 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
       <Link href={`/watch/${mediaType}/${item.id}`} prefetch={false}>
         <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2">
-            {posterPath ? (
+            {posterPath && !hasError ? (
               <>
-                {/* Skeleton loader */}
-                {!isLoaded && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-700 animate-pulse" />
-                )}
+                {/* Animated shimmer placeholder - shows instantly */}
+                <div className={`absolute inset-0 bg-gray-800 ${!isLoaded ? 'animate-shimmer' : 'hidden'}`}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin" />
+                  </div>
+                </div>
                 <Image
                   src={posterPath}
                   alt={title}
                   fill
-                  className={`object-cover group-hover:brightness-110 transition-all duration-300 ${
+                  className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${
                     isLoaded ? 'opacity-100' : 'opacity-0'
                   }`}
-                  sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, (max-width: 1024px) 22vw, 15vw"
+                  sizes="154px"
                   loading="lazy"
+                  placeholder="blur"
+                  blurDataURL={shimmerPlaceholder}
                   onLoad={() => setIsLoaded(true)}
+                  onError={() => setHasError(true)}
+                  unoptimized
                 />
               </>
             ) : (
