@@ -35,20 +35,11 @@ export const metadata: Metadata = {
     description: "Stream movies, TV series, and anime",
     type: "website",
     siteName: "MikkyStream",
-    images: [
-      {
-        url: '/og-image.png?v=2',
-        width: 1200,
-        height: 630,
-        alt: 'MikkyStream - Movie Streaming Platform',
-      },
-    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: "MikkyStream - Movie Streaming Platform",
     description: "Stream movies, TV series, and anime",
-    images: ['/og-image.png?v=2'],
   },
   robots: {
     index: true,
