@@ -5,6 +5,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mikky.vip'),
   title: "MikkyStream - Movie Streaming Platform",
   description: "Stream movies, TV series, and anime",
   icons: {
