@@ -80,9 +80,11 @@ export async function getCurrentUser(): Promise<User | null> {
 // Set session cookie
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
+  // Only set secure flag if we're actually using HTTPS
+  const isSecure = process.env.NODE_ENV === 'production' && process.env.FORCE_SECURE_COOKIES === 'true';
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60, // Convert days to seconds
     path: '/',
