@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { discoverMoviesWithFilters } from '@/lib/tmdb';
 
+// Cache browse results for 5 minutes
+export const revalidate = 300;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1');
@@ -22,7 +25,11 @@ export async function GET(request: Request) {
       minVotes,
     });
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Browse movies error:', error);
     return NextResponse.json(

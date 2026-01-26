@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -11,19 +12,20 @@ interface MovieCardProps {
   mediaType: 'movie' | 'tv';
 }
 
-export default function MovieCard({ item, mediaType }: MovieCardProps) {
+const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
   const { user } = useAuth();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
   
   const title = 'title' in item ? item.title : item.name;
   const releaseDate = 'release_date' in item ? item.release_date : item.first_air_date;
+  // Use w342 instead of w500 for faster loading (smaller images)
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
     : null;
 
   const inWatchlist = isInWatchlist(mediaType, item.id);
 
-  const handleWatchlistClick = async (e: React.MouseEvent) => {
+  const handleWatchlistClick = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -34,20 +36,21 @@ export default function MovieCard({ item, mediaType }: MovieCardProps) {
     } else {
       await addToWatchlist(mediaType, item.id, title, item.poster_path);
     }
-  };
+  }, [user, inWatchlist, mediaType, item.id, title, item.poster_path, removeFromWatchlist, addToWatchlist]);
 
   return (
     <div className="group relative">
-      <Link href={`/watch/${mediaType}/${item.id}`}>
-        <div className="cursor-pointer transform transition-all duration-300 hover:scale-105">
+      <Link href={`/watch/${mediaType}/${item.id}`} prefetch={false}>
+        <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2">
             {posterPath ? (
               <Image
                 src={posterPath}
                 alt={title}
                 fill
-                className="object-cover group-hover:brightness-110 transition-all"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                className="object-cover group-hover:brightness-110 transition-[filter]"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                loading="lazy"
               />
             ) : (
               <div className="w-full h-full bg-gray-800 flex items-center justify-center">
@@ -92,7 +95,7 @@ export default function MovieCard({ item, mediaType }: MovieCardProps) {
       {user && (
         <button
           onClick={handleWatchlistClick}
-          className={`absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10 ${
+          className={`absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 ${
             inWatchlist 
               ? 'bg-blue-600 hover:bg-red-600' 
               : 'bg-black/70 hover:bg-blue-600'
@@ -112,4 +115,6 @@ export default function MovieCard({ item, mediaType }: MovieCardProps) {
       )}
     </div>
   );
-}
+});
+
+export default MovieCard;

@@ -1,13 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
 
+// Viewport configuration for better mobile experience
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#111827',
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mikky.vip'),
   title: "MikkyStream - Movie Streaming Platform",
   description: "Stream movies, TV series, and anime",
+  keywords: ['movies', 'tv shows', 'anime', 'streaming', 'watch online'],
+  authors: [{ name: 'MikkyStream' }],
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -24,6 +34,7 @@ export const metadata: Metadata = {
     title: "MikkyStream - Movie Streaming Platform",
     description: "Stream movies, TV series, and anime",
     type: "website",
+    siteName: "MikkyStream",
     images: [
       {
         url: '/og-image.png',
@@ -39,6 +50,10 @@ export const metadata: Metadata = {
     description: "Stream movies, TV series, and anime",
     images: ['/og-image.png'],
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -47,7 +62,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
+      <head>
+        {/* Preconnect to external domains for faster loading */}
+        <link rel="preconnect" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://api.themoviedb.org" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+      </head>
       <body className="antialiased bg-gray-900">
         <AuthProvider>
           <WatchlistProvider>

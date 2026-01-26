@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTVShowDetails, getIMDbId } from '@/lib/tmdb';
 
+// Cache TV show details for 1 hour
+export const revalidate = 3600;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -12,7 +15,11 @@ export async function GET(
       getIMDbId('tv', id),
     ]);
 
-    return NextResponse.json({ ...details, imdbId });
+    return NextResponse.json({ ...details, imdbId }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      },
+    });
   } catch (error) {
     console.error('TV API error:', error);
     return NextResponse.json(

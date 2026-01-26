@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchMovies } from '@/lib/tmdb';
 
+// Cache search results for 2 minutes
+export const revalidate = 120;
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
@@ -39,10 +42,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         ...results,
         results: uniqueResults.slice(0, 40), // Limit to 40 results
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+        },
       });
     }
     
-    return NextResponse.json(results);
+    return NextResponse.json(results, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     console.error('Search API error:', error);
     return NextResponse.json(

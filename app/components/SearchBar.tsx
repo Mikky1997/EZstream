@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent, memo, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -184,16 +185,22 @@ export default function SearchBar({ onSearch, onLiveResults, loading }: SearchBa
               key={`${item.media_type}-${item.id}`}
               href={`/watch/${item.media_type}/${item.id}`}
               onClick={handleSuggestionClick}
+              prefetch={false}
               className="flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0"
             >
               {item.poster_path ? (
-                <img
-                  src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
-                  alt={getTitle(item)}
-                  className="w-10 h-14 object-cover rounded"
-                />
+                <div className="relative w-10 h-14 flex-shrink-0">
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                    alt={getTitle(item)}
+                    fill
+                    className="object-cover rounded"
+                    sizes="40px"
+                    loading="lazy"
+                  />
+                </div>
               ) : (
-                <div className="w-10 h-14 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs">
+                <div className="w-10 h-14 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
                   No img
                 </div>
               )}

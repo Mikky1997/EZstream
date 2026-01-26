@@ -1,4 +1,3 @@
-import axios from 'axios';
 import type { Movie, TVShow, SearchResult } from '@/types';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
@@ -8,66 +7,66 @@ if (!TMDB_API_KEY) {
   throw new Error('TMDB_API_KEY is not set in environment variables');
 }
 
-const api = axios.create({
-  baseURL: TMDB_BASE_URL,
-  params: {
-    api_key: TMDB_API_KEY,
-  },
-});
+// Helper function to build URL with query params
+function buildUrl(endpoint: string, params: Record<string, string | number | boolean> = {}): string {
+  const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
+  url.searchParams.set('api_key', TMDB_API_KEY!);
+  
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, String(value));
+    }
+  }
+  
+  return url.toString();
+}
+
+// Reusable fetch with error handling
+async function fetchTMDB<T>(endpoint: string, params: Record<string, string | number | boolean> = {}): Promise<T> {
+  const url = buildUrl(endpoint, params);
+  
+  const response = await fetch(url, {
+    headers: {
+      'Accept': 'application/json',
+    },
+    // Enable Next.js caching
+    next: { revalidate: 300 }, // Cache for 5 minutes
+  });
+  
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+  }
+  
+  return response.json();
+}
 
 export async function searchMovies(query: string, page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/search/multi', {
-      params: {
-        query,
-        page,
-        include_adult: false,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB search error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/search/multi', {
+    query,
+    page,
+    include_adult: false,
+  });
 }
 
 export async function getMovieDetails(id: number): Promise<Movie> {
-  try {
-    const response = await api.get(`/movie/${id}`, {
-      params: {
-        append_to_response: 'videos,external_ids',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB movie details error:', error);
-    throw error;
-  }
+  return fetchTMDB<Movie>(`/movie/${id}`, {
+    append_to_response: 'videos,external_ids',
+  });
 }
 
 export async function getTVShowDetails(id: number): Promise<TVShow> {
-  try {
-    const response = await api.get(`/tv/${id}`, {
-      params: {
-        append_to_response: 'videos,external_ids',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB TV show details error:', error);
-    throw error;
-  }
+  return fetchTMDB<TVShow>(`/tv/${id}`, {
+    append_to_response: 'videos,external_ids',
+  });
 }
 
 export async function getIMDbId(mediaType: 'movie' | 'tv', tmdbId: number): Promise<string | null> {
   try {
     const endpoint = mediaType === 'movie' ? `/movie/${tmdbId}` : `/tv/${tmdbId}`;
-    const response = await api.get(endpoint, {
-      params: {
-        append_to_response: 'external_ids',
-      },
+    const data = await fetchTMDB<{ external_ids?: { imdb_id?: string } }>(endpoint, {
+      append_to_response: 'external_ids',
     });
-    return response.data.external_ids?.imdb_id || null;
+    return data.external_ids?.imdb_id || null;
   } catch (error) {
     console.error('TMDB IMDb ID error:', error);
     return null;
@@ -75,68 +74,33 @@ export async function getIMDbId(mediaType: 'movie' | 'tv', tmdbId: number): Prom
 }
 
 export async function getTrendingMovies(page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/trending/movie/week', {
-      params: { page },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB trending movies error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/trending/movie/week', { page });
 }
 
 export async function getPopularMovies(page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/movie/popular', {
-      params: { page },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB popular movies error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/movie/popular', { page });
 }
 
 export async function getTopRatedMovies(page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/movie/top_rated', {
-      params: { page },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB top rated movies error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/movie/top_rated', { page });
 }
 
 export async function getTrendingTV(page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/trending/tv/week', {
-      params: { page },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB trending TV error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/trending/tv/week', { page });
 }
 
 export async function discoverMovies(region?: string, page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/discover/movie', {
-      params: {
-        page,
-        sort_by: 'popularity.desc',
-        include_adult: false,
-        ...(region && { region }),
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB discover movies error:', error);
-    throw error;
+  const params: Record<string, string | number | boolean> = {
+    page,
+    sort_by: 'popularity.desc',
+    include_adult: false,
+  };
+  
+  if (region) {
+    params.region = region;
   }
+  
+  return fetchTMDB<SearchResult>('/discover/movie', params);
 }
 
 export async function discoverMoviesWithFilters(
@@ -149,32 +113,26 @@ export async function discoverMoviesWithFilters(
     minVotes?: number;
   } = {}
 ): Promise<SearchResult> {
-  try {
-    const { page = 1, genre, sortBy = 'popularity.desc', year, language, minVotes = 100 } = options;
-    
-    const params: Record<string, string | number | boolean> = {
-      page,
-      sort_by: sortBy,
-      include_adult: false,
-      'vote_count.gte': minVotes, // Higher vote count = more popular = more likely to be available
-    };
+  const { page = 1, genre, sortBy = 'popularity.desc', year, language, minVotes = 100 } = options;
+  
+  const params: Record<string, string | number | boolean> = {
+    page,
+    sort_by: sortBy,
+    include_adult: false,
+    'vote_count.gte': minVotes,
+  };
 
-    if (genre) {
-      params.with_genres = genre;
-    }
-    if (year) {
-      params.primary_release_year = year;
-    }
-    if (language) {
-      params.with_original_language = language;
-    }
-
-    const response = await api.get('/discover/movie', { params });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB discover movies with filters error:', error);
-    throw error;
+  if (genre) {
+    params.with_genres = genre;
   }
+  if (year) {
+    params.primary_release_year = year;
+  }
+  if (language) {
+    params.with_original_language = language;
+  }
+
+  return fetchTMDB<SearchResult>('/discover/movie', params);
 }
 
 export async function discoverTVWithFilters(
@@ -187,50 +145,36 @@ export async function discoverTVWithFilters(
     minVotes?: number;
   } = {}
 ): Promise<SearchResult> {
-  try {
-    const { page = 1, genre, sortBy = 'popularity.desc', year, language, minVotes = 50 } = options;
-    
-    const params: Record<string, string | number | boolean> = {
-      page,
-      sort_by: sortBy,
-      include_adult: false,
-      'vote_count.gte': minVotes, // Higher vote count = more popular = more likely to be available
-    };
+  const { page = 1, genre, sortBy = 'popularity.desc', year, language, minVotes = 50 } = options;
+  
+  const params: Record<string, string | number | boolean> = {
+    page,
+    sort_by: sortBy,
+    include_adult: false,
+    'vote_count.gte': minVotes,
+  };
 
-    if (genre) {
-      params.with_genres = genre;
-    }
-    if (year) {
-      params.first_air_date_year = year;
-    }
-    if (language) {
-      params.with_original_language = language;
-    }
-
-    const response = await api.get('/discover/tv', { params });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB discover TV with filters error:', error);
-    throw error;
+  if (genre) {
+    params.with_genres = genre;
   }
+  if (year) {
+    params.first_air_date_year = year;
+  }
+  if (language) {
+    params.with_original_language = language;
+  }
+
+  return fetchTMDB<SearchResult>('/discover/tv', params);
 }
 
 export async function getAnime(page: number = 1): Promise<SearchResult> {
-  try {
-    const response = await api.get('/discover/tv', {
-      params: {
-        page,
-        sort_by: 'popularity.desc',
-        include_adult: false,
-        with_genres: 16, // Animation
-        with_original_language: 'ja', // Japanese
-        'vote_count.gte': 50,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('TMDB anime error:', error);
-    throw error;
-  }
+  return fetchTMDB<SearchResult>('/discover/tv', {
+    page,
+    sort_by: 'popularity.desc',
+    include_adult: false,
+    with_genres: 16,
+    with_original_language: 'ja',
+    'vote_count.gte': 50,
+  });
 }
 
