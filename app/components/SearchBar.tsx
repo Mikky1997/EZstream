@@ -129,7 +129,7 @@ export default function SearchBar({ onSearch, onLiveResults, loading }: SearchBa
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            placeholder="Search for movies or TV series... (results appear as you type)"
+            placeholder="Search movies, TV shows, anime..."
             className="w-full px-6 py-4 text-lg bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all pr-32"
             disabled={loading}
           />

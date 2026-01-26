@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MovieCard from '@/app/components/MovieCard';
 import type { TVShow } from '@/types';
 
@@ -18,13 +18,38 @@ export default function BrowseAnime() {
   const [activeTab, setActiveTab] = useState<'tv' | 'movies'>('tv');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadAnime(true);
   }, [selectedCategory, activeTab]);
 
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadAnime(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, selectedCategory, activeTab]);
+
   const loadAnime = async (reset = false) => {
-    setLoading(true);
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     const currentPage = reset ? 1 : page;
     const category = ANIME_CATEGORIES.find(c => c.id === selectedCategory);
     
@@ -47,13 +72,14 @@ export default function BrowseAnime() {
           } else {
             setMovies(data.results || []);
           }
-          setPage(1);
+          setPage(2);
         } else {
           if (activeTab === 'tv') {
             setAnime(prev => [...prev, ...(data.results || [])]);
           } else {
             setMovies(prev => [...prev, ...(data.results || [])]);
           }
+          setPage(prev => prev + 1);
         }
         setHasMore((data.results?.length || 0) >= 20);
       }
@@ -61,12 +87,8 @@ export default function BrowseAnime() {
       console.error('Failed to load anime:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
-
-  const loadMore = () => {
-    setPage(prev => prev + 1);
-    loadAnime(false);
   };
 
   const currentItems = activeTab === 'tv' ? anime : movies;
@@ -101,19 +123,6 @@ export default function BrowseAnime() {
           </button>
         </div>
 
-        {/* Audio Info Box */}
-        <div className="mb-6 bg-purple-900/30 border border-purple-500 rounded-lg p-4">
-          <h3 className="text-purple-200 font-medium mb-2">Sub vs Dub</h3>
-          <p className="text-purple-100 text-sm">
-            When watching anime, you can choose between audio options on the watch page:
-          </p>
-          <ul className="text-purple-100 text-sm mt-2 list-disc list-inside">
-            <li><strong>SUB</strong> - Japanese audio with English subtitles (original)</li>
-            <li><strong>DUB</strong> - English dubbed audio</li>
-            <li><strong>MULTI</strong> - Has both options, switch in the player</li>
-          </ul>
-        </div>
-
         {/* Category Filter */}
         <div className="mb-8">
           <h3 className="text-gray-400 text-sm mb-2">Sort by</h3>
@@ -134,7 +143,6 @@ export default function BrowseAnime() {
           </div>
         </div>
 
-        {/* Current Filter Info */}
         <div className="mb-4 text-sm text-gray-400">
           Showing: <span className="text-purple-400">{ANIME_CATEGORIES.find(c => c.id === selectedCategory)?.name}</span> {activeTab === 'tv' ? 'anime series' : 'anime movies'}
         </div>
@@ -163,16 +171,12 @@ export default function BrowseAnime() {
               </div>
             )}
 
-            {/* Load More */}
+            {/* Infinite scroll trigger */}
             {hasMore && currentItems.length > 0 && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  {loading ? 'Loading...' : 'Load More'}
-                </button>
+              <div ref={loadMoreRef} className="py-8 text-center">
+                {loadingMore && (
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+                )}
               </div>
             )}
           </>

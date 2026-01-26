@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
     
-    const history = historyQueries.getForUser.all(user.id, Math.min(limit, 100));
+    const history = historyQueries.getForUser.all(user.id, user.id, Math.min(limit, 100));
     
     return NextResponse.json({ history });
   } catch (error) {

@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import SearchBar from '@/app/components/SearchBar';
 import MovieCard from '@/app/components/MovieCard';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { useWatchHistory, useWatchlist, useFavorites } from '@/app/hooks/useUserLists';
+import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
+import { useWatchHistory } from '@/app/hooks/useUserLists';
 import type { Movie, TVShow } from '@/types';
 
-// Helper component for user list sections
-function UserListCard({ item, mediaType }: { item: { media_id: number; title: string; poster_path: string | null; progress_seconds?: number; duration_seconds?: number; season?: number | null; episode?: number | null }; mediaType: 'movie' | 'tv' }) {
+// Helper component for Continue Watching cards
+function ContinueWatchingCard({ 
+  item, 
+  mediaType, 
+  onRemove 
+}: { 
+  item: { media_id: number; title: string; poster_path: string | null; progress_seconds?: number; duration_seconds?: number; season?: number | null; episode?: number | null }; 
+  mediaType: 'movie' | 'tv';
+  onRemove?: () => void;
+}) {
   const posterPath = item.poster_path
     ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
     : null;
@@ -19,94 +28,240 @@ function UserListCard({ item, mediaType }: { item: { media_id: number; title: st
     : 0;
 
   return (
-    <Link href={`/watch/${mediaType}/${item.media_id}`}>
-      <div className="group cursor-pointer transform transition-all duration-300 hover:scale-105">
-        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2">
-          {posterPath ? (
-            <img
-              src={posterPath}
-              alt={item.title}
-              className="w-full h-full object-cover group-hover:brightness-110 transition-all"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">No Image</span>
-            </div>
-          )}
-          {/* Progress bar for continue watching */}
-          {progress > 0 && (
+    <div className="group relative">
+      <Link href={`/watch/${mediaType}/${item.media_id}${mediaType === 'tv' && item.season && item.episode ? `?s=${item.season}&e=${item.episode}` : ''}`}>
+        <div className="cursor-pointer transform transition-all duration-300 hover:scale-105">
+          <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
+            {posterPath ? (
+              <img
+                src={posterPath}
+                alt={item.title}
+                className="w-full h-full object-cover group-hover:brightness-110 transition-all"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">No Image</span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
               <div 
-                className="h-full bg-red-600" 
+                className="h-full bg-red-500" 
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
-          )}
-          {/* Episode info for TV */}
-          {mediaType === 'tv' && item.season && item.episode && (
-            <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-xs text-white">
-              S{item.season} E{item.episode}
+            {mediaType === 'tv' && item.season && item.episode && (
+              <div className="absolute top-2 right-2 bg-black/80 px-2 py-1 rounded-lg text-xs text-white font-medium">
+                S{item.season} E{item.episode}
+              </div>
+            )}
+            <div className="absolute bottom-2 left-2 right-2">
+              <h3 className="text-white text-sm font-medium line-clamp-1">
+                {item.title}
+              </h3>
             </div>
-          )}
+          </div>
         </div>
-        <div className="px-1">
-          <h3 className="text-white text-sm font-medium line-clamp-1 group-hover:text-blue-400 transition-colors">
-            {item.title}
-          </h3>
+      </Link>
+      {onRemove && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="absolute top-2 left-2 p-1.5 bg-black/70 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+          title="Remove"
+        >
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Helper component for Watchlist cards
+function WatchlistCard({ 
+  item, 
+  mediaType,
+  onRemove 
+}: { 
+  item: { media_id: number; title: string; poster_path: string | null; }; 
+  mediaType: 'movie' | 'tv';
+  onRemove?: () => void;
+}) {
+  const posterPath = item.poster_path
+    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+    : null;
+
+  return (
+    <div className="group relative">
+      <Link href={`/watch/${mediaType}/${item.media_id}`}>
+        <div className="cursor-pointer transform transition-all duration-300 hover:scale-105">
+          <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
+            {posterPath ? (
+              <img
+                src={posterPath}
+                alt={item.title}
+                className="w-full h-full object-cover group-hover:brightness-110 transition-all"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">No Image</span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="absolute bottom-2 left-2 right-2">
+              <h3 className="text-white text-sm font-medium line-clamp-1">
+                {item.title}
+              </h3>
+            </div>
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+      {onRemove && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="absolute top-2 left-2 p-1.5 bg-black/70 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+          title="Remove"
+        >
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
-  const { history } = useWatchHistory();
-  const { watchlist } = useWatchlist();
-  const { favorites } = useFavorites();
+  const { history, removeFromHistory } = useWatchHistory();
+  const { watchlist, removeFromWatchlist } = useWatchlistContext();
   
   const [searchResults, setSearchResults] = useState<(Movie | TVShow)[]>([]);
   const [liveResults, setLiveResults] = useState<(Movie | TVShow)[]>([]);
-  const [trendingMovies, setTrendingMovies] = useState<(Movie | TVShow)[]>([]);
-  const [popularMovies, setPopularMovies] = useState<(Movie | TVShow)[]>([]);
-  const [trendingTV, setTrendingTV] = useState<(Movie | TVShow)[]>([]);
+  
+  // Mixed feed - movies, TV shows, and anime
+  const [feed, setFeed] = useState<Array<{ item: Movie | TVShow; type: 'movie' | 'tv' }>>([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  
   const [loading, setLoading] = useState(false);
   const [loadingBrowse, setLoadingBrowse] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Load browse content on mount
+  // Load initial mixed feed
   useEffect(() => {
-    loadBrowseContent();
+    loadInitialFeed();
   }, []);
 
-  const loadBrowseContent = async () => {
+  // Infinite scroll observer
+  useEffect(() => {
+    if (hasSearched) return; // Don't load more during search
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loadingBrowse) {
+          loadMoreFeed();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadingBrowse, hasSearched, page]);
+
+  const loadInitialFeed = async () => {
     setLoadingBrowse(true);
     try {
-      const [trendingRes, popularRes, tvRes] = await Promise.all([
-        fetch('/api/trending?type=movie'),
-        fetch('/api/popular'),
-        fetch('/api/trending?type=tv'),
+      // Load from multiple sources and mix them
+      const [trendingMovies, trendingTV, popularMovies, popularTV, topRatedMovies, topRatedTV, animeTV] = await Promise.all([
+        fetch('/api/trending?type=movie&page=1').then(r => r.json()),
+        fetch('/api/trending?type=tv&page=1').then(r => r.json()),
+        fetch('/api/popular?type=movie&page=1').then(r => r.json()),
+        fetch('/api/popular?type=tv&page=1').then(r => r.json()),
+        fetch('/api/browse/movies?category=top_rated&page=1').then(r => r.json()),
+        fetch('/api/browse/tv?category=top_rated&page=1').then(r => r.json()),
+        fetch('/api/browse/tv?language=ja&genre=16&page=1').then(r => r.json()), // Anime
       ]);
 
-      if (trendingRes.ok) {
-        const data = await trendingRes.json();
-        setTrendingMovies(data.results?.slice(0, 12) || []);
-      }
+      // Mix all results together
+      const mixed: Array<{ item: Movie | TVShow; type: 'movie' | 'tv' }> = [];
+      
+      // Add movies
+      (trendingMovies.results || []).slice(0, 8).forEach((m: Movie) => mixed.push({ item: m, type: 'movie' }));
+      (popularMovies.results || []).slice(0, 8).forEach((m: Movie) => mixed.push({ item: m, type: 'movie' }));
+      (topRatedMovies.results || []).slice(0, 6).forEach((m: Movie) => mixed.push({ item: m, type: 'movie' }));
+      
+      // Add TV shows
+      (trendingTV.results || []).slice(0, 8).forEach((t: TVShow) => mixed.push({ item: t, type: 'tv' }));
+      (popularTV.results || []).slice(0, 8).forEach((t: TVShow) => mixed.push({ item: t, type: 'tv' }));
+      (topRatedTV.results || []).slice(0, 6).forEach((t: TVShow) => mixed.push({ item: t, type: 'tv' }));
+      
+      // Add anime
+      (animeTV.results || []).slice(0, 10).forEach((a: TVShow) => mixed.push({ item: a, type: 'tv' }));
 
-      if (popularRes.ok) {
-        const data = await popularRes.json();
-        setPopularMovies(data.results?.slice(0, 12) || []);
-      }
-
-      if (tvRes.ok) {
-        const data = await tvRes.json();
-        setTrendingTV(data.results?.slice(0, 12) || []);
-      }
+      // Shuffle the array for variety
+      const shuffled = mixed.sort(() => Math.random() - 0.5);
+      setFeed(shuffled);
+      setPage(2);
     } catch (err) {
-      console.error('Failed to load browse content:', err);
+      console.error('Failed to load feed:', err);
     } finally {
       setLoadingBrowse(false);
+    }
+  };
+
+  const loadMoreFeed = async () => {
+    if (loadingMore) return;
+    
+    setLoadingMore(true);
+    try {
+      // Rotate through different sources for variety
+      const sources = [
+        { url: '/api/trending?type=movie', type: 'movie' as const },
+        { url: '/api/trending?type=tv', type: 'tv' as const },
+        { url: '/api/popular?type=movie', type: 'movie' as const },
+        { url: '/api/popular?type=tv', type: 'tv' as const },
+        { url: '/api/browse/tv?language=ja&genre=16', type: 'tv' as const }, // Anime
+      ];
+      
+      const sourceIndex = (page - 2) % sources.length;
+      const source = sources[sourceIndex];
+      const response = await fetch(`${source.url}&page=${page}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const newItems = (data.results || []).map((item: Movie | TVShow) => ({
+          item,
+          type: source.type,
+        }));
+        
+        if (newItems.length === 0) {
+          setHasMore(false);
+        } else {
+          setFeed(prev => [...prev, ...newItems]);
+          setPage(prev => prev + 1);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load more:', err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -146,53 +301,46 @@ export default function Home() {
   }, []);
 
   const showResults = (hasSearched && searchResults.length > 0) || liveResults.length > 0 || hasSearched;
-
-  // Filter history items that have meaningful progress (more than 60 seconds watched)
   const continueWatching = history.filter(item => item.progress_seconds > 60);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
-      <div className="container mx-auto px-4 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+      <div className="container mx-auto px-4 py-6">
         {/* Hero Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-            {user ? `Welcome back, ${user.displayName}` : 'Welcome to StreamFlix'}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+            {user ? `Welcome back, ${user.displayName}` : 'Discover & Stream'}
           </h1>
-          <p className="text-gray-400 text-lg">
-            Stream movies, TV shows, and anime - all in one place
+          <p className="text-gray-400">
+            Movies, TV Shows & Anime
           </p>
         </div>
 
-        <SearchBar 
-          onSearch={handleSearch} 
-          onLiveResults={handleLiveResults}
-          loading={loading} 
-        />
+        {/* Search Bar */}
+        <div className="mb-8">
+          <SearchBar 
+            onSearch={handleSearch} 
+            onLiveResults={handleLiveResults}
+            loading={loading} 
+          />
+        </div>
 
         {error && (
-          <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
             {error}
           </div>
         )}
 
         {loading && (
-          <div className="mt-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-            <p className="mt-4 text-gray-400">Searching...</p>
+          <div className="py-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent"></div>
           </div>
         )}
 
-        {/* Live Search Results */}
+        {/* Search Results */}
         {!hasSearched && liveResults.length > 0 && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-white">
-                Search Results ({liveResults.length})
-              </h2>
-              <span className="text-sm text-gray-400">
-                Press Enter for full search
-              </span>
-            </div>
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-4">Results ({liveResults.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {liveResults.slice(0, 18).map((item) => (
                 <MovieCard
@@ -205,12 +353,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Full Search Results */}
         {hasSearched && searchResults.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">
-              Search Results ({searchResults.length})
-            </h2>
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-4">Search Results ({searchResults.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {searchResults.map((item) => (
                 <MovieCard
@@ -224,125 +369,80 @@ export default function Home() {
         )}
 
         {hasSearched && !loading && searchResults.length === 0 && (
-          <div className="mt-8 text-center text-gray-400">
-            <p className="text-xl">No results found. Try a different search term.</p>
+          <div className="py-12 text-center text-gray-400">
+            <p className="text-lg">No results found</p>
           </div>
         )}
 
-        {/* Browse Categories - only show when not searching */}
+        {/* Browse Content */}
         {!showResults && (
           <>
             {loadingBrowse || authLoading ? (
-              <div className="mt-8 text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                <p className="mt-4 text-gray-400">Loading content...</p>
+              <div className="py-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent"></div>
               </div>
             ) : (
               <>
-                {/* Continue Watching - Only for logged in users */}
+                {/* Continue Watching */}
                 {user && continueWatching.length > 0 && (
-                  <div className="mt-8">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      Continue Watching
+                  <div className="mb-10">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-red-500">▶</span> Continue Watching
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {continueWatching.slice(0, 6).map((item) => (
-                        <UserListCard
-                          key={`${item.media_type}-${item.media_id}-${item.season}-${item.episode}`}
+                        <ContinueWatchingCard
+                          key={`${item.media_type}-${item.media_id}`}
                           item={item}
                           mediaType={item.media_type}
+                          onRemove={() => removeFromHistory(item.media_type, item.media_id)}
                         />
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* My Watchlist - Only for logged in users */}
+                {/* Watchlist */}
                 {user && watchlist.length > 0 && (
-                  <div className="mt-12">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      My Watchlist
+                  <div className="mb-10">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-blue-500">+</span> My Watchlist
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {watchlist.slice(0, 6).map((item) => (
-                        <UserListCard
+                        <WatchlistCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}
                           mediaType={item.media_type}
+                          onRemove={() => removeFromWatchlist(item.media_type, item.media_id)}
                         />
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* My Favorites - Only for logged in users */}
-                {user && favorites.length > 0 && (
-                  <div className="mt-12">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      My Favorites
-                    </h2>
+                {/* Mixed Feed - Movies, TV Shows, Anime */}
+                {feed.length > 0 && (
+                  <div className="mb-10">
+                    <h2 className="text-xl font-bold text-white mb-4">Discover</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {favorites.slice(0, 6).map((item) => (
-                        <UserListCard
-                          key={`${item.media_type}-${item.media_id}`}
-                          item={item}
-                          mediaType={item.media_type}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {trendingMovies.length > 0 && (
-                  <div className="mt-12">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      Trending Movies
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {trendingMovies.map((item) => (
+                      {feed.map((entry, index) => (
                         <MovieCard
-                          key={item.id}
-                          item={item}
-                          mediaType="movie"
+                          key={`${entry.type}-${entry.item.id}-${index}`}
+                          item={entry.item}
+                          mediaType={entry.type}
                         />
                       ))}
                     </div>
                   </div>
                 )}
 
-                {popularMovies.length > 0 && (
-                  <div className="mt-12">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      Popular Movies
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {popularMovies.map((item) => (
-                        <MovieCard
-                          key={item.id}
-                          item={item}
-                          mediaType="movie"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {trendingTV.length > 0 && (
-                  <div className="mt-12">
-                    <h2 className="text-2xl font-semibold text-white mb-4">
-                      Trending TV Shows
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {trendingTV.map((item) => (
-                        <MovieCard
-                          key={item.id}
-                          item={item}
-                          mediaType="tv"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Infinite scroll trigger */}
+                <div ref={loadMoreRef} className="py-8 text-center">
+                  {loadingMore && (
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+                  )}
+                </div>
               </>
             )}
           </>

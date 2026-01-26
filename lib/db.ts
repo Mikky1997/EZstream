@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 
 // Database path - use environment variable or default to local data folder
-const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'streamflix.db');
+const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'mikkystream.db');
 
 // Ensure data directory exists
 import fs from 'fs';
@@ -170,11 +170,34 @@ export const historyQueries = {
       duration_seconds = excluded.duration_seconds,
       last_watched_at = CURRENT_TIMESTAMP
   `),
-  getForUser: db.prepare<[number, number], WatchHistoryItem>(`
-    SELECT * FROM watch_history 
-    WHERE user_id = ? 
-    ORDER BY last_watched_at DESC 
+  getForUser: db.prepare<[number, number, number], WatchHistoryItem>(`
+    SELECT wh.* FROM watch_history wh
+    INNER JOIN (
+      SELECT media_type, media_id, MAX(last_watched_at) as max_watched
+      FROM watch_history
+      WHERE user_id = ?
+      GROUP BY media_type, media_id
+    ) latest ON wh.media_type = latest.media_type 
+            AND wh.media_id = latest.media_id 
+            AND wh.last_watched_at = latest.max_watched
+    WHERE wh.user_id = ?
+      AND (wh.duration_seconds = 0 OR wh.progress_seconds < wh.duration_seconds * 0.9)
+    ORDER BY wh.last_watched_at DESC 
     LIMIT ?
+  `),
+  getWatchedEpisodes: db.prepare<[number, number], { season: number; episode: number; progress_seconds: number }>(`
+    SELECT season, episode, progress_seconds FROM watch_history 
+    WHERE user_id = ? AND media_type = 'tv' AND media_id = ? AND season IS NOT NULL AND episode IS NOT NULL
+    ORDER BY season, episode
+  `),
+  markEpisodeWatched: db.prepare<[number, number, number, number, string, string | null]>(`
+    INSERT INTO watch_history (user_id, media_type, media_id, season, episode, title, poster_path, progress_seconds, duration_seconds)
+    VALUES (?, 'tv', ?, ?, ?, ?, ?, 2400, 2400)
+    ON CONFLICT(user_id, media_type, media_id, season, episode) 
+    DO UPDATE SET 
+      progress_seconds = 2400,
+      duration_seconds = 2400,
+      last_watched_at = CURRENT_TIMESTAMP
   `),
   delete: db.prepare<[number, string, number]>(
     'DELETE FROM watch_history WHERE user_id = ? AND media_type = ? AND media_id = ?'

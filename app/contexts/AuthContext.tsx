@@ -56,7 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: data.error || 'Login failed' };
       }
 
-      setUser(data.user);
+      // Update user state immediately from response
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        // If user not in response, fetch it
+        await checkAuth();
+      }
+      
       return { success: true };
     } catch {
       return { success: false, error: 'An error occurred' };

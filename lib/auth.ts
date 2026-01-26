@@ -5,10 +5,10 @@ import { userQueries, sessionQueries, type User } from './db';
 import { randomUUID } from 'crypto';
 
 // Session configuration
-const SESSION_COOKIE_NAME = 'streamflix_session';
+const SESSION_COOKIE_NAME = 'mikkystream_session';
 const SESSION_DURATION_DAYS = 365; // 1 year for persistent login
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET || 'streamflix-default-secret-change-in-production'
+  process.env.SESSION_SECRET || 'mikkystream-default-secret-change-in-production'
 );
 
 // Password hashing

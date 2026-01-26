@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, checkAuth } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,27 +18,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const result = await login(username, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed');
+      if (!result.success) {
+        setError(result.error || 'Login failed');
+        setLoading(false);
         return;
       }
 
-      // Redirect to home page on success
-      router.push('/');
-      router.refresh();
+      // Small delay to ensure cookie is set, then full page reload
+      // This ensures all contexts (Auth, Watchlist, etc.) refresh properly
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 50);
     } catch {
       setError('An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -48,7 +44,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
             <span className="text-5xl mr-2">🎬</span>
-            StreamFlix
+            MikkyStream
           </h1>
           <p className="text-gray-400">Sign in to continue watching</p>
         </div>

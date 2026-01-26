@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   }
   
   // Check for session cookie
-  const sessionCookie = request.cookies.get('streamflix_session');
+  const sessionCookie = request.cookies.get('mikkystream_session');
   
   // If no session and trying to access protected route, redirect to login
   if (!sessionCookie && !pathname.startsWith('/api/')) {

@@ -1,10 +1,10 @@
 module.exports = {
   apps: [
     {
-      name: 'streamflix',
+      name: 'mikkystream',
       script: 'npm',
       args: 'start',
-      cwd: '/var/www/streamflix',
+      cwd: '/var/www/mikkystream',
       env: {
         NODE_ENV: 'production',
         PORT: 3000,

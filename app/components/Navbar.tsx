@@ -29,27 +29,23 @@ export default function Navbar() {
     <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo / Home */}
+          {/* Home Icon */}
           <Link 
             href="/" 
-            className="flex items-center gap-2 text-white font-bold text-xl hover:text-blue-400 transition-colors"
+            className="group p-2 rounded-lg hover:bg-gray-800 transition-all"
+            title="Home"
           >
-            <span className="text-2xl">🎬</span>
-            <span className="hidden sm:inline">StreamFlix</span>
+            <svg 
+              className="w-8 h-8 text-blue-500 group-hover:text-blue-400 group-hover:scale-110 transition-all duration-200" 
+              fill="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/"
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                isActive('/') 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
-              }`}
-            >
-              Home
-            </Link>
             <Link
               href="/browse/movies"
               className={`px-3 py-2 rounded-lg transition-colors ${
@@ -145,17 +141,6 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-800">
             <div className="flex flex-col gap-2">
-              <Link
-                href="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-colors ${
-                  isActive('/') 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                Home
-              </Link>
               <Link
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}

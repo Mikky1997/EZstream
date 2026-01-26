@@ -4,10 +4,17 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import VideoPlayer from '@/app/components/VideoPlayer';
 import MediaActions from '@/app/components/MediaActions';
+import EpisodeList from '@/app/components/EpisodeList';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { getAllEmbedUrls, getAudioBadgeColor, getAudioLabel, type EmbedUrl } from '@/lib/vidsrc';
+import { getAllEmbedUrls, type EmbedUrl } from '@/lib/vidsrc';
 import type { Movie, TVShow, StreamingSource } from '@/types';
 import Image from 'next/image';
+
+interface Season {
+  season_number: number;
+  episode_count: number;
+  name: string;
+}
 
 export default function WatchPage() {
   const params = useParams();
@@ -29,21 +36,23 @@ export default function WatchPage() {
   // Season/episode for TV shows
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
-  const [totalSeasons, setTotalSeasons] = useState(1);
-  const [episodesPerSeason, setEpisodesPerSeason] = useState<number[]>([]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
 
-  // For anime content: sub/dub preference
-  const [isAnime, setIsAnime] = useState(false);
-  const [audioPreference, setAudioPreference] = useState<'sub' | 'dub' | 'all'>('all');
+  // Mobile episode panel
+  const [showEpisodePanel, setShowEpisodePanel] = useState(false);
+
+  // Mark as watched state
+  const [isMarkedWatched, setIsMarkedWatched] = useState(false);
+  const [markingWatched, setMarkingWatched] = useState(false);
 
   // For saving watch progress
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const lastSavedProgress = useRef<number>(0);
+  const hasSavedToHistory = useRef<string>('');
 
   useEffect(() => {
     loadContent();
     
-    // Cleanup interval on unmount
     return () => {
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
@@ -55,7 +64,6 @@ export default function WatchPage() {
   const saveProgress = useCallback(async (progressSeconds: number, durationSeconds: number = 0) => {
     if (!user || !item) return;
     
-    // Only save if progress changed significantly (more than 10 seconds)
     if (Math.abs(progressSeconds - lastSavedProgress.current) < 10) return;
     
     lastSavedProgress.current = progressSeconds;
@@ -81,11 +89,22 @@ export default function WatchPage() {
     }
   }, [user, item, type, id, season, episode]);
 
-  // Start saving progress when video loads
+  // Save to watch history when user starts watching
+  // Only save once per unique content (movie or episode)
   useEffect(() => {
     if (user && item && streamingSource) {
-      // Save initial view
+      const historyKey = type === 'tv' 
+        ? `${type}-${id}-${season}-${episode}` 
+        : `${type}-${id}`;
+      
+      // Don't save if we've already saved this exact content
+      if (hasSavedToHistory.current === historyKey) {
+        return;
+      }
+      
+      hasSavedToHistory.current = historyKey;
       const title = 'title' in item ? item.title : item.name;
+      
       fetch('/api/user/history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,8 +113,8 @@ export default function WatchPage() {
           mediaId: parseInt(id),
           title,
           posterPath: item.poster_path,
-          progressSeconds: 0,
-          durationSeconds: 0,
+          progressSeconds: 120,
+          durationSeconds: type === 'movie' ? 7200 : 2400,
           season: type === 'tv' ? season : undefined,
           episode: type === 'tv' ? episode : undefined,
         }),
@@ -103,12 +122,12 @@ export default function WatchPage() {
     }
   }, [user, item, streamingSource, type, id, season, episode]);
 
-  // Reload sources when season/episode or audio preference changes
+  // Reload sources when season/episode changes
   useEffect(() => {
     if (item) {
       updateSourcesForEpisode();
     }
-  }, [season, episode, audioPreference, imdbId, tmdbId]);
+  }, [season, episode, imdbId, tmdbId]);
 
   const updateSourcesForEpisode = () => {
     const sources = getAllEmbedUrls(
@@ -116,9 +135,7 @@ export default function WatchPage() {
       tmdbId, 
       type, 
       season, 
-      episode, 
-      isAnime, 
-      isAnime ? audioPreference : undefined
+      episode
     );
     setAvailableSources(sources);
     if (sources.length > 0) {
@@ -133,7 +150,6 @@ export default function WatchPage() {
     setError(null);
 
     try {
-      // Load movie/TV show details via API
       const apiEndpoint = type === 'movie' ? `/api/movie/${id}` : `/api/tv/${id}`;
       const response = await fetch(apiEndpoint);
       
@@ -147,24 +163,9 @@ export default function WatchPage() {
       const imdb = data.imdbId || null;
       setImdbId(imdb);
 
-      // Check if this is anime (Japanese animation)
-      const lang = data.original_language || 'en';
-      const isAnimeContent = lang === 'ja' && 
-        (data.genres?.some((g: { id: number }) => g.id === 16) || // Animation genre
-         data.genre_ids?.includes(16));
-      setIsAnime(isAnimeContent);
-      
-      // Set default audio preference for anime
-      if (isAnimeContent) {
-        setAudioPreference('sub'); // Default to sub for anime
-      }
-
       // For TV shows, get season info
-      if (type === 'tv' && data.number_of_seasons) {
-        setTotalSeasons(data.number_of_seasons);
-        const episodes = data.seasons?.map((s: { episode_count: number }) => s.episode_count || 10) || 
-          Array(data.number_of_seasons).fill(10);
-        setEpisodesPerSeason(episodes);
+      if (type === 'tv' && data.seasons) {
+        setSeasons(data.seasons);
       }
 
       // Get sources
@@ -173,13 +174,10 @@ export default function WatchPage() {
         id, 
         type, 
         season, 
-        episode, 
-        isAnimeContent,
-        isAnimeContent ? 'sub' : undefined
+        episode
       );
       setAvailableSources(sources);
 
-      // Set the primary streaming source
       if (sources.length > 0) {
         setStreamingSource({ type: 'vidsrc', url: sources[0].url });
       }
@@ -188,6 +186,43 @@ export default function WatchPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
+    setSeason(newSeason);
+    setEpisode(newEpisode);
+    setShowEpisodePanel(false);
+    setIsMarkedWatched(false); // Reset for new episode
+  };
+
+  // Mark content as fully watched (removes from Continue Watching)
+  const markAsWatched = async () => {
+    if (!user || !item || markingWatched) return;
+    
+    setMarkingWatched(true);
+    const itemTitle = 'title' in item ? item.title : item.name;
+    
+    try {
+      await fetch('/api/user/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaType: type,
+          mediaId: parseInt(id),
+          title: itemTitle,
+          posterPath: item.poster_path,
+          progressSeconds: type === 'movie' ? 7200 : 2400, // Full duration
+          durationSeconds: type === 'movie' ? 7200 : 2400,
+          season: type === 'tv' ? season : undefined,
+          episode: type === 'tv' ? episode : undefined,
+        }),
+      });
+      setIsMarkedWatched(true);
+    } catch (error) {
+      console.error('Failed to mark as watched:', error);
+    } finally {
+      setMarkingWatched(false);
     }
   };
 
@@ -207,15 +242,6 @@ export default function WatchPage() {
     } else {
       setSourceError(true);
     }
-  };
-
-  // Count sources by audio type (only for anime/non-English)
-  const getAudioCounts = () => {
-    const counts = { sub: 0, dub: 0, multi: 0, unknown: 0 };
-    availableSources.forEach(s => {
-      if (s.audioType) counts[s.audioType]++;
-    });
-    return counts;
   };
 
   if (loading) {
@@ -260,12 +286,12 @@ export default function WatchPage() {
     ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
     : null;
   const currentSource = availableSources[currentSourceIndex];
-  const audioCounts = getAudioCounts();
+  const isTVShow = type === 'tv';
 
   return (
     <div className="min-h-screen bg-black">
       {backdropPath && (
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 opacity-10">
           <Image
             src={backdropPath}
             alt={title}
@@ -276,246 +302,211 @@ export default function WatchPage() {
         </div>
       )}
       
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <div className="mb-6">
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="container mx-auto px-4 py-4">
           <button
             onClick={() => window.history.back()}
-            className="text-gray-400 hover:text-white transition-colors mb-4"
+            className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
           >
-            ← Back
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
           </button>
-          <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
-          {overview && (
-            <p className="text-gray-300 max-w-3xl">{overview}</p>
-          )}
-          {isAnime && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              <span className="px-2 py-1 bg-purple-900 text-purple-200 text-sm rounded">
-                🎌 Anime
-              </span>
-            </div>
-          )}
-          
-          {/* Media Actions - Watchlist & Favorites */}
-          <div className="mt-4">
-            <MediaActions
-              mediaType={type}
-              mediaId={parseInt(id)}
-              title={'title' in item ? item.title : item.name}
-              posterPath={item.poster_path}
-            />
-          </div>
         </div>
 
-        {/* TV Show Season/Episode Selector */}
-        {type === 'tv' && (
-          <div className="mb-6 flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <label className="text-gray-400">Season:</label>
-              <select
-                value={season}
-                onChange={(e) => {
-                  setSeason(parseInt(e.target.value));
-                  setEpisode(1);
-                }}
-                className="bg-gray-800 text-white px-3 py-2 rounded border border-gray-700"
-              >
-                {Array.from({ length: totalSeasons }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    Season {i + 1}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-gray-400">Episode:</label>
-              <select
-                value={episode}
-                onChange={(e) => setEpisode(parseInt(e.target.value))}
-                className="bg-gray-800 text-white px-3 py-2 rounded border border-gray-700"
-              >
-                {Array.from({ length: episodesPerSeason[season - 1] || 10 }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    Episode {i + 1}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
+        {/* Main Content */}
+        <div className="container mx-auto px-4 pb-8">
+          <div className={`flex gap-6 ${isTVShow ? 'flex-col lg:flex-row' : ''}`}>
+            
+            {/* Episode List - Left Side (TV Shows only) */}
+            {isTVShow && seasons.length > 0 && (
+              <>
+                {/* Desktop Episode List */}
+                <div className="hidden lg:block w-80 flex-shrink-0">
+                  <div className="sticky top-20" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+                    <EpisodeList
+                      mediaId={parseInt(id)}
+                      seasons={seasons}
+                      currentSeason={season}
+                      currentEpisode={episode}
+                      onSelectEpisode={handleSelectEpisode}
+                      title={title}
+                      posterPath={item.poster_path}
+                    />
+                  </div>
+                </div>
 
-        {/* Audio Preference Selector - Only for Anime */}
-        {isAnime && (
-          <div className="mb-6 bg-purple-900/30 border border-purple-700 rounded-lg p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <h3 className="text-white font-medium">Audio Preference:</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setAudioPreference('all')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    audioPreference === 'all'
-                      ? 'bg-gray-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setAudioPreference('sub')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                    audioPreference === 'sub'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  <span>🇯🇵</span>
-                  <span>Sub</span>
-                </button>
-                <button
-                  onClick={() => setAudioPreference('dub')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                    audioPreference === 'dub'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  <span>🇺🇸</span>
-                  <span>Dub</span>
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm mt-2">
-              SUB = Japanese audio with subtitles | DUB = English dubbed
-            </p>
-          </div>
-        )}
+                {/* Mobile Episode Button */}
+                <div className="lg:hidden mb-4">
+                  <button
+                    onClick={() => setShowEpisodePanel(true)}
+                    className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center justify-between"
+                  >
+                    <span className="font-medium">S{season} E{episode}</span>
+                    <span className="text-gray-400">Select Episode</span>
+                  </button>
+                </div>
 
-        {/* Source Selector */}
-        {availableSources.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="relative">
-                <button
-                  onClick={() => setShowSourceSelector(!showSourceSelector)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded border border-gray-700 flex items-center gap-2"
-                >
-                  <span>Source: {currentSource?.name}</span>
-                  {/* Only show audio badge for anime */}
-                  {isAnime && currentSource?.audioType && (
-                    <span className={`px-2 py-0.5 text-xs rounded ${getAudioBadgeColor(currentSource.audioType)}`}>
-                      {getAudioLabel(currentSource.audioType)}
-                    </span>
-                  )}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showSourceSelector && (
-                  <div className="absolute top-full left-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[280px]">
-                    {availableSources.map((source, index) => (
-                      <button
-                        key={source.source}
-                        onClick={() => switchSource(index)}
-                        className={`w-full text-left px-4 py-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 ${
-                          index === currentSourceIndex ? 'bg-blue-900' : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className={index === currentSourceIndex ? 'text-blue-200' : 'text-white'}>
-                            {source.name}
-                          </span>
-                          {/* Only show audio badge for anime */}
-                          {isAnime && source.audioType && (
-                            <span className={`px-2 py-0.5 text-xs rounded ${getAudioBadgeColor(source.audioType)}`}>
-                              {getAudioLabel(source.audioType)}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                {/* Mobile Episode Panel */}
+                {showEpisodePanel && (
+                  <div className="fixed inset-0 z-50 lg:hidden">
+                    <div 
+                      className="absolute inset-0 bg-black/80"
+                      onClick={() => setShowEpisodePanel(false)}
+                    />
+                    <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-gray-900 shadow-xl">
+                      <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+                        <h3 className="text-white font-semibold">Episodes</h3>
+                        <button
+                          onClick={() => setShowEpisodePanel(false)}
+                          className="p-2 text-gray-400 hover:text-white"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="h-full overflow-y-auto pb-20">
+                        <EpisodeList
+                          mediaId={parseInt(id)}
+                          seasons={seasons}
+                          currentSeason={season}
+                          currentEpisode={episode}
+                          onSelectEpisode={handleSelectEpisode}
+                          title={title}
+                          posterPath={item.poster_path}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-              {currentSourceIndex < availableSources.length - 1 && (
-                <button
-                  onClick={tryNextSource}
-                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded"
-                >
-                  Not working? Try next →
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Audio Type Legend - Only for Anime */}
-        {isAnime && (
-          <div className="mb-4 flex flex-wrap gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 text-xs rounded ${getAudioBadgeColor('sub')}`}>SUB</span>
-              <span className="text-gray-400">Japanese audio + subtitles</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 text-xs rounded ${getAudioBadgeColor('dub')}`}>DUB</span>
-              <span className="text-gray-400">English dubbed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 text-xs rounded ${getAudioBadgeColor('multi')}`}>MULTI</span>
-              <span className="text-gray-400">Both options available</span>
-            </div>
-          </div>
-        )}
-
-        {/* Video Player */}
-        {streamingSource && (
-          <div className="bg-gray-900/90 rounded-lg p-4 mb-6">
-            <VideoPlayer
-              source={streamingSource}
-              title={title}
-            />
-          </div>
-        )}
-
-        {/* Source Error Message */}
-        {sourceError && (
-          <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-6">
-            <h3 className="text-red-200 font-medium mb-2">Content Not Available</h3>
-            <p className="text-red-100 text-sm">
-              We have tried all available sources but this content does not seem to be available for streaming. 
-              This can happen with:
-            </p>
-            <ul className="text-red-100 text-sm mt-2 list-disc list-inside">
-              <li>Very new releases that have not been added to sources yet</li>
-              <li>Older or obscure content with limited availability</li>
-              <li>Regional content (like some Arabic movies)</li>
-            </ul>
-            <p className="text-red-100 text-sm mt-2">
-              Try searching for a different title or check back later.
-            </p>
-          </div>
-        )}
-
-        {/* Helpful Tips */}
-        <div className="bg-gray-900/90 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-3">
-            Tips
-          </h3>
-          <ul className="text-gray-300 text-sm space-y-2">
-            <li className="flex items-start gap-2">
-              <span>•</span>
-              <span>If a source does not work, click the Try next button to switch to another source</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span>•</span>
-              <span>VidSrc.me and MoviesAPI are generally the most reliable sources</span>
-            </li>
-            {isAnime && (
-              <li className="flex items-start gap-2">
-                <span>•</span>
-                <span>Use the audio preference buttons to filter between Sub (Japanese) and Dub (English) sources</span>
-              </li>
+              </>
             )}
-          </ul>
+
+            {/* Video Player & Info - Right Side */}
+            <div className="flex-1 min-w-0">
+              {/* Title & Info */}
+              <div className="mb-4">
+                <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+                  {title}
+                  {isTVShow && (
+                    <span className="text-blue-400 ml-2 text-xl">
+                      S{season} E{episode}
+                    </span>
+                  )}
+                </h1>
+                {overview && (
+                  <p className="text-gray-400 text-sm line-clamp-2 mb-3">{overview}</p>
+                )}
+                <div className="flex flex-wrap items-center gap-3">
+                  <MediaActions
+                    mediaType={type}
+                    mediaId={parseInt(id)}
+                    title={title}
+                    posterPath={item.poster_path}
+                  />
+                  {/* Mark as Watched button */}
+                  {user && (
+                    <button
+                      onClick={markAsWatched}
+                      disabled={markingWatched || isMarkedWatched}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                        isMarkedWatched
+                          ? 'bg-green-600 text-white cursor-default'
+                          : 'bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white'
+                      } ${markingWatched ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title={isMarkedWatched ? 'Marked as watched' : 'Mark as watched (removes from Continue Watching)'}
+                    >
+                      {isMarkedWatched ? (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      <span>{isMarkedWatched ? 'Watched' : 'Mark as Watched'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Source Selector */}
+              {availableSources.length > 0 && (
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSourceSelector(!showSourceSelector)}
+                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
+                    >
+                      <span>Source: {currentSource?.name}</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {showSourceSelector && (
+                      <div className="absolute top-full left-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]">
+                        {availableSources.map((source, index) => (
+                          <button
+                            key={source.source}
+                            onClick={() => switchSource(index)}
+                            className={`w-full text-left px-4 py-2.5 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-sm ${
+                              index === currentSourceIndex ? 'bg-blue-900 text-blue-200' : 'text-white'
+                            }`}
+                          >
+                            {source.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {currentSourceIndex < availableSources.length - 1 && (
+                    <button
+                      onClick={tryNextSource}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm"
+                    >
+                      Try next source →
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Video Player */}
+              {streamingSource && (
+                <div className="bg-black rounded-lg overflow-hidden mb-4">
+                  <VideoPlayer
+                    source={streamingSource}
+                    title={title}
+                  />
+                </div>
+              )}
+
+              {/* Source Error */}
+              {sourceError && (
+                <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-4">
+                  <h3 className="text-red-200 font-medium mb-2">Content Not Available</h3>
+                  <p className="text-red-100 text-sm">
+                    All sources tried. This content may not be available yet.
+                  </p>
+                </div>
+              )}
+
+              {/* Tips */}
+              <div className="bg-gray-900/80 rounded-lg p-4 text-sm">
+                <h3 className="font-semibold text-white mb-2">Tips</h3>
+                <ul className="text-gray-400 space-y-1">
+                  <li>• If source doesnt work, try the next one</li>
+                  <li>• Most players have audio/subtitle settings built-in</li>
+                  {isTVShow && user && (
+                    <li>• Click the checkmark to mark episodes as watched</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# StreamFlix Deployment Guide
+# MikkyStream Deployment Guide
 
 ## Server Requirements
 - Ubuntu 22.04 or later
@@ -37,16 +37,16 @@ apt install -y nginx certbot python3-certbot-nginx
 
 ### 6. Create App User
 ```bash
-useradd -m -s /bin/bash streamflix
-mkdir -p /var/www/streamflix
-chown streamflix:streamflix /var/www/streamflix
+useradd -m -s /bin/bash mikkystream
+mkdir -p /var/www/mikkystream
+chown mikkystream:mikkystream /var/www/mikkystream
 ```
 
 ### 7. Clone Repository
 ```bash
-su - streamflix
-cd /var/www/streamflix
-git clone https://github.com/YOUR_USERNAME/streamflix.git .
+su - mikkystream
+cd /var/www/mikkystream
+git clone https://github.com/Mikky1997/mikkystream.git .
 ```
 
 ### 8. Install Dependencies and Build
@@ -74,7 +74,7 @@ pm2 startup
 ```
 
 ### 12. Configure Nginx
-Create `/etc/nginx/sites-available/streamflix`:
+Create `/etc/nginx/sites-available/mikkystream`:
 ```nginx
 server {
     listen 80;
@@ -96,7 +96,7 @@ server {
 
 Enable the site:
 ```bash
-ln -s /etc/nginx/sites-available/streamflix /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/mikkystream /etc/nginx/sites-enabled/
 nginx -t
 systemctl reload nginx
 ```
@@ -114,19 +114,19 @@ In Namecheap DNS settings for mikky.vip:
 ## Updating the App
 
 ```bash
-su - streamflix
-cd /var/www/streamflix
+su - mikkystream
+cd /var/www/mikkystream
 git pull
 npm install
 npm run build
-pm2 restart streamflix
+pm2 restart mikkystream
 ```
 
 ## Useful Commands
 
-- View logs: `pm2 logs streamflix`
-- Restart app: `pm2 restart streamflix`
-- Stop app: `pm2 stop streamflix`
+- View logs: `pm2 logs mikkystream`
+- Restart app: `pm2 restart mikkystream`
+- Stop app: `pm2 stop mikkystream`
 - App status: `pm2 status`
 
 ## Predefined Users

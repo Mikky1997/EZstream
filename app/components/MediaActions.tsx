@@ -20,7 +20,6 @@ export default function MediaActions({
 }: MediaActionsProps) {
   const { user } = useAuth();
   const [inWatchlist, setInWatchlist] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Check initial state
@@ -32,19 +31,11 @@ export default function MediaActions({
 
   const checkStatus = async () => {
     try {
-      const [watchlistRes, favoritesRes] = await Promise.all([
-        fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`),
-        fetch(`/api/user/favorites?mediaType=${mediaType}&mediaId=${mediaId}`),
-      ]);
+      const watchlistRes = await fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`);
 
       if (watchlistRes.ok) {
         const data = await watchlistRes.json();
         setInWatchlist(data.inWatchlist);
-      }
-
-      if (favoritesRes.ok) {
-        const data = await favoritesRes.json();
-        setIsFavorite(data.isFavorite);
       }
     } catch (error) {
       console.error('Failed to check status:', error);
@@ -76,31 +67,6 @@ export default function MediaActions({
     }
   };
 
-  const toggleFavorite = async () => {
-    if (!user || loading) return;
-    setLoading(true);
-
-    try {
-      if (isFavorite) {
-        await fetch(`/api/user/favorites?mediaType=${mediaType}&mediaId=${mediaId}`, {
-          method: 'DELETE',
-        });
-        setIsFavorite(false);
-      } else {
-        await fetch('/api/user/favorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mediaType, mediaId, title, posterPath }),
-        });
-        setIsFavorite(true);
-      }
-    } catch (error) {
-      console.error('Failed to update favorites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (!user) return null;
 
   return (
@@ -116,50 +82,31 @@ export default function MediaActions({
         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
       >
-        <svg 
-          className="w-5 h-5" 
-          fill={inWatchlist ? 'currentColor' : 'none'} 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
-          />
-        </svg>
-        {showLabels && (
-          <span>{inWatchlist ? 'In Watchlist' : 'Watch Later'}</span>
+        {inWatchlist ? (
+          <svg 
+            className="w-5 h-5" 
+            fill="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+          </svg>
+        ) : (
+          <svg 
+            className="w-5 h-5" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M12 4v16m8-8H4" 
+            />
+          </svg>
         )}
-      </button>
-
-      {/* Favorite Button */}
-      <button
-        onClick={toggleFavorite}
-        disabled={loading}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-          isFavorite
-            ? 'bg-red-600 text-white hover:bg-red-700'
-            : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-      >
-        <svg 
-          className="w-5 h-5" 
-          fill={isFavorite ? 'currentColor' : 'none'} 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-          />
-        </svg>
         {showLabels && (
-          <span>{isFavorite ? 'Favorited' : 'Favorite'}</span>
+          <span>{inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
         )}
       </button>
     </div>

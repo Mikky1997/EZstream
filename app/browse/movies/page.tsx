@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MovieCard from '@/app/components/MovieCard';
 import type { Movie } from '@/types';
 
@@ -33,7 +33,6 @@ const SORT_OPTIONS = [
   { value: 'revenue.desc', label: 'Highest Grossing' },
 ];
 
-// Country/Language filter - most popular movie-producing countries
 const COUNTRY_OPTIONS = [
   { value: '', label: 'All Countries', flag: '🌍' },
   { value: 'en', label: 'English', flag: '🇺🇸' },
@@ -57,13 +56,38 @@ export default function BrowseMovies() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadMovies(true);
   }, [selectedGenre, sortBy, selectedLanguage]);
 
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMovies(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, selectedGenre, sortBy, selectedLanguage]);
+
   const loadMovies = async (reset = false) => {
-    setLoading(true);
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     const currentPage = reset ? 1 : page;
     
     try {
@@ -85,9 +109,10 @@ export default function BrowseMovies() {
         const data = await response.json();
         if (reset) {
           setMovies(data.results || []);
-          setPage(1);
+          setPage(2);
         } else {
           setMovies(prev => [...prev, ...(data.results || [])]);
+          setPage(prev => prev + 1);
         }
         setHasMore((data.results?.length || 0) >= 20);
       }
@@ -95,12 +120,8 @@ export default function BrowseMovies() {
       console.error('Failed to load movies:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
-
-  const loadMore = () => {
-    setPage(prev => prev + 1);
-    loadMovies(false);
   };
 
   const selectedCountry = COUNTRY_OPTIONS.find(o => o.value === selectedLanguage);
@@ -113,7 +134,6 @@ export default function BrowseMovies() {
 
         {/* Filters */}
         <div className="mb-8 space-y-4">
-          {/* Country/Language Filter */}
           <div>
             <h3 className="text-gray-400 text-sm mb-2">Country / Language</h3>
             <div className="flex flex-wrap gap-2">
@@ -134,7 +154,6 @@ export default function BrowseMovies() {
             </div>
           </div>
 
-          {/* Genre Filter */}
           <div>
             <h3 className="text-gray-400 text-sm mb-2">Genre</h3>
             <div className="flex flex-wrap gap-2">
@@ -164,7 +183,6 @@ export default function BrowseMovies() {
             </div>
           </div>
 
-          {/* Sort */}
           <div className="flex items-center gap-4">
             <label className="text-gray-400 text-sm">Sort by:</label>
             <select
@@ -181,7 +199,6 @@ export default function BrowseMovies() {
           </div>
         </div>
 
-        {/* Current Filter Info */}
         <div className="mb-4 text-sm text-gray-400">
           Showing: <span className="text-blue-400">{selectedCountry?.flag} {selectedCountry?.label}</span> movies
           {selectedGenre && (
@@ -213,16 +230,12 @@ export default function BrowseMovies() {
               </div>
             )}
 
-            {/* Load More */}
+            {/* Infinite scroll trigger */}
             {hasMore && movies.length > 0 && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  {loading ? 'Loading...' : 'Load More'}
-                </button>
+              <div ref={loadMoreRef} className="py-8 text-center">
+                {loadingMore && (
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+                )}
               </div>
             )}
           </>
