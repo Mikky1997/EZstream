@@ -40,11 +40,12 @@ export const ANIMATION_GENRE_ID = 16;
 export function isAnimeContent(item: Movie | TVShow): boolean {
   const hasAnimationGenre = 
     item.genres?.some(g => g.id === ANIMATION_GENRE_ID) ||
-    item.genre_ids?.includes(ANIMATION_GENRE_ID);
+    item.genre_ids?.includes(ANIMATION_GENRE_ID) ||
+    false;
   
   const isJapanese = item.original_language === 'ja';
   
-  // Anime = Animation + Japanese, or just Animation for TV shows (likely anime)
+  // Anime = Animation + Japanese
   return hasAnimationGenre && isJapanese;
 }
 
