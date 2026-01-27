@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import SearchBar from '@/app/components/SearchBar';
@@ -168,16 +167,13 @@ const WatchlistCard = memo(function WatchlistCard({
   );
 });
 
-function HomeContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { history, removeFromHistory } = useWatchHistory();
   const { watchlist, removeFromWatchlist } = useWatchlistContext();
   
   const [searchResults, setSearchResults] = useState<(Movie | TVShow)[]>([]);
   const [liveResults, setLiveResults] = useState<(Movie | TVShow)[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Mixed feed - movies, TV shows, and anime
   const [feed, setFeed] = useState<Array<{ item: Movie | TVShow; type: 'movie' | 'tv' }>>([]);
@@ -322,38 +318,6 @@ function HomeContent() {
     };
   }, [hasMore, loadingMore, loadingBrowse, authLoading, hasSearched, loadMoreFeed]);
 
-  // Handle URL query parameter for search (from navbar search)
-  useEffect(() => {
-    const queryParam = searchParams.get('q');
-    if (queryParam && queryParam.trim().length >= 2) {
-      setSearchQuery(queryParam);
-      // Trigger the search
-      const performSearch = async () => {
-        setLoading(true);
-        setError(null);
-        setHasSearched(true);
-        setLiveResults([]);
-        
-        try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(queryParam)}`);
-          if (!response.ok) {
-            throw new Error('Search failed');
-          }
-          const data = await response.json();
-          setSearchResults(data.results || []);
-        } catch (err) {
-          setError('Failed to search. Please try again.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      performSearch();
-      // Clear the URL param after search
-      router.replace('/', { scroll: false });
-    }
-  }, [searchParams, router]);
-
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -410,7 +374,6 @@ function HomeContent() {
             onSearch={handleSearch} 
             onLiveResults={handleLiveResults}
             loading={loading}
-            initialQuery={searchQuery}
           />
         </div>
 
@@ -538,22 +501,5 @@ function HomeContent() {
         )}
       </div>
     </main>
-  );
-}
-
-// Wrap in Suspense for useSearchParams
-export default function Home() {
-  return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
-        <div className="container mx-auto px-4 py-6">
-          <div className="py-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent"></div>
-          </div>
-        </div>
-      </main>
-    }>
-      <HomeContent />
-    </Suspense>
   );
 }
