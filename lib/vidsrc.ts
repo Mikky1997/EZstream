@@ -123,37 +123,37 @@ export interface EmbedUrl {
 // VidSrc.me is always #1 - most reliable with best coverage
 const ANIME_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,     // VidSrc.me - most reliable, good anime coverage
-  embedsu: 2,      // Embed.su reliable backup
-  vidsrc: 3,       // VidSrc.cc
-  twoembed: 4,     // 2Embed good for anime
+  vidsrc: 2,       // VidSrc.cc - reliable backup
+  twoembed: 3,     // 2Embed good for anime
+  embedsu: 4,      // Embed.su reliable
   superembed: 5,   // MultiEmbed has wide coverage
-  moviesapi: 6,
-  vidsrcpro: 7,
-  autoembed: 8,    // AutoEmbed - less reliable
+  vidsrcpro: 6,
+  moviesapi: 7,
+  autoembed: 8,
   streamsrc: 9,
 };
 
 const MOVIE_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,     // VidSrc.me best for movies (87K movies, 1080p)
-  embedsu: 2,      // Embed.su very reliable
-  vidsrc: 3,       // VidSrc.cc good backup
-  moviesapi: 4,    // MoviesAPI - movie focused
+  vidsrc: 2,       // VidSrc.cc - reliable backup
+  moviesapi: 3,    // MoviesAPI - movie focused
+  embedsu: 4,      // Embed.su reliable
   vidsrcpro: 5,
   superembed: 6,
   twoembed: 7,
-  autoembed: 8,    // AutoEmbed - less reliable
+  autoembed: 8,
   streamsrc: 9,
 };
 
 const TV_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,     // VidSrc.me best for TV (19K series)
-  embedsu: 2,      // Embed.su reliable
-  vidsrc: 3,       // VidSrc.cc
-  vidsrcpro: 4,
+  vidsrc: 2,       // VidSrc.cc - reliable for TV
+  vidsrcpro: 3,    // VidSrc.pro - TV focused
+  embedsu: 4,      // Embed.su reliable
   superembed: 5,
-  moviesapi: 6,
-  twoembed: 7,
-  autoembed: 8,    // AutoEmbed - less reliable
+  twoembed: 6,
+  moviesapi: 7,    // MoviesAPI - less TV focused
+  autoembed: 8,
   streamsrc: 9,
 };
 
