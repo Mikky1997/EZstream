@@ -9,6 +9,7 @@ interface SearchBarProps {
   placeholder?: string;
   autoFocus?: boolean;
   filterType?: 'movie' | 'tv' | 'anime' | 'all';
+  initialQuery?: string;
 }
 
 interface SearchResult {
@@ -28,11 +29,19 @@ export default function SearchBar({
   loading, 
   placeholder = "Search movies, TV shows, anime...",
   autoFocus = false,
-  filterType = 'all'
+  filterType = 'all',
+  initialQuery = ''
 }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Update query when initialQuery changes (from URL param)
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+    }
+  }, [initialQuery]);
 
   // Auto focus if requested
   useEffect(() => {

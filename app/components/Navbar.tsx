@@ -31,12 +31,6 @@ export default function Navbar() {
 
   // Check if we're on a watch page (inside a movie/show)
   const isWatchPage = pathname.startsWith('/watch/');
-  
-  // Check if we're on a main page that has its own search bar
-  const hasOwnSearchBar = pathname === '/' || 
-    pathname.startsWith('/browse/movies') || 
-    pathname.startsWith('/browse/tv') || 
-    pathname.startsWith('/browse/anime');
 
   const handleLogout = async () => {
     await logout();
@@ -44,10 +38,14 @@ export default function Navbar() {
     router.push('/login');
   };
 
-  // Focus search input when opened
+  // Focus search input when opened - use timeout to ensure DOM is ready
   useEffect(() => {
     if (showNavSearch && navSearchRef.current) {
-      navSearchRef.current.focus();
+      // Small delay to ensure the input is visible and ready
+      const timer = setTimeout(() => {
+        navSearchRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [showNavSearch]);
 
@@ -92,17 +90,14 @@ export default function Navbar() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
-        if (!isWatchPage) {
-          // On non-watch pages, just close
-          setShowNavSearch(false);
-          setNavSearchQuery('');
-          setSearchResults([]);
-        }
+        setShowNavSearch(false);
+        setNavSearchQuery('');
+        setSearchResults([]);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isWatchPage]);
+  }, []);
 
   // Close search on escape
   useEffect(() => {
@@ -117,7 +112,7 @@ export default function Navbar() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  // Handle selecting a result from dropdown (on watch pages)
+  // Handle selecting a result from dropdown (only used on watch pages)
   const handleSelectResult = (result: SearchResult) => {
     router.push(`/watch/${result.media_type}/${result.id}`);
     setShowNavSearch(false);
@@ -125,31 +120,18 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
-  // Handle search on non-watch pages - navigate to home and search
-  const handleSearchNavigate = () => {
-    if (navSearchQuery.trim()) {
-      if (pathname === '/') {
-        // Already on home, just scroll to top and trigger the main search
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (mainSearchInput) {
-          mainSearchInput.focus();
-          mainSearchInput.value = navSearchQuery;
-          mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      } else {
-        // Navigate to home - the search will happen there
-        router.push('/');
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-          if (mainSearchInput) {
-            mainSearchInput.focus();
-            mainSearchInput.value = navSearchQuery;
-            mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-        }, 300);
+  // Handle search submission - navigate to home with query on non-watch pages
+  const handleSearchSubmit = () => {
+    if (navSearchQuery.trim().length < 2) return;
+    
+    if (isWatchPage) {
+      // On watch pages, select first result
+      if (searchResults.length > 0) {
+        handleSelectResult(searchResults[0]);
       }
+    } else {
+      // On other pages, navigate to home with search query
+      router.push(`/?q=${encodeURIComponent(navSearchQuery.trim())}`);
       setShowNavSearch(false);
       setNavSearchQuery('');
       setSearchResults([]);
@@ -228,13 +210,26 @@ export default function Navbar() {
                     value={navSearchQuery}
                     onChange={(e) => setNavSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isWatchPage) {
-                        handleSearchNavigate();
+                      if (e.key === 'Enter') {
+                        handleSearchSubmit();
                       }
                     }}
-                    placeholder="Search..."
+                    placeholder={isWatchPage ? "Search..." : "Search & press Enter..."}
                     className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
                   />
+                  {/* Search button for non-watch pages */}
+                  {!isWatchPage && navSearchQuery.trim().length >= 2 && (
+                    <button
+                      type="button"
+                      onClick={handleSearchSubmit}
+                      className="ml-1 p-2 text-blue-400 hover:text-blue-300"
+                      title="Search"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -249,9 +244,20 @@ export default function Navbar() {
                     </svg>
                   </button>
                   
-                  {/* Dropdown - Only on watch pages */}
-                  {isWatchPage && searchResults.length > 0 && (
+                  {/* Dropdown with search results - only on watch pages */}
+                  {isWatchPage && (searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
                     <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                      {isSearching && (
+                        <div className="p-4 text-center text-gray-400">
+                          <div className="inline-block w-5 h-5 border-2 border-gray-500 border-t-white rounded-full animate-spin mb-2"></div>
+                          <p className="text-sm">Searching...</p>
+                        </div>
+                      )}
+                      {!isSearching && navSearchQuery.trim().length >= 2 && searchResults.length === 0 && (
+                        <div className="p-4 text-center text-gray-400">
+                          <p className="text-sm">No results found for &quot;{navSearchQuery}&quot;</p>
+                        </div>
+                      )}
                       {searchResults.map((item) => (
                         <button
                           key={`${item.media_type}-${item.id}`}
@@ -383,14 +389,24 @@ export default function Navbar() {
                 value={navSearchQuery}
                 onChange={(e) => setNavSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isWatchPage) {
-                    handleSearchNavigate();
+                  if (e.key === 'Enter') {
+                    handleSearchSubmit();
                   }
                 }}
-                placeholder="Search movies, TV shows, anime..."
+                placeholder={isWatchPage ? "Search..." : "Search & tap Go..."}
                 className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 autoFocus
               />
+              {/* Search/Go button for non-watch pages */}
+              {!isWatchPage && navSearchQuery.trim().length >= 2 && (
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                >
+                  Go
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -406,9 +422,20 @@ export default function Navbar() {
               </button>
             </div>
             
-            {/* Mobile Dropdown - Only on watch pages */}
-            {isWatchPage && searchResults.length > 0 && (
+            {/* Mobile Dropdown with search results - only on watch pages */}
+            {isWatchPage && (searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
               <div className="absolute left-4 right-4 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                {isSearching && (
+                  <div className="p-4 text-center text-gray-400">
+                    <div className="inline-block w-5 h-5 border-2 border-gray-500 border-t-white rounded-full animate-spin mb-2"></div>
+                    <p className="text-sm">Searching...</p>
+                  </div>
+                )}
+                {!isSearching && navSearchQuery.trim().length >= 2 && searchResults.length === 0 && (
+                  <div className="p-4 text-center text-gray-400">
+                    <p className="text-sm">No results found for &quot;{navSearchQuery}&quot;</p>
+                  </div>
+                )}
                 {searchResults.map((item) => (
                   <button
                     key={`${item.media_type}-${item.id}`}
