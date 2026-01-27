@@ -118,19 +118,86 @@ export interface EmbedUrl {
   name: string;
 }
 
+// Source priority for different content types
+// Keys are source keys, values are priority (lower = better)
+const ANIME_SOURCE_PRIORITY: Record<string, number> = {
+  autoembed: 1,    // AutoEmbed has dedicated anime section
+  vidsrcme: 2,     // VidSrc.me has good anime coverage
+  embedsu: 3,      // Embed.su reliable backup
+  twoembed: 4,     // 2Embed good for anime
+  vidsrc: 5,       // VidSrc.cc
+  superembed: 6,   // MultiEmbed has wide coverage
+  moviesapi: 7,
+  vidsrcpro: 8,
+  streamsrc: 9,
+};
+
+const MOVIE_SOURCE_PRIORITY: Record<string, number> = {
+  vidsrcme: 1,     // VidSrc.me best for movies (87K movies, 1080p)
+  embedsu: 2,      // Embed.su very reliable
+  vidsrc: 3,       // VidSrc.cc good backup
+  moviesapi: 4,    // MoviesAPI - movie focused
+  autoembed: 5,
+  vidsrcpro: 6,
+  superembed: 7,
+  twoembed: 8,
+  streamsrc: 9,
+};
+
+const TV_SOURCE_PRIORITY: Record<string, number> = {
+  vidsrcme: 1,     // VidSrc.me best for TV (19K series)
+  embedsu: 2,      // Embed.su reliable
+  vidsrc: 3,       // VidSrc.cc
+  autoembed: 4,
+  vidsrcpro: 5,
+  superembed: 6,
+  moviesapi: 7,
+  twoembed: 8,
+  streamsrc: 9,
+};
+
+// Get sources ordered for specific content type
+function getOrderedSources(contentType: 'movie' | 'tv' | 'anime'): VideoSource[] {
+  let priority: Record<string, number>;
+  
+  switch (contentType) {
+    case 'anime':
+      priority = ANIME_SOURCE_PRIORITY;
+      break;
+    case 'movie':
+      priority = MOVIE_SOURCE_PRIORITY;
+      break;
+    case 'tv':
+    default:
+      priority = TV_SOURCE_PRIORITY;
+      break;
+  }
+  
+  return [...VIDEO_SOURCES_ORDERED].sort((a, b) => {
+    const aPriority = priority[a.key] ?? 99;
+    const bPriority = priority[b.key] ?? 99;
+    return aPriority - bPriority;
+  });
+}
+
 // Get all available embed URLs for a movie/show (ordered best to worst)
+// Pass isAnime=true for anime content to get optimized source order
 export function getAllEmbedUrls(
   id: string,
   tmdbId: string,
   type: 'movie' | 'tv',
   season?: number,
-  episode?: number
+  episode?: number,
+  isAnime?: boolean
 ): EmbedUrl[] {
   const urls: EmbedUrl[] = [];
   const hasImdb = id && id.startsWith('tt');
   
-  // Use ordered array to guarantee best sources first
-  for (const source of VIDEO_SOURCES_ORDERED) {
+  // Get sources in optimal order for content type
+  const contentType = isAnime ? 'anime' : type;
+  const orderedSources = getOrderedSources(contentType);
+  
+  for (const source of orderedSources) {
     if (type === 'movie') {
       // Try with IMDb ID first if available (more reliable)
       if (hasImdb) {

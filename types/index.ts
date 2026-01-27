@@ -1,3 +1,8 @@
+export interface Genre {
+  id: number;
+  name: string;
+}
+
 export interface Movie {
   id: number;
   title: string;
@@ -8,6 +13,8 @@ export interface Movie {
   vote_average: number;
   media_type?: 'movie' | 'tv';
   original_language?: string;
+  genres?: Genre[];
+  genre_ids?: number[];
 }
 
 export interface TVShow {
@@ -22,6 +29,23 @@ export interface TVShow {
   original_language?: string;
   number_of_seasons?: number;
   seasons?: { season_number: number; episode_count: number }[];
+  genres?: Genre[];
+  genre_ids?: number[];
+}
+
+// Animation genre ID in TMDB
+export const ANIMATION_GENRE_ID = 16;
+
+// Check if content is anime (Animation genre + Japanese language)
+export function isAnimeContent(item: Movie | TVShow): boolean {
+  const hasAnimationGenre = 
+    item.genres?.some(g => g.id === ANIMATION_GENRE_ID) ||
+    item.genre_ids?.includes(ANIMATION_GENRE_ID);
+  
+  const isJapanese = item.original_language === 'ja';
+  
+  // Anime = Animation + Japanese, or just Animation for TV shows (likely anime)
+  return hasAnimationGenre && isJapanese;
 }
 
 export interface SearchResult {

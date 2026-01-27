@@ -8,6 +8,7 @@ import EpisodeList from '@/app/components/EpisodeList';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getAllEmbedUrls, type EmbedUrl } from '@/lib/vidsrc';
 import type { Movie, TVShow, StreamingSource } from '@/types';
+import { isAnimeContent } from '@/types';
 import Image from 'next/image';
 
 interface Season {
@@ -113,12 +114,16 @@ export default function WatchPage() {
   }, [user, item, streamingSource, type, id, season, episode]);
 
   const updateSourcesForEpisode = useCallback(() => {
+    // Check if content is anime for optimized source ordering
+    const isAnime = item ? isAnimeContent(item) : false;
+    
     const sources = getAllEmbedUrls(
       imdbId || '', 
       tmdbId, 
       type, 
       season, 
-      episode
+      episode,
+      isAnime
     );
     setAvailableSources(sources);
     if (sources.length > 0) {
@@ -126,7 +131,7 @@ export default function WatchPage() {
       setCurrentSourceIndex(0);
       setSourceError(false);
     }
-  }, [imdbId, tmdbId, type, season, episode]);
+  }, [imdbId, tmdbId, type, season, episode, item]);
 
   // Reload sources when season/episode changes
   useEffect(() => {
@@ -158,13 +163,15 @@ export default function WatchPage() {
         setSeasons(data.seasons);
       }
 
-      // Get sources
+      // Get sources - check if content is anime for optimized ordering
+      const isAnime = isAnimeContent(data);
       const sources = getAllEmbedUrls(
         imdb || '', 
         id, 
         type, 
         season, 
-        episode
+        episode,
+        isAnime
       );
       setAvailableSources(sources);
 
