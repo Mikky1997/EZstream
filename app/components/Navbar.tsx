@@ -29,9 +29,6 @@ export default function Navbar() {
   const searchWrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if we're on a watch page (inside a movie/show)
-  const isWatchPage = pathname.startsWith('/watch/');
-
   const handleLogout = async () => {
     await logout();
     setUserMenuOpen(false);
@@ -112,7 +109,7 @@ export default function Navbar() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  // Handle selecting a result from dropdown (only used on watch pages)
+  // Handle selecting a result from dropdown
   const handleSelectResult = (result: SearchResult) => {
     router.push(`/watch/${result.media_type}/${result.id}`);
     setShowNavSearch(false);
@@ -120,21 +117,10 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
-  // Handle search submission - navigate to home with query on non-watch pages
-  const handleSearchSubmit = () => {
-    if (navSearchQuery.trim().length < 2) return;
-    
-    if (isWatchPage) {
-      // On watch pages, select first result
-      if (searchResults.length > 0) {
-        handleSelectResult(searchResults[0]);
-      }
-    } else {
-      // On other pages, navigate to home with search query
-      router.push(`/?q=${encodeURIComponent(navSearchQuery.trim())}`);
-      setShowNavSearch(false);
-      setNavSearchQuery('');
-      setSearchResults([]);
+  // Handle Enter key - select first result if available
+  const handleEnterKey = () => {
+    if (searchResults.length > 0) {
+      handleSelectResult(searchResults[0]);
     }
   };
 
@@ -211,25 +197,13 @@ export default function Navbar() {
                     onChange={(e) => setNavSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        handleSearchSubmit();
+                        handleEnterKey();
                       }
                     }}
-                    placeholder={isWatchPage ? "Search..." : "Search & press Enter..."}
+                    placeholder="Search..."
                     className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                    autoFocus
                   />
-                  {/* Search button for non-watch pages */}
-                  {!isWatchPage && navSearchQuery.trim().length >= 2 && (
-                    <button
-                      type="button"
-                      onClick={handleSearchSubmit}
-                      className="ml-1 p-2 text-blue-400 hover:text-blue-300"
-                      title="Search"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -244,8 +218,8 @@ export default function Navbar() {
                     </svg>
                   </button>
                   
-                  {/* Dropdown with search results - only on watch pages */}
-                  {isWatchPage && (searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
+                  {/* Dropdown with search results */}
+                  {(searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
                     <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
                       {isSearching && (
                         <div className="p-4 text-center text-gray-400">
@@ -390,23 +364,13 @@ export default function Navbar() {
                 onChange={(e) => setNavSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    handleSearchSubmit();
+                    handleEnterKey();
                   }
                 }}
-                placeholder={isWatchPage ? "Search..." : "Search & tap Go..."}
+                placeholder="Search..."
                 className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 autoFocus
               />
-              {/* Search/Go button for non-watch pages */}
-              {!isWatchPage && navSearchQuery.trim().length >= 2 && (
-                <button
-                  type="button"
-                  onClick={handleSearchSubmit}
-                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
-                >
-                  Go
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => {
@@ -422,8 +386,8 @@ export default function Navbar() {
               </button>
             </div>
             
-            {/* Mobile Dropdown with search results - only on watch pages */}
-            {isWatchPage && (searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
+            {/* Mobile Dropdown with search results */}
+            {(searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
               <div className="absolute left-4 right-4 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
                 {isSearching && (
                   <div className="p-4 text-center text-gray-400">
