@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -168,7 +168,7 @@ const WatchlistCard = memo(function WatchlistCard({
   );
 });
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -538,5 +538,22 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+// Wrap in Suspense for useSearchParams
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+        <div className="container mx-auto px-4 py-6">
+          <div className="py-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent"></div>
+          </div>
+        </div>
+      </main>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
