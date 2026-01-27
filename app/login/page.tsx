@@ -44,7 +44,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
             <span className="text-5xl mr-2">🎬</span>
-            MikkyStream
+            EZstream
           </h1>
           <p className="text-gray-400">Sign in to continue watching</p>
         </div>

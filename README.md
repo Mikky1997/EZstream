@@ -1,4 +1,6 @@
-# MikkyStream
+# EZstream
+
+![EZstream Banner](public/banner.jpg)
 
 A modern, high-performance streaming platform built with Next.js 14, featuring movies, TV shows, and anime with a sleek dark-themed UI.
 
@@ -12,7 +14,8 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 - **User Authentication** - Secure login with JWT sessions and bcrypt password hashing
 - **Watch History** - Continue watching from where you left off
 - **Watchlist** - Save movies and shows to watch later
-- **Multi-Source Streaming** - 12+ streaming providers with automatic fallback
+- **Multi-Source Streaming** - 9 streaming providers with automatic fallback
+- **Smart Source Selection** - Optimized source order for movies, TV, and anime
 - **Real-time Search** - Instant search with live results as you type
 - **Infinite Scroll** - Seamless content discovery with lazy loading
 - **Responsive Design** - Optimized for all screen sizes
@@ -33,7 +36,7 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 ## Project Structure
 
 ```
-mikkystream/
+ezstream/
 ├── app/
 │   ├── api/                 # API routes
 │   │   ├── auth/            # Authentication endpoints
@@ -71,8 +74,8 @@ mikkystream/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/mikkystream.git
-   cd mikkystream
+   git clone https://github.com/yourusername/ezstream.git
+   cd ezstream
    ```
 
 2. **Install dependencies**
@@ -121,7 +124,7 @@ mikkystream/
 
 This project implements several performance best practices:
 
-- **Image Optimization** - Smaller thumbnails (w154), lazy loading, blur placeholders
+- **Image Loading** - TMDB CDN with optimized sizes, lazy loading, blur placeholders
 - **API Caching** - Server-side caching for TMDB responses (5min browse, 1hr details)
 - **Code Splitting** - Automatic route-based code splitting
 - **React Optimizations** - `React.memo`, `useMemo`, `useCallback` for efficient re-renders
@@ -147,35 +150,27 @@ pm2 start ecosystem.config.js
 
 See `DEPLOY.md` for detailed Nginx configuration and Cloudflare setup.
 
-## API Routes
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/login` | POST | User login |
-| `/api/auth/logout` | POST | User logout |
-| `/api/auth/me` | GET | Get current user |
-| `/api/search` | GET | Search movies/TV |
-| `/api/trending` | GET | Trending content |
-| `/api/popular` | GET | Popular content |
-| `/api/movie/[id]` | GET | Movie details |
-| `/api/tv/[id]` | GET | TV show details |
-| `/api/user/history` | GET/POST/DELETE | Watch history |
-| `/api/user/watchlist` | GET/POST/DELETE | User watchlist |
-
 ## Streaming Sources
 
-The platform supports multiple streaming providers with automatic fallback:
+The platform supports multiple streaming providers with smart ordering:
 
-- VidSrc (primary)
-- 2Embed
-- SmashyStream
-- MoviesAPI
-- AutoEmbed
-- And more...
+**For Movies & TV:**
+1. VidSrc.me (primary - 87K movies, 1080p)
+2. Embed.su
+3. VidSrc.cc
+4. MoviesAPI
+5. AutoEmbed
+6. VidSrc.pro
+7. SuperEmbed
+8. 2Embed
+9. StreamSRC
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+**For Anime:**
+1. AutoEmbed (primary - dedicated anime section)
+2. VidSrc.me
+3. Embed.su
+4. 2Embed
+5. And more...
 
 ## License
 

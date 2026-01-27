@@ -15,10 +15,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://mikky.vip'),
-  title: "MikkyStream - Movie Streaming Platform",
+  title: "EZstream - Movie Streaming Platform",
   description: "Stream movies, TV series, and anime",
   keywords: ['movies', 'tv shows', 'anime', 'streaming', 'watch online'],
-  authors: [{ name: 'MikkyStream' }],
+  authors: [{ name: 'EZstream' }],
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "MikkyStream - Movie Streaming Platform",
+    title: "EZstream - Movie Streaming Platform",
     description: "Stream movies, TV series, and anime",
     type: "website",
-    siteName: "MikkyStream",
+    siteName: "EZstream",
   },
   twitter: {
     card: 'summary',
-    title: "MikkyStream - Movie Streaming Platform",
+    title: "EZstream - Movie Streaming Platform",
     description: "Stream movies, TV series, and anime",
   },
   robots: {

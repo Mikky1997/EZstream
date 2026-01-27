@@ -69,6 +69,7 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
                   blurDataURL={shimmerPlaceholder}
                   onLoad={() => setIsLoaded(true)}
                   onError={() => setHasError(true)}
+                  unoptimized
                 />
               </>
             ) : (
