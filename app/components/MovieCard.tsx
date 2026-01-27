@@ -23,9 +23,9 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
   
   const title = 'title' in item ? item.title : item.name;
   const releaseDate = 'release_date' in item ? item.release_date : item.first_air_date;
-  // Use w154 for even faster thumbnails
+  // Use w342 for good quality posters (342px wide, sharp on most screens)
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
     : null;
 
   const inWatchlist = isInWatchlist(mediaType, item.id);
@@ -63,13 +63,12 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
                   className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${
                     isLoaded ? 'opacity-100' : 'opacity-0'
                   }`}
-                  sizes="154px"
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   placeholder="blur"
                   blurDataURL={shimmerPlaceholder}
                   onLoad={() => setIsLoaded(true)}
                   onError={() => setHasError(true)}
-                  unoptimized
                 />
               </>
             ) : (
