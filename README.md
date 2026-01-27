@@ -152,25 +152,21 @@ See `DEPLOY.md` for detailed Nginx configuration and Cloudflare setup.
 
 ## Streaming Sources
 
-The platform supports multiple streaming providers with smart ordering:
+The platform supports 9 streaming providers with smart fallback:
 
-**For Movies & TV:**
-1. VidSrc.me (primary - 87K movies, 1080p)
-2. Embed.su
-3. VidSrc.cc
-4. MoviesAPI
-5. AutoEmbed
-6. VidSrc.pro
-7. SuperEmbed
-8. 2Embed
-9. StreamSRC
+| Priority | Source | Notes |
+|----------|--------|-------|
+| 1 | VidSrc.me | Primary - 87K movies, 19K series, 80% 1080p |
+| 2 | Embed.su | Very reliable backup |
+| 3 | VidSrc.cc | Good coverage |
+| 4 | MoviesAPI | Movie-focused |
+| 5 | VidSrc.pro | Additional option |
+| 6 | SuperEmbed | Wide coverage |
+| 7 | 2Embed | Backup |
+| 8 | AutoEmbed | Fallback |
+| 9 | StreamSRC | Last resort |
 
-**For Anime:**
-1. AutoEmbed (primary - dedicated anime section)
-2. VidSrc.me
-3. Embed.su
-4. 2Embed
-5. And more...
+VidSrc.me is the primary source for all content (movies, TV shows, and anime) due to its reliability and quality.
 
 ## License
 
