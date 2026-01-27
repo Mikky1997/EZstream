@@ -106,8 +106,9 @@ export default function BrowseAnime() {
     // Search is handled by live results
   };
 
-  const handleLiveResults = useCallback((results: TVShow[]) => {
-    setSearchResults(results);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLiveResults = useCallback((results: any[]) => {
+    setSearchResults(results as TVShow[]);
     setIsSearching(results.length > 0);
   }, []);
 

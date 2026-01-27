@@ -90,7 +90,7 @@ export default function SearchBar({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [query, onLiveResults]);
+  }, [query, onLiveResults, filterType]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
