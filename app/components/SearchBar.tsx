@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent, memo, useCallback } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
-  onLiveResults?: (results: Suggestion[]) => void;
+  onLiveResults?: (results: SearchResult[]) => void;
   loading?: boolean;
+  placeholder?: string;
+  autoFocus?: boolean;
+  // Filter results by media type: 'movie', 'tv', 'anime' (anime = tv with animation genre)
+  filterType?: 'movie' | 'tv' | 'anime' | 'all';
 }
 
-interface Suggestion {
+interface SearchResult {
   id: number;
   title?: string;
   name?: string;
@@ -19,69 +21,69 @@ interface Suggestion {
   release_date?: string;
   first_air_date?: string;
   vote_average?: number;
-  overview?: string;
-  original_language?: string;
 }
 
-export default function SearchBar({ onSearch, onLiveResults, loading }: SearchBarProps) {
+export default function SearchBar({ 
+  onSearch, 
+  onLiveResults, 
+  loading, 
+  placeholder = "Search movies, TV shows, anime...",
+  autoFocus = false,
+  filterType = 'all'
+}: SearchBarProps) {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close suggestions when clicking outside
+  // Auto focus if requested
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [autoFocus]);
 
-  // Debounced search for suggestions - faster response (150ms)
+  // Debounced live search - results go directly to parent (no dropdown)
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
     if (query.trim().length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
       if (onLiveResults) {
         onLiveResults([]);
       }
       return;
     }
 
-    setLoadingSuggestions(true);
-    
     debounceRef.current = setTimeout(async () => {
       try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         if (response.ok) {
           const data = await response.json();
-          const filtered = (data.results || [])
-            .filter((item: Suggestion) => item.media_type === 'movie' || item.media_type === 'tv');
+          let filtered = (data.results || [])
+            .filter((item: SearchResult) => item.media_type === 'movie' || item.media_type === 'tv');
           
-          // Show suggestions dropdown
-          setSuggestions(filtered.slice(0, 8));
-          setShowSuggestions(true);
+          // Apply filterType filtering
+          if (filterType === 'movie') {
+            filtered = filtered.filter((item: SearchResult) => item.media_type === 'movie');
+          } else if (filterType === 'tv') {
+            // TV shows but exclude anime (genre 16 = animation, but we can't filter by genre here)
+            // Just filter to TV only
+            filtered = filtered.filter((item: SearchResult) => item.media_type === 'tv');
+          } else if (filterType === 'anime') {
+            // Anime = TV shows with Japanese origin (approximate filter)
+            filtered = filtered.filter((item: SearchResult) => item.media_type === 'tv');
+          }
           
-          // Also send live results to parent for grid display
+          // Send results directly to parent - Netflix style (no dropdown)
           if (onLiveResults) {
             onLiveResults(filtered);
           }
         }
       } catch (err) {
-        console.error('Suggestions error:', err);
-      } finally {
-        setLoadingSuggestions(false);
+        console.error('Search error:', err);
       }
-    }, 150); // Faster debounce for more responsive search
+    }, 200);
 
     return () => {
       if (debounceRef.current) {
@@ -93,44 +95,28 @@ export default function SearchBar({ onSearch, onLiveResults, loading }: SearchBa
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (query.trim() && !loading) {
-      setShowSuggestions(false);
       onSearch(query.trim());
-    }
-  };
-
-  const handleSuggestionClick = () => {
-    setShowSuggestions(false);
-    setQuery('');
-    if (onLiveResults) {
-      onLiveResults([]);
     }
   };
 
   const handleClear = () => {
     setQuery('');
-    setSuggestions([]);
-    setShowSuggestions(false);
     if (onLiveResults) {
       onLiveResults([]);
     }
-  };
-
-  const getTitle = (item: Suggestion) => item.title || item.name || 'Unknown';
-  const getYear = (item: Suggestion) => {
-    const date = item.release_date || item.first_air_date;
-    return date ? new Date(date).getFullYear() : '';
+    inputRef.current?.focus();
   };
 
   return (
-    <div ref={wrapperRef} className="max-w-2xl mx-auto relative">
+    <div className="max-w-2xl mx-auto">
       <form onSubmit={handleSubmit}>
         <div className="relative">
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            placeholder="Search movies, TV shows, anime..."
+            placeholder={placeholder}
             className="w-full px-6 py-4 text-lg bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all pr-32"
             disabled={loading}
           />
@@ -163,81 +149,6 @@ export default function SearchBar({ onSearch, onLiveResults, loading }: SearchBa
           </div>
         </div>
       </form>
-
-      {/* Loading indicator */}
-      {loadingSuggestions && (
-        <div className="absolute top-full left-0 right-0 mt-1 text-center">
-          <span className="text-xs text-gray-500">Searching...</span>
-        </div>
-      )}
-
-      {/* Suggestions dropdown */}
-      {showSuggestions && (suggestions.length > 0 || loadingSuggestions) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
-          {loadingSuggestions && suggestions.length === 0 && (
-            <div className="p-3 text-center text-gray-400">
-              <div className="inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
-              Searching...
-            </div>
-          )}
-          {suggestions.map((item) => (
-            <Link
-              key={`${item.media_type}-${item.id}`}
-              href={`/watch/${item.media_type}/${item.id}`}
-              onClick={handleSuggestionClick}
-              prefetch={false}
-              className="flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0"
-            >
-              {item.poster_path ? (
-                <div className="relative w-10 h-14 flex-shrink-0">
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
-                    alt={getTitle(item)}
-                    fill
-                    className="object-cover rounded"
-                    sizes="40px"
-                    loading="lazy"
-                  />
-                </div>
-              ) : (
-                <div className="w-10 h-14 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
-                  No img
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-medium truncate">{getTitle(item)}</p>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <span className={`px-1.5 py-0.5 rounded text-xs ${
-                    item.media_type === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
-                  }`}>
-                    {item.media_type === 'movie' ? 'Movie' : 'TV'}
-                  </span>
-                  {getYear(item) && <span>{getYear(item)}</span>}
-                  {item.vote_average && item.vote_average > 0 && (
-                    <span className="text-yellow-400">★ {item.vote_average.toFixed(1)}</span>
-                  )}
-                  {item.original_language === 'ar' && (
-                    <span className="text-green-400">عربي</span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-          {suggestions.length > 0 && (
-            <div className="p-2 text-center border-t border-gray-700">
-              <button
-                onClick={() => {
-                  setShowSuggestions(false);
-                  onSearch(query);
-                }}
-                className="text-sm text-blue-400 hover:text-blue-300"
-              >
-                Press Enter for full results →
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

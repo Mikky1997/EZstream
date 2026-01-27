@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function Navbar() {
@@ -11,6 +11,9 @@ export default function Navbar() {
   const { user, loading, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showNavSearch, setShowNavSearch] = useState(false);
+  const [navSearchQuery, setNavSearchQuery] = useState('');
+  const navSearchRef = useRef<HTMLInputElement>(null);
 
   const isActive = (path: string) => pathname === path;
 
@@ -19,6 +22,52 @@ export default function Navbar() {
     setUserMenuOpen(false);
     router.push('/login');
   };
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (showNavSearch && navSearchRef.current) {
+      navSearchRef.current.focus();
+    }
+  }, [showNavSearch]);
+
+  // Handle nav search submit - scroll to top of page where search bar is
+  const handleNavSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (navSearchQuery.trim()) {
+      // If on home page, scroll to top where the main search bar is
+      // Otherwise navigate to home
+      if (pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Focus the main search bar (it should pick up from there)
+        const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        if (mainSearchInput) {
+          mainSearchInput.focus();
+          mainSearchInput.value = navSearchQuery;
+          // Trigger input event to activate live search
+          mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } else {
+        router.push('/');
+        // After navigation, scroll to top
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      }
+      setShowNavSearch(false);
+      setNavSearchQuery('');
+    }
+  };
+
+  // Close search on escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowNavSearch(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
 
   // Don't show navbar on login page
   if (pathname === '/login') {
@@ -78,6 +127,45 @@ export default function Navbar() {
             </Link>
           </div>
 
+          {/* Search Icon + User Menu (Desktop) */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Search Toggle */}
+            {showNavSearch ? (
+              <form onSubmit={handleNavSearch} className="flex items-center">
+                <input
+                  ref={navSearchRef}
+                  type="text"
+                  value={navSearchQuery}
+                  onChange={(e) => setNavSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNavSearch(false);
+                    setNavSearchQuery('');
+                  }}
+                  className="ml-2 p-2 text-gray-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={() => setShowNavSearch(true)}
+                className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                title="Search"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            )}
+          </div>
+
           {/* User Menu (Desktop) */}
           <div className="hidden md:flex items-center gap-4">
             {loading ? (
@@ -122,20 +210,68 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-300 hover:text-white"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          {/* Mobile Search + Menu Button */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => setShowNavSearch(!showNavSearch)}
+              className="p-2 text-gray-300 hover:text-white"
+              title="Search"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-gray-300 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Search Bar - shows below navbar when search icon clicked */}
+        {showNavSearch && (
+          <div className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900">
+            <form onSubmit={handleNavSearch} className="flex items-center gap-2">
+              <input
+                ref={navSearchRef}
+                type="text"
+                value={navSearchQuery}
+                onChange={(e) => setNavSearchQuery(e.target.value)}
+                placeholder="Search movies, TV shows, anime..."
+                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="p-2 bg-blue-600 text-white rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNavSearch(false);
+                  setNavSearchQuery('');
+                }}
+                className="p-2 text-gray-400"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import MovieCard from '@/app/components/MovieCard';
+import SearchBar from '@/app/components/SearchBar';
 import type { TVShow } from '@/types';
 
 const TV_GENRES = [
@@ -50,6 +51,10 @@ export default function BrowseTV() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Search state
+  const [searchResults, setSearchResults] = useState<TVShow[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const loadShows = useCallback(async (reset = false) => {
     if (reset) {
@@ -102,7 +107,7 @@ export default function BrowseTV() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading && !isSearching) {
           loadShows(false);
         }
       },
@@ -119,17 +124,41 @@ export default function BrowseTV() {
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, loadingMore, loading, loadShows]);
+  }, [hasMore, loadingMore, loading, loadShows, isSearching]);
 
   const selectedCountry = COUNTRY_OPTIONS.find(o => o.value === selectedLanguage);
+
+  // Search handlers
+  const handleSearch = (query: string) => {
+    // Search is handled by live results
+  };
+
+  const handleLiveResults = useCallback((results: TVShow[]) => {
+    setSearchResults(results);
+    setIsSearching(results.length > 0);
+  }, []);
+
+  // Show search results or browse results
+  const displayShows = isSearching ? searchResults : shows;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-white mb-2">Browse TV Shows</h1>
-        <p className="text-gray-400 mb-6">Discover TV series from around the world</p>
+        <p className="text-gray-400 mb-4">Discover TV series from around the world</p>
 
-        {/* Filters */}
+        {/* Search Bar */}
+        <div className="mb-6">
+          <SearchBar
+            onSearch={handleSearch}
+            onLiveResults={handleLiveResults}
+            placeholder="Search TV shows..."
+            filterType="tv"
+          />
+        </div>
+
+        {/* Filters - hide when searching */}
+        {!isSearching && (
         <div className="mb-8 space-y-4">
           <div>
             <h3 className="text-gray-400 text-sm mb-2">Country / Language</h3>
@@ -195,23 +224,31 @@ export default function BrowseTV() {
             </select>
           </div>
         </div>
+        )}
 
+        {/* Status text */}
         <div className="mb-4 text-sm text-gray-400">
-          Showing: <span className="text-blue-400">{selectedCountry?.flag} {selectedCountry?.label}</span> TV shows
-          {selectedGenre && (
-            <span> in <span className="text-purple-400">{TV_GENRES.find(g => g.id === selectedGenre)?.name}</span></span>
+          {isSearching ? (
+            <span>Found <span className="text-blue-400">{searchResults.length}</span> results</span>
+          ) : (
+            <>
+              Showing: <span className="text-blue-400">{selectedCountry?.flag} {selectedCountry?.label}</span> TV shows
+              {selectedGenre && (
+                <span> in <span className="text-purple-400">{TV_GENRES.find(g => g.id === selectedGenre)?.name}</span></span>
+              )}
+            </>
           )}
         </div>
 
         {/* Results */}
-        {loading && shows.length === 0 ? (
+        {loading && displayShows.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {shows.map((show) => (
+              {displayShows.map((show) => (
                 <MovieCard
                   key={show.id}
                   item={show}
@@ -220,15 +257,15 @@ export default function BrowseTV() {
               ))}
             </div>
 
-            {shows.length === 0 && !loading && (
+            {displayShows.length === 0 && !loading && (
               <div className="text-center py-20 text-gray-400">
-                <p className="mb-4">No TV shows found with these filters.</p>
-                <p className="text-sm">Try selecting a different country or genre.</p>
+                <p className="mb-4">{isSearching ? 'No TV shows found for your search.' : 'No TV shows found with these filters.'}</p>
+                <p className="text-sm">{isSearching ? 'Try a different search term.' : 'Try selecting a different country or genre.'}</p>
               </div>
             )}
 
-            {/* Infinite scroll trigger */}
-            {hasMore && shows.length > 0 && (
+            {/* Infinite scroll trigger - only when not searching */}
+            {!isSearching && hasMore && displayShows.length > 0 && (
               <div ref={loadMoreRef} className="py-8 text-center">
                 {loadingMore && (
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>

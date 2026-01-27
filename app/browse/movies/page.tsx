@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import MovieCard from '@/app/components/MovieCard';
+import SearchBar from '@/app/components/SearchBar';
 import type { Movie } from '@/types';
 
 const GENRES = [
@@ -58,6 +59,10 @@ export default function BrowseMovies() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  
+  // Search state
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const loadMovies = useCallback(async (reset = false) => {
     if (reset) {
@@ -131,13 +136,37 @@ export default function BrowseMovies() {
 
   const selectedCountry = COUNTRY_OPTIONS.find(o => o.value === selectedLanguage);
 
+  // Search handlers
+  const handleSearch = (query: string) => {
+    // Search is handled by live results
+  };
+
+  const handleLiveResults = useCallback((results: Movie[]) => {
+    setSearchResults(results);
+    setIsSearching(results.length > 0);
+  }, []);
+
+  // Show search results or browse results
+  const displayMovies = isSearching ? searchResults : movies;
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-white mb-2">Browse Movies</h1>
-        <p className="text-gray-400 mb-6">Discover movies from around the world</p>
+        <p className="text-gray-400 mb-4">Discover movies from around the world</p>
 
-        {/* Filters */}
+        {/* Search Bar */}
+        <div className="mb-6">
+          <SearchBar
+            onSearch={handleSearch}
+            onLiveResults={handleLiveResults}
+            placeholder="Search movies..."
+            filterType="movie"
+          />
+        </div>
+
+        {/* Filters - hide when searching */}
+        {!isSearching && (
         <div className="mb-8 space-y-4">
           <div>
             <h3 className="text-gray-400 text-sm mb-2">Country / Language</h3>
@@ -203,23 +232,31 @@ export default function BrowseMovies() {
             </select>
           </div>
         </div>
+        )}
 
+        {/* Status text */}
         <div className="mb-4 text-sm text-gray-400">
-          Showing: <span className="text-blue-400">{selectedCountry?.flag} {selectedCountry?.label}</span> movies
-          {selectedGenre && (
-            <span> in <span className="text-purple-400">{GENRES.find(g => g.id === selectedGenre)?.name}</span></span>
+          {isSearching ? (
+            <span>Found <span className="text-blue-400">{searchResults.length}</span> results</span>
+          ) : (
+            <>
+              Showing: <span className="text-blue-400">{selectedCountry?.flag} {selectedCountry?.label}</span> movies
+              {selectedGenre && (
+                <span> in <span className="text-purple-400">{GENRES.find(g => g.id === selectedGenre)?.name}</span></span>
+              )}
+            </>
           )}
         </div>
 
         {/* Results */}
-        {loading && movies.length === 0 ? (
+        {loading && displayMovies.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {movies.map((movie) => (
+              {displayMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   item={movie}
@@ -228,15 +265,15 @@ export default function BrowseMovies() {
               ))}
             </div>
 
-            {movies.length === 0 && !loading && (
+            {displayMovies.length === 0 && !loading && (
               <div className="text-center py-20 text-gray-400">
-                <p className="mb-4">No movies found with these filters.</p>
-                <p className="text-sm">Try selecting a different country or genre.</p>
+                <p className="mb-4">{isSearching ? 'No movies found for your search.' : 'No movies found with these filters.'}</p>
+                <p className="text-sm">{isSearching ? 'Try a different search term.' : 'Try selecting a different country or genre.'}</p>
               </div>
             )}
 
-            {/* Infinite scroll trigger */}
-            {hasMore && movies.length > 0 && (
+            {/* Infinite scroll trigger - only when not searching */}
+            {!isSearching && hasMore && displayMovies.length > 0 && (
               <div ref={loadMoreRef} className="py-8 text-center">
                 {loadingMore && (
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
