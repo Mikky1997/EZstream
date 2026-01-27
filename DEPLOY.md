@@ -162,6 +162,7 @@ real_ip_header CF-Connecting-IP;
 
 ## Updating
 
+### Normal Update (after initial setup)
 ```bash
 cd /var/www/mikkystream
 git pull
@@ -169,6 +170,56 @@ npm install
 npm run build
 pm2 restart mikkystream
 ```
+
+### First Update After History Rewrite (if you get conflicts)
+If you get merge conflicts or "divergent branches" error after a history rewrite:
+```bash
+cd /var/www/mikkystream
+git fetch origin
+git reset --hard origin/main
+npm install
+npm run build
+pm2 restart mikkystream
+```
+
+**Note:** This will overwrite any local changes, so make sure you've saved your `.env` file and `scripts/seed-users.ts` first!
+
+## Setting Up Users
+
+After pulling the latest code, you need to set up your users:
+
+1. **Copy the example seed file:**
+   ```bash
+   cd /var/www/mikkystream
+   cp scripts/seed-users.example.ts scripts/seed-users.ts
+   ```
+
+2. **Edit the seed file and add your users:**
+   ```bash
+   nano scripts/seed-users.ts
+   ```
+   
+   Add your users to the `users` array:
+   ```typescript
+   const users = [
+     { username: 'mikky', password: 'mikky', displayName: 'Mikky' },
+     { username: 'raggi', password: 'raggi', displayName: 'Raggi' },
+     // Add more users here...
+   ];
+   ```
+
+3. **Run the seed script:**
+   ```bash
+   npx tsx scripts/seed-users.ts
+   ```
+
+4. **Verify users were created:**
+   The script will output all created users. You can also check the database:
+   ```bash
+   sqlite3 data/mikkystream.db "SELECT username, display_name FROM users;"
+   ```
+
+**Important:** The `scripts/seed-users.ts` file is gitignored and won't be committed. You need to recreate it on each server/environment.
 
 ## Useful Commands
 
