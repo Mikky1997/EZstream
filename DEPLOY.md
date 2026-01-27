@@ -44,7 +44,8 @@ npm install
 
 # Configure environment
 cp .env.example .env.local
-nano .env.local  # Add your TMDB API key and JWT secret
+nano .env.local  # Add your TMDB API key and SESSION_SECRET
+# Generate a secure session secret: openssl rand -base64 32
 
 # Build the application
 npm run build

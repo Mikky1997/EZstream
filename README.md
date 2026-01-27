@@ -85,10 +85,15 @@ mikkystream/
    cp .env.example .env.local
    ```
    
-   Edit `.env.local` and add your TMDB API key:
+   Edit `.env.local` and add your TMDB API key and session secret:
    ```env
    TMDB_API_KEY=your_api_key_here
-   JWT_SECRET=your_random_secret_here
+   SESSION_SECRET=your_random_secret_here
+   ```
+   
+   Generate a secure session secret:
+   ```bash
+   openssl rand -base64 32
    ```
 
 4. **Seed the database** (optional - creates demo users)

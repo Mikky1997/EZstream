@@ -7,9 +7,17 @@ import { randomUUID } from 'crypto';
 // Session configuration
 const SESSION_COOKIE_NAME = 'mikkystream_session';
 const SESSION_DURATION_DAYS = 365; // 1 year for persistent login
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET || 'mikkystream-default-secret-change-in-production'
-);
+
+// Get JWT secret from environment - required for security
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  throw new Error(
+    'SESSION_SECRET environment variable is required. ' +
+    'Set it in your .env file. Generate with: openssl rand -base64 32'
+  );
+}
+
+const JWT_SECRET = new TextEncoder().encode(SESSION_SECRET);
 
 // Password hashing
 export async function hashPassword(password: string): Promise<string> {
