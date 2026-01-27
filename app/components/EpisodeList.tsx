@@ -57,7 +57,7 @@ export default function EpisodeList({
     
     setLoading(true);
     try {
-      await fetch('/api/user/episodes', {
+      const response = await fetch('/api/user/episodes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,10 +69,13 @@ export default function EpisodeList({
         }),
       });
       
-      setWatchedEpisodes(prev => ({
-        ...prev,
-        [`${season}-${episode}`]: true,
-      }));
+      // Only update UI if the server confirmed the operation
+      if (response.ok) {
+        setWatchedEpisodes(prev => ({
+          ...prev,
+          [`${season}-${episode}`]: true,
+        }));
+      }
     } catch (error) {
       console.error('Failed to mark episode:', error);
     } finally {

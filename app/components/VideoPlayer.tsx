@@ -1,7 +1,39 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import type { StreamingSource } from '@/types';
+
+// Allowed video source domains for security
+const ALLOWED_VIDEO_DOMAINS = [
+  'vidsrcme.ru',
+  'vidsrc.cc',
+  'vidsrc.pro',
+  'moviesapi.club',
+  'embed.su',
+  'autoembed.cc',
+  'multiembed.mov',
+  '2embed.cc',
+  'streamsrc.cc',
+  // Include common subdomains
+  'www.vidsrcme.ru',
+  'www.vidsrc.cc',
+  'www.vidsrc.pro',
+];
+
+// Validate that URL is from an allowed domain
+function isAllowedVideoUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    
+    // Check exact match or subdomain match
+    return ALLOWED_VIDEO_DOMAINS.some(domain => 
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
 
 interface VideoPlayerProps {
   source: StreamingSource;
@@ -13,14 +45,34 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Validate URL on every source change
+  const isValidUrl = useMemo(() => {
+    if (!source.url) return false;
+    return isAllowedVideoUrl(source.url);
+  }, [source.url]);
+
   useEffect(() => {
     if (source.type === 'vidsrc' && source.url) {
       setLoading(true);
-      setError(null);
+      if (!isValidUrl) {
+        setError('Invalid video source');
+        setLoading(false);
+      } else {
+        setError(null);
+      }
     }
-  }, [source]);
+  }, [source, isValidUrl]);
 
   if (source.type === 'vidsrc' && source.url) {
+    // Block rendering of iframe if URL is not from allowed domain
+    if (!isValidUrl) {
+      return (
+        <div className="w-full h-96 bg-gray-900 rounded-lg flex items-center justify-center">
+          <p className="text-red-400">Invalid video source domain</p>
+        </div>
+      );
+    }
+
     return (
       <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
         <iframe

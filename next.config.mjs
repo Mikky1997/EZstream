@@ -1,4 +1,23 @@
 /** @type {import('next').NextConfig} */
+
+// Validate required environment variables at build/startup time
+const requiredEnvVars = ['TMDB_API_KEY'];
+const requiredProdEnvVars = ['SESSION_SECRET'];
+
+// Check required vars (skip during build if not available)
+if (process.env.NODE_ENV === 'production' || process.env.npm_lifecycle_event === 'start') {
+  const missing = [...requiredEnvVars, ...requiredProdEnvVars].filter(
+    (key) => !process.env[key]
+  );
+  if (missing.length > 0) {
+    console.error(`\n❌ Missing required environment variables: ${missing.join(', ')}`);
+    console.error('Please set these in your .env file or environment.\n');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
+  }
+}
+
 const nextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
@@ -70,7 +89,15 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrc.me https://vidsrc-embed.ru https://*.vidsrc.me https://*.vidsrc-embed.ru; font-src 'self' data:;",
+            // Note: 'unsafe-inline' needed for Next.js style injection, 'unsafe-eval' for Next.js dev mode
+            // In production, consider using nonces via middleware for stricter CSP
+            value: process.env.NODE_ENV === 'production' 
+              ? "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:; base-uri 'self'; form-action 'self';"
+              : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:;",
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
           // HSTS - only in production with HTTPS
           ...(process.env.NODE_ENV === 'production' ? [{

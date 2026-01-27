@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
     // If first page has few results, try to get more
     if (results.results.length < 10 && results.total_pages > 1) {
       const additionalPages = await Promise.all([
-        searchMovies(query, 2),
-        searchMovies(query, 3),
+        searchMovies(sanitizedQuery, 2),
+        searchMovies(sanitizedQuery, 3),
       ]);
       
       // Combine results and remove duplicates

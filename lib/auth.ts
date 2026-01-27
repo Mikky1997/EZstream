@@ -27,12 +27,9 @@ function getJwtSecret(): Uint8Array {
   return _jwtSecret;
 }
 
-// For backwards compatibility - will throw at runtime if not set
-const JWT_SECRET = SESSION_SECRET ? new TextEncoder().encode(SESSION_SECRET) : new Uint8Array();
-
-// Password hashing
+// Password hashing - cost factor 12 per OWASP recommendations (2024+)
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -52,7 +49,7 @@ export async function createSession(userId: number): Promise<string> {
   const token = await new SignJWT({ sessionId })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime(`${SESSION_DURATION_DAYS}d`)
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
   
   return token;
 }
@@ -68,7 +65,7 @@ export async function getCurrentUser(): Promise<User | null> {
     }
     
     // Verify JWT
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     const sessionId = payload.sessionId as string;
     
     if (!sessionId) {
@@ -124,7 +121,7 @@ export async function deleteSession(): Promise<void> {
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     
     if (token) {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, getJwtSecret());
       const sessionId = payload.sessionId as string;
       if (sessionId) {
         sessionQueries.delete.run(sessionId);

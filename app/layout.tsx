@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Viewport configuration for better mobile experience
 export const viewport: Viewport = {
@@ -62,12 +63,14 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.themoviedb.org" />
       </head>
       <body className="antialiased bg-gray-900">
-        <AuthProvider>
-          <WatchlistProvider>
-            <Navbar />
-            {children}
-          </WatchlistProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <WatchlistProvider>
+              <Navbar />
+              {children}
+            </WatchlistProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

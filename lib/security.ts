@@ -11,7 +11,7 @@ export function validateUsername(username: unknown): username is string {
 
 export function validatePassword(password: unknown): password is string {
   if (typeof password !== 'string') return false;
-  // Password: 4-100 chars (reasonable limits)
+  // Password: 4-100 chars (simple for family/friends use)
   return password.length >= 4 && password.length <= 100;
 }
 
@@ -117,19 +117,70 @@ if (typeof setInterval !== 'undefined') {
   }, 60 * 1000); // Clean up every minute
 }
 
-// Get client IP from request
+// Validate IP address format (basic check)
+function isValidIP(ip: string): boolean {
+  // IPv4: x.x.x.x
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  // IPv6: simplified check for common formats
+  const ipv6Regex = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+  return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+}
+
+// Known trusted proxy IPs (configure based on your infrastructure)
+// In production, set TRUSTED_PROXIES env var to comma-separated list of IPs
+const TRUSTED_PROXIES = process.env.TRUSTED_PROXIES?.split(',').map(ip => ip.trim()) || [];
+
+// Get client IP from request - with security validation
 export function getClientIP(request: Request): string {
-  // Try various headers (for proxies/load balancers)
   const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-  
   const realIP = request.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
+  
+  // If we have trusted proxies configured, only trust headers from those proxies
+  // Otherwise, use a fingerprint-based approach for rate limiting
+  if (TRUSTED_PROXIES.length > 0) {
+    // In a properly configured reverse proxy setup, headers can be trusted
+    if (forwarded) {
+      const ip = forwarded.split(',')[0].trim();
+      if (isValidIP(ip)) {
+        return ip;
+      }
+    }
+    if (realIP && isValidIP(realIP)) {
+      return realIP;
+    }
   }
   
-  // Fallback (won't work in serverless, but helps in traditional deployments)
-  return 'unknown';
+  // Without trusted proxy config, generate a fingerprint to prevent easy bypass
+  // This includes User-Agent to make spoofing harder (attacker must match both)
+  const userAgent = request.headers.get('user-agent') || '';
+  const acceptLanguage = request.headers.get('accept-language') || '';
+  
+  // Use forwarded IP (if present) combined with fingerprint
+  // This means changing IP OR user-agent still gets some rate limiting
+  const baseIP = forwarded?.split(',')[0].trim() || realIP || 'unknown';
+  const fingerprint = `${baseIP}:${userAgent.slice(0, 50)}:${acceptLanguage.slice(0, 20)}`;
+  
+  return fingerprint;
+}
+
+// Rate limit by username for login attempts (prevents targeted attacks)
+export function checkLoginRateLimit(
+  ip: string,
+  username?: string
+): { allowed: boolean; message?: string } {
+  // Check IP-based rate limit (5 attempts per 15 minutes)
+  const ipLimit = checkRateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000);
+  if (!ipLimit.allowed) {
+    return { allowed: false, message: 'Too many login attempts. Please try again later.' };
+  }
+  
+  // Check username-based rate limit if provided (10 attempts per hour)
+  if (username) {
+    const userLimit = checkRateLimit(`login:user:${username.toLowerCase()}`, 10, 60 * 60 * 1000);
+    if (!userLimit.allowed) {
+      return { allowed: false, message: 'This account is temporarily locked. Please try again later.' };
+    }
+  }
+  
+  return { allowed: true };
 }

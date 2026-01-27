@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser, createSession, setSessionCookie } from '@/lib/auth';
-import { validateUsername, validatePassword, checkRateLimit, getClientIP } from '@/lib/security';
+import { validateUsername, validatePassword, checkLoginRateLimit, getClientIP } from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
@@ -28,25 +28,14 @@ export async function POST(request: Request) {
       );
     }
     
-    // Rate limiting: 5 attempts per 15 minutes per IP
+    // Rate limiting: IP-based (10/15min) + username-based (10/hour) for targeted attack prevention
     const clientIP = getClientIP(request);
-    const rateLimit = checkRateLimit(`login:${clientIP}`, 5, 15 * 60 * 1000);
+    const rateLimit = checkLoginRateLimit(clientIP, username);
     
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { 
-          error: 'Too many login attempts. Please try again later.',
-          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000)
-        },
-        { 
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
-            'X-RateLimit-Limit': '5',
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(rateLimit.resetAt),
-          }
-        }
+        { error: rateLimit.message || 'Too many login attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '900' } }
       );
     }
     
@@ -56,14 +45,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
-        { 
-          status: 401,
-          headers: {
-            'X-RateLimit-Limit': '5',
-            'X-RateLimit-Remaining': String(rateLimit.remaining),
-            'X-RateLimit-Reset': String(rateLimit.resetAt),
-          }
-        }
+        { status: 401 }
       );
     }
     
@@ -80,12 +62,6 @@ export async function POST(request: Request) {
         username: user.username,
         displayName: user.display_name,
       },
-    }, {
-      headers: {
-        'X-RateLimit-Limit': '5',
-        'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-RateLimit-Reset': String(rateLimit.resetAt),
-      }
     });
   } catch (error) {
     // Don't log sensitive information

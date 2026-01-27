@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface User {
@@ -25,6 +25,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  
+  // Track if initial auth check has been done to prevent excessive API calls
+  const hasCheckedAuth = useRef(false);
+  const lastPathname = useRef(pathname);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -49,9 +53,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, router]);
 
+  // Only check auth on initial mount, not on every pathname change
   useEffect(() => {
-    checkAuth();
+    if (!hasCheckedAuth.current) {
+      hasCheckedAuth.current = true;
+      checkAuth();
+    }
   }, [checkAuth]);
+
+  // Handle redirect for unauthenticated users on route changes (without re-fetching)
+  useEffect(() => {
+    // Skip if still loading or pathname hasn't changed
+    if (loading || lastPathname.current === pathname) return;
+    lastPathname.current = pathname;
+    
+    // If not authenticated and not on login page, redirect
+    if (!user && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [pathname, user, loading, router]);
 
   const login = async (username: string, password: string) => {
     try {
