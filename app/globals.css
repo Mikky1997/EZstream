@@ -97,37 +97,68 @@ body {
   }
 }
 
-/* Mobile touch optimizations */
-@layer base {
-  /* Remove 300ms tap delay on touch devices */
+/* ===== MOVIE CARD MOBILE/DESKTOP HANDLING ===== */
+/* Using CSS media queries for instant detection (no JS hydration delay) */
+
+/* Base card styles */
+.movie-card {
+  /* Remove tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Card scaling behavior */
+.card-scale {
+  transform: scale(1);
+  transition: transform 0.2s ease-out;
+}
+
+/* Card overlay (gradient) */
+.card-overlay {
+  opacity: 1;
+  transition: opacity 0.2s ease-out;
+}
+
+/* ===== DESKTOP: Devices that support hover ===== */
+@media (hover: hover) and (pointer: fine) {
+  /* Scale up on hover - desktop only */
+  .card-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Hide overlay by default, show on hover - desktop only */
+  .card-overlay {
+    opacity: 0;
+  }
+  
+  .movie-card:hover .card-overlay {
+    opacity: 1;
+  }
+}
+
+/* ===== MOBILE/TOUCH: Devices without hover ===== */
+@media (hover: none), (pointer: coarse) {
+  /* No hover effects - prevent double tap */
+  .card-scale:hover {
+    transform: none;
+  }
+  
+  /* Active state for touch feedback */
+  .card-scale:active {
+    transform: scale(0.98);
+  }
+  
+  /* Always show overlay on mobile */
+  .card-overlay {
+    opacity: 1;
+  }
+  
+  /* Remove 300ms tap delay */
   a, button {
     touch-action: manipulation;
   }
   
-  /* Disable hover effects on touch devices to prevent double-tap issue */
-  @media (hover: none) and (pointer: coarse) {
-    /* Remove hover scaling on cards */
-    .group:hover .group-hover\:scale-105 {
-      transform: none;
-    }
-    
-    /* Ensure links are immediately clickable */
-    a {
-      -webkit-tap-highlight-color: transparent;
-    }
-  }
-  
-  /* Better touch feedback */
-  @media (pointer: coarse) {
-    button, a {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Smaller buttons can override */
-    button.p-2, a.p-2 {
-      min-height: auto;
-      min-width: auto;
-    }
+  /* Ensure links navigate immediately */
+  a {
+    -webkit-tap-highlight-color: transparent;
   }
 }
