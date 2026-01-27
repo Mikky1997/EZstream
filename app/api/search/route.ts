@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchMovies } from '@/lib/tmdb';
+import { safeParseInt, sanitizeString } from '@/lib/security';
 
 // Cache search results for 2 minutes
 export const revalidate = 120;
@@ -16,10 +17,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Validate and sanitize inputs
+  const sanitizedQuery = sanitizeString(query, 200);
+  const validatedPage = safeParseInt(page, 1, 1, 1000);
+
   try {
     // TMDB search is already fuzzy - it uses partial matching
     // But we can improve by searching multiple pages and combining results
-    const results = await searchMovies(query, parseInt(page));
+    const results = await searchMovies(sanitizedQuery, validatedPage);
     
     // If first page has few results, try to get more
     if (results.results.length < 10 && results.total_pages > 1) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { historyQueries } from '@/lib/db';
+import { safeParseInt, sanitizeString } from '@/lib/security';
 
 // GET - Get watched episodes for a TV show
 export async function GET(request: Request) {
@@ -18,7 +19,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing mediaId' }, { status: 400 });
     }
     
-    const episodes = historyQueries.getWatchedEpisodes.all(user.id, parseInt(mediaId));
+    const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
+    if (validatedMediaId === 0) {
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
+    }
+    
+    const episodes = historyQueries.getWatchedEpisodes.all(user.id, validatedMediaId);
     
     // Convert to a map for easy lookup: { "1-1": true, "1-2": true, ... }
     const watchedMap: Record<string, boolean> = {};
@@ -51,13 +57,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
+    // Validate and sanitize inputs
+    const validatedMediaId = safeParseInt(String(mediaId), 0, 1, Number.MAX_SAFE_INTEGER);
+    const validatedSeason = safeParseInt(String(season), 0, 1, 1000);
+    const validatedEpisode = safeParseInt(String(episode), 0, 1, 1000);
+    const sanitizedTitle = sanitizeString(title, 500);
+    const sanitizedPosterPath = posterPath ? sanitizeString(posterPath, 500) : null;
+    
+    if (validatedMediaId === 0 || validatedSeason === 0 || validatedEpisode === 0) {
+      return NextResponse.json({ error: 'Invalid input values' }, { status: 400 });
+    }
+    
     historyQueries.markEpisodeWatched.run(
       user.id,
-      mediaId,
-      season,
-      episode,
-      title,
-      posterPath || null
+      validatedMediaId,
+      validatedSeason,
+      validatedEpisode,
+      sanitizedTitle,
+      sanitizedPosterPath
     );
     
     return NextResponse.json({ success: true });

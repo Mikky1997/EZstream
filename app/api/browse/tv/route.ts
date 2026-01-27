@@ -1,25 +1,26 @@
 import { NextResponse } from 'next/server';
 import { discoverTVWithFilters } from '@/lib/tmdb';
+import { safeParseInt } from '@/lib/security';
 
 // Cache browse results for 5 minutes
 export const revalidate = 300;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('page') || '1');
+  const page = safeParseInt(searchParams.get('page'), 1, 1, 1000);
   const genre = searchParams.get('genre');
   const sortBy = searchParams.get('sort_by') || 'popularity.desc';
   const year = searchParams.get('year');
   const language = searchParams.get('language');
   // Higher minVotes = more popular shows = more likely to be available on streaming sources
-  const minVotes = parseInt(searchParams.get('min_votes') || '50');
+  const minVotes = safeParseInt(searchParams.get('min_votes'), 50, 1, 10000);
 
   try {
     const data = await discoverTVWithFilters({
       page,
-      genre: genre ? parseInt(genre) : undefined,
+      genre: genre ? safeParseInt(genre, undefined, 1, 1000) : undefined,
       sortBy,
-      year: year ? parseInt(year) : undefined,
+      year: year ? safeParseInt(year, undefined, 1900, 2100) : undefined,
       language: language || undefined,
       minVotes,
     });

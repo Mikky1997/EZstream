@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTVShowDetails, getIMDbId } from '@/lib/tmdb';
+import { safeParseInt } from '@/lib/security';
 
 // Cache TV show details for 1 hour
 export const revalidate = 3600;
@@ -9,7 +10,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = parseInt(params.id);
+    const id = safeParseInt(params.id, 0, 1, Number.MAX_SAFE_INTEGER);
+    if (id === 0) {
+      return NextResponse.json(
+        { error: 'Invalid TV show ID' },
+        { status: 400 }
+      );
+    }
+    
     const [details, imdbId] = await Promise.all([
       getTVShowDetails(id),
       getIMDbId('tv', id),

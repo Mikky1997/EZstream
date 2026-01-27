@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { watchlistQueries } from '@/lib/db';
+import { safeParseInt, sanitizeString } from '@/lib/security';
 
 // GET - Get user's watchlist
 export async function GET(request: Request) {
@@ -12,18 +13,25 @@ export async function GET(request: Request) {
     }
     
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = safeParseInt(searchParams.get('limit'), 50, 1, 100);
     
     // Check if we're just checking a specific item
     const mediaType = searchParams.get('mediaType');
     const mediaId = searchParams.get('mediaId');
     
     if (mediaType && mediaId) {
-      const result = watchlistQueries.check.get(user.id, mediaType, parseInt(mediaId));
+      if (mediaType !== 'movie' && mediaType !== 'tv') {
+        return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
+      }
+      const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
+      if (validatedMediaId === 0) {
+        return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
+      }
+      const result = watchlistQueries.check.get(user.id, mediaType, validatedMediaId);
       return NextResponse.json({ inWatchlist: (result?.count || 0) > 0 });
     }
     
-    const watchlist = watchlistQueries.getForUser.all(user.id, Math.min(limit, 100));
+    const watchlist = watchlistQueries.getForUser.all(user.id, limit);
     
     return NextResponse.json({ watchlist });
   } catch (error) {
@@ -48,7 +56,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    watchlistQueries.add.run(user.id, mediaType, mediaId, title, posterPath || null);
+    // Validate mediaType
+    if (mediaType !== 'movie' && mediaType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
+    }
+    
+    // Validate and sanitize inputs
+    const validatedMediaId = safeParseInt(String(mediaId), 0, 1, Number.MAX_SAFE_INTEGER);
+    if (validatedMediaId === 0) {
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
+    }
+    
+    const sanitizedTitle = sanitizeString(title, 500);
+    const sanitizedPosterPath = posterPath ? sanitizeString(posterPath, 500) : null;
+    
+    watchlistQueries.add.run(user.id, mediaType, validatedMediaId, sanitizedTitle, sanitizedPosterPath);
     
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -74,7 +96,17 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    watchlistQueries.remove.run(user.id, mediaType, parseInt(mediaId));
+    // Validate mediaType
+    if (mediaType !== 'movie' && mediaType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
+    }
+    
+    const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
+    if (validatedMediaId === 0) {
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
+    }
+    
+    watchlistQueries.remove.run(user.id, mediaType, validatedMediaId);
     
     return NextResponse.json({ success: true });
   } catch (error) {

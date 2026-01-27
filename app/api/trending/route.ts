@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTrendingMovies, getTrendingTV } from '@/lib/tmdb';
+import { safeParseInt } from '@/lib/security';
 
 // Cache trending results for 5 minutes
 export const revalidate = 300;
@@ -9,10 +10,19 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') || 'movie';
   const page = searchParams.get('page') || '1';
 
+  // Validate type
+  if (type !== 'movie' && type !== 'tv') {
+    return NextResponse.json(
+      { error: 'Invalid type. Must be "movie" or "tv"' },
+      { status: 400 }
+    );
+  }
+
   try {
+    const validatedPage = safeParseInt(page, 1, 1, 1000);
     const results = type === 'movie' 
-      ? await getTrendingMovies(parseInt(page))
-      : await getTrendingTV(parseInt(page));
+      ? await getTrendingMovies(validatedPage)
+      : await getTrendingTV(validatedPage);
     
     return NextResponse.json(results, {
       headers: {

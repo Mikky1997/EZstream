@@ -1,14 +1,52 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser, createSession, setSessionCookie } from '@/lib/auth';
+import { validateUsername, validatePassword, checkRateLimit, getClientIP } from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
     
+    // Input validation
     if (!username || !password) {
       return NextResponse.json(
         { error: 'Username and password are required' },
         { status: 400 }
+      );
+    }
+    
+    if (!validateUsername(username)) {
+      return NextResponse.json(
+        { error: 'Invalid username format' },
+        { status: 400 }
+      );
+    }
+    
+    if (!validatePassword(password)) {
+      return NextResponse.json(
+        { error: 'Invalid password format' },
+        { status: 400 }
+      );
+    }
+    
+    // Rate limiting: 5 attempts per 15 minutes per IP
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(`login:${clientIP}`, 5, 15 * 60 * 1000);
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many login attempts. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          }
+        }
       );
     }
     
@@ -18,7 +56,14 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
-        { status: 401 }
+        { 
+          status: 401,
+          headers: {
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          }
+        }
       );
     }
     
@@ -35,9 +80,16 @@ export async function POST(request: Request) {
         username: user.username,
         displayName: user.display_name,
       },
+    }, {
+      headers: {
+        'X-RateLimit-Limit': '5',
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-RateLimit-Reset': String(rateLimit.resetAt),
+      }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    // Don't log sensitive information
+    console.error('Login error:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'Login failed' },
       { status: 500 }

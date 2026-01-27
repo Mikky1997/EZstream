@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 
 // Session configuration
 const SESSION_COOKIE_NAME = 'mikkystream_session';
-const SESSION_DURATION_DAYS = 365; // 1 year for persistent login
+const SESSION_DURATION_DAYS = 30; // 30 days (reduced from 365 for better security)
 
 // Get JWT secret from environment - required for security
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -88,9 +88,9 @@ export async function getCurrentUser(): Promise<User | null> {
 // Set session cookie
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-  // Only set secure flag if we're actually using HTTPS
-  // For HTTP, we need secure=false for cookies to work
-  const isSecure = process.env.FORCE_SECURE_COOKIES === 'true';
+  // Set secure flag in production or when explicitly enabled
+  // In development, allow HTTP for local testing
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.FORCE_SECURE_COOKIES === 'true';
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isSecure,

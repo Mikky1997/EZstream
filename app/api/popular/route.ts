@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPopularMovies } from '@/lib/tmdb';
+import { safeParseInt } from '@/lib/security';
 
 // Cache popular results for 5 minutes
 export const revalidate = 300;
@@ -9,7 +10,8 @@ export async function GET(request: NextRequest) {
   const page = searchParams.get('page') || '1';
 
   try {
-    const results = await getPopularMovies(parseInt(page));
+    const validatedPage = safeParseInt(page, 1, 1, 1000);
+    const results = await getPopularMovies(validatedPage);
     return NextResponse.json(results, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { historyQueries } from '@/lib/db';
+import { safeParseInt, sanitizeString } from '@/lib/security';
 
 // GET - Get user's watch history
 export async function GET(request: Request) {
@@ -12,9 +13,9 @@ export async function GET(request: Request) {
     }
     
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = safeParseInt(searchParams.get('limit'), 20, 1, 100);
     
-    const history = historyQueries.getForUser.all(user.id, user.id, Math.min(limit, 100));
+    const history = historyQueries.getForUser.all(user.id, user.id, limit);
     
     return NextResponse.json({ history });
   } catch (error) {
@@ -44,20 +45,39 @@ export async function POST(request: Request) {
       durationSeconds 
     } = body;
     
+    // Input validation
     if (!mediaType || !mediaId || !title) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    
+    // Validate mediaType
+    if (mediaType !== 'movie' && mediaType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
+    }
+    
+    // Validate and sanitize inputs
+    const sanitizedTitle = sanitizeString(title, 500);
+    const sanitizedPosterPath = posterPath ? sanitizeString(posterPath, 500) : null;
+    const validatedMediaId = safeParseInt(String(mediaId), 0, 1, Number.MAX_SAFE_INTEGER);
+    const validatedSeason = season ? safeParseInt(String(season), null, 1, 1000) : null;
+    const validatedEpisode = episode ? safeParseInt(String(episode), null, 1, 1000) : null;
+    const validatedProgress = safeParseInt(String(progressSeconds || 0), 0, 0, Number.MAX_SAFE_INTEGER);
+    const validatedDuration = safeParseInt(String(durationSeconds || 0), 0, 0, Number.MAX_SAFE_INTEGER);
+    
+    if (validatedMediaId === 0) {
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
     }
     
     historyQueries.upsert.run(
       user.id,
       mediaType,
-      mediaId,
-      title,
-      posterPath || null,
-      season || null,
-      episode || null,
-      progressSeconds || 0,
-      durationSeconds || 0
+      validatedMediaId,
+      sanitizedTitle,
+      sanitizedPosterPath,
+      validatedSeason,
+      validatedEpisode,
+      validatedProgress,
+      validatedDuration
     );
     
     return NextResponse.json({ success: true });
@@ -84,7 +104,17 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    historyQueries.delete.run(user.id, mediaType, parseInt(mediaId));
+    // Validate mediaType
+    if (mediaType !== 'movie' && mediaType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
+    }
+    
+    const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
+    if (validatedMediaId === 0) {
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
+    }
+    
+    historyQueries.delete.run(user.id, mediaType, validatedMediaId);
     
     return NextResponse.json({ success: true });
   } catch (error) {
