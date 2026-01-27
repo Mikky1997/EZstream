@@ -27,6 +27,7 @@ export default function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
   const navSearchRef = useRef<HTMLInputElement>(null);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogout = async () => {
@@ -83,18 +84,31 @@ export default function Navbar() {
     };
   }, [navSearchQuery]);
 
-  // Close search dropdown when clicking outside
+  // Close search dropdown when clicking outside (check both desktop and mobile refs)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      const isOutsideDesktop = searchWrapperRef.current && !searchWrapperRef.current.contains(target);
+      const isOutsideMobile = mobileSearchRef.current && !mobileSearchRef.current.contains(target);
+      
+      // Only close if clicking outside BOTH refs (or if ref doesn't exist)
+      const shouldClose = 
+        (!searchWrapperRef.current || isOutsideDesktop) && 
+        (!mobileSearchRef.current || isOutsideMobile);
+      
+      if (shouldClose && showNavSearch) {
         setShowNavSearch(false);
         setNavSearchQuery('');
         setSearchResults([]);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showNavSearch]);
 
   // Close search on escape
   useEffect(() => {
@@ -355,7 +369,7 @@ export default function Navbar() {
 
         {/* Mobile Search Bar */}
         {showNavSearch && (
-          <div className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900 relative">
+          <div ref={mobileSearchRef} className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900 relative">
             <div className="flex items-center gap-2">
               <input
                 ref={navSearchRef}
