@@ -1,44 +1,69 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
 // Routes that don't require authentication
 const publicRoutes = ['/login', '/api/auth/login', '/api/auth/logout'];
 
-// Routes that are always accessible (API routes for public data)
-const publicApiRoutes = [
-  '/api/search',
-  '/api/trending',
-  '/api/popular',
-  '/api/movie',
-  '/api/tv',
-  '/api/browse',
-];
+// Session cookie name
+const SESSION_COOKIE_NAME = 'mikkystream_session';
 
-export function middleware(request: NextRequest) {
+// Get JWT secret - must match lib/auth.ts
+const getJwtSecret = () => {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    console.error('SESSION_SECRET not configured');
+    return null;
+  }
+  return new TextEncoder().encode(secret);
+};
+
+// Validate JWT token (lightweight check - full validation happens in API routes)
+async function isValidToken(token: string): Promise<boolean> {
+  try {
+    const secret = getJwtSecret();
+    if (!secret) return false;
+    
+    const { payload } = await jwtVerify(token, secret);
+    // Just check if token is valid and has sessionId
+    return !!payload.sessionId;
+  } catch {
+    // Token is invalid or expired
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Check if it's a public route
+  // Check if it's a public route (login page and auth endpoints only)
   if (publicRoutes.some(route => pathname === route)) {
     return NextResponse.next();
   }
   
-  // Check if it's a public API route
-  if (publicApiRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next();
-  }
+  // Get session cookie
+  const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   
-  // Check for session cookie
-  const sessionCookie = request.cookies.get('mikkystream_session');
-  
-  // If no session and trying to access protected route, redirect to login
-  if (!sessionCookie && !pathname.startsWith('/api/')) {
+  // If no session cookie, redirect to login (for pages) or return 401 (for API)
+  if (!sessionCookie?.value) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
   
-  // For API routes without session, return 401
-  if (!sessionCookie && pathname.startsWith('/api/user/')) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  // Validate the JWT token
+  const isValid = await isValidToken(sessionCookie.value);
+  
+  if (!isValid) {
+    // Clear the invalid cookie
+    const response = pathname.startsWith('/api/')
+      ? NextResponse.json({ error: 'Session expired' }, { status: 401 })
+      : NextResponse.redirect(new URL('/login', request.url));
+    
+    response.cookies.delete(SESSION_COOKIE_NAME);
+    return response;
   }
   
   return NextResponse.next();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import MovieCard from '@/app/components/MovieCard';
 import type { Movie } from '@/types';
 
@@ -59,29 +59,7 @@ export default function BrowseMovies() {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadMovies(true);
-  }, [selectedGenre, sortBy, selectedLanguage]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadMovies(false);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, selectedGenre, sortBy, selectedLanguage]);
-
-  const loadMovies = async (reset = false) => {
+  const loadMovies = useCallback(async (reset = false) => {
     if (reset) {
       setLoading(true);
     } else {
@@ -122,7 +100,34 @@ export default function BrowseMovies() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [page, sortBy, selectedGenre, selectedLanguage]);
+
+  useEffect(() => {
+    loadMovies(true);
+  }, [selectedGenre, sortBy, selectedLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMovies(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadMovies]);
 
   const selectedCountry = COUNTRY_OPTIONS.find(o => o.value === selectedLanguage);
 

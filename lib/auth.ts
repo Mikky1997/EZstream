@@ -10,14 +10,25 @@ const SESSION_DURATION_DAYS = 30; // 30 days (reduced from 365 for better securi
 
 // Get JWT secret from environment - required for security
 const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-  throw new Error(
-    'SESSION_SECRET environment variable is required. ' +
-    'Set it in your .env file. Generate with: openssl rand -base64 32'
-  );
+
+// Lazy initialization of JWT_SECRET to allow build without env vars
+let _jwtSecret: Uint8Array | null = null;
+
+function getJwtSecret(): Uint8Array {
+  if (!SESSION_SECRET) {
+    throw new Error(
+      'SESSION_SECRET environment variable is required. ' +
+      'Set it in your .env file. Generate with: openssl rand -base64 32'
+    );
+  }
+  if (!_jwtSecret) {
+    _jwtSecret = new TextEncoder().encode(SESSION_SECRET);
+  }
+  return _jwtSecret;
 }
 
-const JWT_SECRET = new TextEncoder().encode(SESSION_SECRET);
+// For backwards compatibility - will throw at runtime if not set
+const JWT_SECRET = SESSION_SECRET ? new TextEncoder().encode(SESSION_SECRET) : new Uint8Array();
 
 // Password hashing
 export async function hashPassword(password: string): Promise<string> {

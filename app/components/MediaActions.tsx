@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 interface MediaActionsProps {
@@ -22,14 +22,7 @@ export default function MediaActions({
   const [inWatchlist, setInWatchlist] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Check initial state
-  useEffect(() => {
-    if (user) {
-      checkStatus();
-    }
-  }, [user, mediaType, mediaId]);
-
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     try {
       const watchlistRes = await fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`);
 
@@ -40,7 +33,14 @@ export default function MediaActions({
     } catch (error) {
       console.error('Failed to check status:', error);
     }
-  };
+  }, [mediaType, mediaId]);
+
+  // Check initial state
+  useEffect(() => {
+    if (user) {
+      checkStatus();
+    }
+  }, [user, checkStatus]);
 
   const toggleWatchlist = async () => {
     if (!user || loading) return;

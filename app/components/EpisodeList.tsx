@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Season {
@@ -33,14 +33,7 @@ export default function EpisodeList({
   const [watchedEpisodes, setWatchedEpisodes] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
 
-  // Fetch watched episodes
-  useEffect(() => {
-    if (user) {
-      fetchWatchedEpisodes();
-    }
-  }, [user, mediaId]);
-
-  const fetchWatchedEpisodes = async () => {
+  const fetchWatchedEpisodes = useCallback(async () => {
     try {
       const response = await fetch(`/api/user/episodes?mediaId=${mediaId}`);
       if (response.ok) {
@@ -50,7 +43,14 @@ export default function EpisodeList({
     } catch (error) {
       console.error('Failed to fetch watched episodes:', error);
     }
-  };
+  }, [mediaId]);
+
+  // Fetch watched episodes
+  useEffect(() => {
+    if (user) {
+      fetchWatchedEpisodes();
+    }
+  }, [user, fetchWatchedEpisodes]);
 
   const markAsWatched = async (season: number, episode: number) => {
     if (!user || loading) return;

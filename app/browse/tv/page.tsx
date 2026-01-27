@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import MovieCard from '@/app/components/MovieCard';
 import type { TVShow } from '@/types';
 
@@ -51,29 +51,7 @@ export default function BrowseTV() {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadShows(true);
-  }, [selectedGenre, sortBy, selectedLanguage]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadShows(false);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, selectedGenre, sortBy, selectedLanguage]);
-
-  const loadShows = async (reset = false) => {
+  const loadShows = useCallback(async (reset = false) => {
     if (reset) {
       setLoading(true);
     } else {
@@ -114,7 +92,34 @@ export default function BrowseTV() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [page, sortBy, selectedGenre, selectedLanguage]);
+
+  useEffect(() => {
+    loadShows(true);
+  }, [selectedGenre, sortBy, selectedLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadShows(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadShows]);
 
   const selectedCountry = COUNTRY_OPTIONS.find(o => o.value === selectedLanguage);
 

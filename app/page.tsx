@@ -193,31 +193,7 @@ export default function Home() {
     [history]
   );
 
-  // Load initial mixed feed
-  useEffect(() => {
-    loadInitialFeed();
-  }, []);
-
-  // Infinite scroll observer with throttling
-  useEffect(() => {
-    if (hasSearched) return;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loadingBrowse) {
-          loadMoreFeed();
-        }
-      },
-      { threshold: 0.1, rootMargin: '100px' }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loadingBrowse, hasSearched, page]);
-
+  // Define callbacks before useEffects that reference them
   const loadInitialFeed = useCallback(async () => {
     setLoadingBrowse(true);
     try {
@@ -311,6 +287,36 @@ export default function Home() {
       setLoadingMore(false);
     }
   }, [loadingMore, page]);
+
+  // Load initial mixed feed
+  useEffect(() => {
+    loadInitialFeed();
+  }, [loadInitialFeed]);
+
+  // Infinite scroll observer with throttling
+  useEffect(() => {
+    if (hasSearched) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loadingBrowse) {
+          loadMoreFeed();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loadingMore, loadingBrowse, hasSearched, loadMoreFeed]);
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import MovieCard from '@/app/components/MovieCard';
 import type { TVShow } from '@/types';
 
@@ -21,29 +21,7 @@ export default function BrowseAnime() {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadAnime(true);
-  }, [selectedCategory, activeTab]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadAnime(false);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, selectedCategory, activeTab]);
-
-  const loadAnime = async (reset = false) => {
+  const loadAnime = useCallback(async (reset = false) => {
     if (reset) {
       setLoading(true);
     } else {
@@ -89,7 +67,34 @@ export default function BrowseAnime() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [page, selectedCategory, activeTab]);
+
+  useEffect(() => {
+    loadAnime(true);
+  }, [selectedCategory, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadAnime(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadAnime]);
 
   const currentItems = activeTab === 'tv' ? anime : movies;
 

@@ -50,16 +50,6 @@ export default function WatchPage() {
   const lastSavedProgress = useRef<number>(0);
   const hasSavedToHistory = useRef<string>('');
 
-  useEffect(() => {
-    loadContent();
-    
-    return () => {
-      if (progressInterval.current) {
-        clearInterval(progressInterval.current);
-      }
-    };
-  }, [type, id]);
-
   // Save watch progress periodically
   const saveProgress = useCallback(async (progressSeconds: number, durationSeconds: number = 0) => {
     if (!user || !item) return;
@@ -122,14 +112,7 @@ export default function WatchPage() {
     }
   }, [user, item, streamingSource, type, id, season, episode]);
 
-  // Reload sources when season/episode changes
-  useEffect(() => {
-    if (item) {
-      updateSourcesForEpisode();
-    }
-  }, [season, episode, imdbId, tmdbId]);
-
-  const updateSourcesForEpisode = () => {
+  const updateSourcesForEpisode = useCallback(() => {
     const sources = getAllEmbedUrls(
       imdbId || '', 
       tmdbId, 
@@ -143,9 +126,16 @@ export default function WatchPage() {
       setCurrentSourceIndex(0);
       setSourceError(false);
     }
-  };
+  }, [imdbId, tmdbId, type, season, episode]);
 
-  const loadContent = async () => {
+  // Reload sources when season/episode changes
+  useEffect(() => {
+    if (item) {
+      updateSourcesForEpisode();
+    }
+  }, [item, updateSourcesForEpisode]);
+
+  const loadContent = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -187,7 +177,21 @@ export default function WatchPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type, id, season, episode]);
+
+  // Load content and clean up interval on unmount
+  useEffect(() => {
+    loadContent();
+    
+    // Capture ref value for cleanup
+    const interval = progressInterval.current;
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [loadContent]);
 
   const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
     setSeason(newSeason);
