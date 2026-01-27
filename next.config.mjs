@@ -81,8 +81,7 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            // Using 'no-referrer-when-downgrade' for better compatibility with embed sources on mobile Safari
-            value: 'no-referrer-when-downgrade',
+            value: 'strict-origin-when-cross-origin',
           },
           {
             key: 'Permissions-Policy',

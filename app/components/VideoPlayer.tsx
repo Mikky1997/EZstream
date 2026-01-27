@@ -94,15 +94,9 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
           src={source.url}
           className="absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
-          // Mobile Safari requires these additional attributes for proper video playback
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-to-picture; fullscreen; web-share"
-          // Required for iOS Safari - allows inline playback and cross-origin access
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"
-          referrerPolicy="no-referrer-when-downgrade"
-          // iOS Safari scrolling fix
-          scrolling="no"
-          // Ensure proper loading behavior on mobile
-          loading="eager"
+          // Extended permissions for video playback across all browsers
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-to-picture; fullscreen"
+          // Note: Do NOT use sandbox attribute - it breaks video embed functionality
           onLoad={() => setLoading(false)}
           onError={() => {
             setError('Failed to load video player');
