@@ -5,7 +5,7 @@
 # Configuration
 DB_PATH="/var/www/mikkystream/data/mikkystream.db"
 BACKUP_DIR="/var/www/mikkystream/backups"
-MAX_BACKUPS=7  # Keep last 7 backups
+MAX_BACKUPS=3  # Keep last 3 backups (saves space)
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
