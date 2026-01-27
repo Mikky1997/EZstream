@@ -65,6 +65,18 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
     }
   }, [source, isValidUrl]);
 
+  // Mobile Safari fallback: Hide loading spinner after timeout
+  // Mobile Safari sometimes doesn't fire onLoad for iframes properly
+  useEffect(() => {
+    if (loading && isValidUrl && source.url) {
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 5000); // 5 second timeout for mobile Safari
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loading, isValidUrl, source.url]);
+
   if (source.type === 'vidsrc' && source.url) {
     // Block rendering of iframe if URL is not from allowed domain
     if (!isValidUrl) {
@@ -82,7 +94,15 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
           src={source.url}
           className="absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-to-picture"
+          // Mobile Safari requires these additional attributes for proper video playback
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-to-picture; fullscreen; web-share"
+          // Required for iOS Safari - allows inline playback and cross-origin access
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"
+          referrerPolicy="no-referrer-when-downgrade"
+          // iOS Safari scrolling fix
+          scrolling="no"
+          // Ensure proper loading behavior on mobile
+          loading="eager"
           onLoad={() => setLoading(false)}
           onError={() => {
             setError('Failed to load video player');
