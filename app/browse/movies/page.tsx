@@ -141,8 +141,7 @@ export default function BrowseMovies() {
     // Search is handled by live results
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleLiveResults = useCallback((results: any[]) => {
+  const handleLiveResults = useCallback((results: unknown[]) => {
     setSearchResults(results as Movie[]);
     setIsSearching(results.length > 0);
   }, []);
