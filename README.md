@@ -92,6 +92,15 @@ mikkystream/
    ```
 
 4. **Seed the database** (optional - creates demo users)
+   
+   First, copy the example seed file and add your users:
+   ```bash
+   cp scripts/seed-users.example.ts scripts/seed-users.ts
+   ```
+   
+   Then edit `scripts/seed-users.ts` and add your users to the array.
+   
+   Finally, run the seed script:
    ```bash
    npm run seed
    ```

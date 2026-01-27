@@ -50,7 +50,10 @@ nano .env.local  # Add your TMDB API key and JWT secret
 npm run build
 
 # Seed demo users (optional)
-npm run seed
+# First, copy the example file and add your users
+cp scripts/seed-users.example.ts scripts/seed-users.ts
+# Edit scripts/seed-users.ts and add your users
+npx tsx scripts/seed-users.ts
 ```
 
 ### 3. PM2 Configuration
