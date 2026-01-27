@@ -30,9 +30,9 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
     : 0;
 
   return (
-    <div className="group relative">
+    <div className="movie-card group relative">
       <Link href={`/watch/${mediaType}/${item.media_id}${mediaType === 'tv' && item.season && item.episode ? `?s=${item.season}&e=${item.episode}` : ''}`} prefetch={false}>
-        <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
+        <div className="card-scale cursor-pointer">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
             {posterPath ? (
               <>
@@ -45,7 +45,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className={`object-cover transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                   sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
@@ -57,7 +57,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
                 <span className="text-gray-500 text-sm">No Image</span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
               <div 
                 className="h-full bg-red-500 transition-[width] duration-300" 
@@ -84,11 +84,11 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="absolute top-2 left-2 p-1.5 bg-black/70 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="card-action-btn absolute top-2 left-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
           title="Remove"
         >
           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       )}
@@ -112,9 +112,9 @@ const WatchlistCard = memo(function WatchlistCard({
     : null;
 
   return (
-    <div className="group relative">
+    <div className="movie-card group relative">
       <Link href={`/watch/${mediaType}/${item.media_id}`} prefetch={false}>
-        <div className="cursor-pointer transform transition-transform duration-300 hover:scale-105 will-change-transform">
+        <div className="card-scale cursor-pointer">
           <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800 shadow-lg">
             {posterPath ? (
               <>
@@ -127,7 +127,7 @@ const WatchlistCard = memo(function WatchlistCard({
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className={`object-cover transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                   sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
@@ -139,7 +139,7 @@ const WatchlistCard = memo(function WatchlistCard({
                 <span className="text-gray-500 text-sm">No Image</span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-2 left-2 right-2">
               <h3 className="text-white text-sm font-medium line-clamp-1">
                 {item.title}
@@ -155,11 +155,11 @@ const WatchlistCard = memo(function WatchlistCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="absolute top-2 left-2 p-1.5 bg-black/70 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="card-action-btn absolute top-2 left-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
           title="Remove"
         >
           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       )}

@@ -105,11 +105,11 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
         </div>
       </Link>
       
-      {/* Watchlist button - ALWAYS visible, uses flexbox for perfect centering */}
+      {/* Watchlist button - visible on hover (desktop) or always (mobile) */}
       {user && (
         <button
           onClick={handleWatchlistClick}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full z-10 flex items-center justify-center transition-colors ${
+          className={`card-action-btn absolute top-2 right-2 w-8 h-8 rounded-full z-10 flex items-center justify-center ${
             inWatchlist 
               ? 'bg-blue-600 active:bg-red-600' 
               : 'bg-black/80 active:bg-blue-600'

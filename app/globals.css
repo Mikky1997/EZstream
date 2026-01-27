@@ -118,6 +118,11 @@ body {
   transition: opacity 0.2s ease-out;
 }
 
+/* Card action buttons (+/x) - base styles */
+.card-action-btn {
+  transition: opacity 0.2s ease-out, background-color 0.15s ease-out;
+}
+
 /* ===== DESKTOP: Devices that support hover ===== */
 @media (hover: hover) and (pointer: fine) {
   /* Scale up on hover - desktop only */
@@ -132,6 +137,20 @@ body {
   
   .movie-card:hover .card-overlay {
     opacity: 1;
+  }
+  
+  /* Hide action buttons by default, show on hover - desktop only */
+  .card-action-btn {
+    opacity: 0;
+  }
+  
+  .movie-card:hover .card-action-btn {
+    opacity: 1;
+  }
+  
+  /* Hover color changes for desktop */
+  .card-action-btn:hover {
+    background-color: rgb(220 38 38) !important; /* red-600 */
   }
 }
 
@@ -150,6 +169,11 @@ body {
   /* Always show overlay on mobile */
   .card-overlay {
     opacity: 1;
+  }
+  
+  /* Always show action buttons on mobile */
+  .card-action-btn {
+    opacity: 1 !important;
   }
   
   /* Remove 300ms tap delay */
