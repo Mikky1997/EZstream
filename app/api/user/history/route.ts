@@ -59,8 +59,8 @@ export async function POST(request: Request) {
     const sanitizedTitle = sanitizeString(title, 500);
     const sanitizedPosterPath = posterPath ? sanitizeString(posterPath, 500) : null;
     const validatedMediaId = safeParseInt(String(mediaId), 0, 1, Number.MAX_SAFE_INTEGER);
-    const validatedSeason = season ? safeParseInt(String(season), undefined, 1, 1000) : null;
-    const validatedEpisode = episode ? safeParseInt(String(episode), undefined, 1, 1000) : null;
+    const validatedSeason: number | null = season ? (safeParseInt(String(season), undefined, 1, 1000) ?? null) : null;
+    const validatedEpisode: number | null = episode ? (safeParseInt(String(episode), undefined, 1, 1000) ?? null) : null;
     const validatedProgress = safeParseInt(String(progressSeconds || 0), 0, 0, Number.MAX_SAFE_INTEGER);
     const validatedDuration = safeParseInt(String(durationSeconds || 0), 0, 0, Number.MAX_SAFE_INTEGER);
     
