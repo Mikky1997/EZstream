@@ -5,7 +5,13 @@ import type { StreamingSource } from '@/types';
 
 // Allowed video source domains for security
 const ALLOWED_VIDEO_DOMAINS = [
+  // VidSrc.me domains (primary + new domains from their announcement)
   'vidsrcme.ru',
+  'vidsrcme.su',
+  'vidsrc-embed.ru',
+  'vidsrc-embed.su',
+  'vsrc.su',
+  // Other sources
   'vidsrc.cc',
   'vidsrc.pro',
   'moviesapi.club',
@@ -14,10 +20,6 @@ const ALLOWED_VIDEO_DOMAINS = [
   'multiembed.mov',
   '2embed.cc',
   'streamsrc.cc',
-  // Include common subdomains
-  'www.vidsrcme.ru',
-  'www.vidsrc.cc',
-  'www.vidsrc.pro',
 ];
 
 // Validate that URL is from an allowed domain

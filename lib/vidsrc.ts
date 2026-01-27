@@ -3,16 +3,19 @@ import type { StreamingSource } from '@/types';
 // Video source providers - simplified without audio type labels
 // (audio/subtitle selection is handled by the embedded player itself)
 export interface VideoSource {
+  key: string;
   name: string;
   baseUrl: string;
   getMovieUrl: (id: string, isImdb: boolean) => string;
   getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) => string;
 }
 
-// Best sources first - ordered by reliability
-export const VIDEO_SOURCES: Record<string, VideoSource> = {
-  // TOP TIER - Most reliable, best quality
-  vidsrcme: {
+// Sources ordered from BEST to WORST - array guarantees order
+// VidSrc.me is #1 - most reliable with 87K movies, 19K series, 80% 1080p
+export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
+  // #1 - VidSrc.me (BEST - auto-updated, 1080p, great support)
+  {
+    key: 'vidsrcme',
     name: 'VidSrc.me',
     baseUrl: 'https://vidsrcme.ru',
     getMovieUrl: (id: string, isImdb: boolean) => 
@@ -20,25 +23,9 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
       `https://vidsrcme.ru/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
   },
-  moviesapi: {
-    name: 'MoviesAPI',
-    baseUrl: 'https://moviesapi.club',
-    getMovieUrl: (id: string) => 
-      `https://moviesapi.club/movie/${id}`,
-    getTvUrl: (id: string, season: number, episode: number) =>
-      `https://moviesapi.club/tv/${id}/${season}/${episode}`,
-  },
-  vidsrc: {
-    name: 'VidSrc.cc',
-    baseUrl: 'https://vidsrc.cc',
-    getMovieUrl: (id: string, isImdb: boolean) => 
-      `https://vidsrc.cc/v2/embed/movie/${isImdb ? id : `tmdb/${id}`}`,
-    getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
-      `https://vidsrc.cc/v2/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
-  },
-  
-  // SECOND TIER - Good reliability
-  embedsu: {
+  // #2 - Embed.su (very reliable)
+  {
+    key: 'embedsu',
     name: 'Embed.su',
     baseUrl: 'https://embed.su',
     getMovieUrl: (id: string) => 
@@ -46,7 +33,29 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://embed.su/embed/tv/${id}/${season}/${episode}`,
   },
-  autoembed: {
+  // #3 - VidSrc.cc (good backup)
+  {
+    key: 'vidsrc',
+    name: 'VidSrc.cc',
+    baseUrl: 'https://vidsrc.cc',
+    getMovieUrl: (id: string, isImdb: boolean) => 
+      `https://vidsrc.cc/v2/embed/movie/${isImdb ? id : `tmdb/${id}`}`,
+    getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
+      `https://vidsrc.cc/v2/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
+  },
+  // #4 - MoviesAPI
+  {
+    key: 'moviesapi',
+    name: 'MoviesAPI',
+    baseUrl: 'https://moviesapi.club',
+    getMovieUrl: (id: string) => 
+      `https://moviesapi.club/movie/${id}`,
+    getTvUrl: (id: string, season: number, episode: number) =>
+      `https://moviesapi.club/tv/${id}/${season}/${episode}`,
+  },
+  // #5 - AutoEmbed
+  {
+    key: 'autoembed',
     name: 'AutoEmbed',
     baseUrl: 'https://autoembed.cc',
     getMovieUrl: (id: string, isImdb: boolean) => 
@@ -54,7 +63,9 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
       isImdb ? `https://autoembed.cc/embed/tv/${id}/${season}/${episode}` : `https://autoembed.cc/embed/tv/tmdb/${id}/${season}/${episode}`,
   },
-  vidsrcpro: {
+  // #6 - VidSrc.pro
+  {
+    key: 'vidsrcpro',
     name: 'VidSrc.pro',
     baseUrl: 'https://vidsrc.pro',
     getMovieUrl: (id: string) => 
@@ -62,9 +73,9 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`,
   },
-  
-  // THIRD TIER - Backup sources with broader coverage
-  superembed: {
+  // #7 - SuperEmbed (multiembed.mov)
+  {
+    key: 'superembed',
     name: 'SuperEmbed',
     baseUrl: 'https://multiembed.mov',
     getMovieUrl: (id: string) => 
@@ -72,7 +83,9 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`,
   },
-  twoembed: {
+  // #8 - 2Embed
+  {
+    key: 'twoembed',
     name: '2Embed',
     baseUrl: 'https://2embed.cc',
     getMovieUrl: (id: string) => 
@@ -80,7 +93,9 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://2embed.cc/embedtv/${id}&s=${season}&e=${episode}`,
   },
-  streamsrc: {
+  // #9 - StreamSRC (last resort)
+  {
+    key: 'streamsrc',
     name: 'StreamSRC',
     baseUrl: 'https://streamsrc.cc',
     getMovieUrl: (id: string) => 
@@ -88,7 +103,12 @@ export const VIDEO_SOURCES: Record<string, VideoSource> = {
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://streamsrc.cc/embed/tv/${id}/${season}/${episode}`,
   },
-};
+];
+
+// Keep object format for backward compatibility
+export const VIDEO_SOURCES: Record<string, VideoSource> = Object.fromEntries(
+  VIDEO_SOURCES_ORDERED.map(source => [source.key, source])
+);
 
 export type VideoSourceKey = keyof typeof VIDEO_SOURCES;
 
@@ -98,7 +118,7 @@ export interface EmbedUrl {
   name: string;
 }
 
-// Get all available embed URLs for a movie/show
+// Get all available embed URLs for a movie/show (ordered best to worst)
 export function getAllEmbedUrls(
   id: string,
   tmdbId: string,
@@ -109,19 +129,20 @@ export function getAllEmbedUrls(
   const urls: EmbedUrl[] = [];
   const hasImdb = id && id.startsWith('tt');
   
-  for (const [key, source] of Object.entries(VIDEO_SOURCES)) {
+  // Use ordered array to guarantee best sources first
+  for (const source of VIDEO_SOURCES_ORDERED) {
     if (type === 'movie') {
       // Try with IMDb ID first if available (more reliable)
       if (hasImdb) {
         urls.push({
-          source: key,
+          source: source.key,
           url: source.getMovieUrl(id, true),
           name: source.name,
         });
       } else {
         // Use TMDB ID
         urls.push({
-          source: key,
+          source: source.key,
           url: source.getMovieUrl(tmdbId, false),
           name: source.name,
         });
@@ -131,13 +152,13 @@ export function getAllEmbedUrls(
       const e = episode || 1;
       if (hasImdb) {
         urls.push({
-          source: key,
+          source: source.key,
           url: source.getTvUrl(id, s, e, true),
           name: source.name,
         });
       } else {
         urls.push({
-          source: key,
+          source: source.key,
           url: source.getTvUrl(tmdbId, s, e, false),
           name: source.name,
         });
