@@ -35,9 +35,16 @@ db.exec(`
   );
 `);
 
+// User type definition
+interface SeedUser {
+  username: string;
+  password: string;
+  displayName: string;
+}
+
 // Predefined users - password = username for ease of use
 // Add your users here
-const users = [
+const users: SeedUser[] = [
   // Example:
   // { username: 'user1', password: 'user1', displayName: 'User 1' },
   // { username: 'user2', password: 'user2', displayName: 'User 2' },
