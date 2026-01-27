@@ -96,3 +96,38 @@ body {
     will-change: transform;
   }
 }
+
+/* Mobile touch optimizations */
+@layer base {
+  /* Remove 300ms tap delay on touch devices */
+  a, button {
+    touch-action: manipulation;
+  }
+  
+  /* Disable hover effects on touch devices to prevent double-tap issue */
+  @media (hover: none) and (pointer: coarse) {
+    /* Remove hover scaling on cards */
+    .group:hover .group-hover\:scale-105 {
+      transform: none;
+    }
+    
+    /* Ensure links are immediately clickable */
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+  
+  /* Better touch feedback */
+  @media (pointer: coarse) {
+    button, a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Smaller buttons can override */
+    button.p-2, a.p-2 {
+      min-height: auto;
+      min-width: auto;
+    }
+  }
+}
