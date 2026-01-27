@@ -1,9 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+
+interface SearchResult {
+  id: number;
+  title?: string;
+  name?: string;
+  media_type?: string;
+  poster_path?: string;
+  vote_average?: number;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -13,9 +23,20 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showNavSearch, setShowNavSearch] = useState(false);
   const [navSearchQuery, setNavSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const navSearchRef = useRef<HTMLInputElement>(null);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isActive = (path: string) => pathname === path;
+  // Check if we're on a watch page (inside a movie/show)
+  const isWatchPage = pathname.startsWith('/watch/');
+  
+  // Check if we're on a main page that has its own search bar
+  const hasOwnSearchBar = pathname === '/' || 
+    pathname.startsWith('/browse/movies') || 
+    pathname.startsWith('/browse/tv') || 
+    pathname.startsWith('/browse/anime');
 
   const handleLogout = async () => {
     await logout();
@@ -30,44 +51,112 @@ export default function Navbar() {
     }
   }, [showNavSearch]);
 
-  // Handle nav search submit - scroll to top of page where search bar is
-  const handleNavSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (navSearchQuery.trim()) {
-      // If on home page, scroll to top where the main search bar is
-      // Otherwise navigate to home
-      if (pathname === '/') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Focus the main search bar (it should pick up from there)
-        const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-        if (mainSearchInput) {
-          mainSearchInput.focus();
-          mainSearchInput.value = navSearchQuery;
-          // Trigger input event to activate live search
-          mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      } else {
-        router.push('/');
-        // After navigation, scroll to top
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 100);
-      }
-      setShowNavSearch(false);
-      setNavSearchQuery('');
+  // Live search with debounce
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-  };
+
+    if (navSearchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(navSearchQuery)}`);
+        if (response.ok) {
+          const data = await response.json();
+          const filtered = (data.results || [])
+            .filter((item: SearchResult) => item.media_type === 'movie' || item.media_type === 'tv')
+            .slice(0, 8);
+          setSearchResults(filtered);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 200);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [navSearchQuery]);
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+        if (!isWatchPage) {
+          // On non-watch pages, just close
+          setShowNavSearch(false);
+          setNavSearchQuery('');
+          setSearchResults([]);
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isWatchPage]);
 
   // Close search on escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowNavSearch(false);
+        setNavSearchQuery('');
+        setSearchResults([]);
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
+
+  // Handle selecting a result from dropdown (on watch pages)
+  const handleSelectResult = (result: SearchResult) => {
+    router.push(`/watch/${result.media_type}/${result.id}`);
+    setShowNavSearch(false);
+    setNavSearchQuery('');
+    setSearchResults([]);
+  };
+
+  // Handle search on non-watch pages - navigate to home and search
+  const handleSearchNavigate = () => {
+    if (navSearchQuery.trim()) {
+      if (pathname === '/') {
+        // Already on home, just scroll to top and trigger the main search
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        if (mainSearchInput) {
+          mainSearchInput.focus();
+          mainSearchInput.value = navSearchQuery;
+          mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } else {
+        // Navigate to home - the search will happen there
+        router.push('/');
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          const mainSearchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+          if (mainSearchInput) {
+            mainSearchInput.focus();
+            mainSearchInput.value = navSearchQuery;
+            mainSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 300);
+      }
+      setShowNavSearch(false);
+      setNavSearchQuery('');
+      setSearchResults([]);
+    }
+  };
+
+  const getTitle = (item: SearchResult) => item.title || item.name || 'Unknown';
 
   // Don't show navbar on login page
   if (pathname === '/login') {
@@ -78,10 +167,10 @@ export default function Navbar() {
     <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Home Icon */}
+          {/* Home Icon - Left */}
           <Link 
             href="/" 
-            className="group p-2 rounded-lg hover:bg-gray-800 transition-all"
+            className="group p-2 rounded-lg hover:bg-gray-800 transition-all flex-shrink-0"
             title="Home"
           >
             <svg 
@@ -93,8 +182,8 @@ export default function Navbar() {
             </svg>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation - Center */}
+          <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               href="/browse/movies"
               className={`px-3 py-2 rounded-lg transition-colors ${
@@ -127,47 +216,95 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Search Icon + User Menu (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
-            {/* Search Toggle */}
-            {showNavSearch ? (
-              <form onSubmit={handleNavSearch} className="flex items-center">
-                <input
-                  ref={navSearchRef}
-                  type="text"
-                  value={navSearchQuery}
-                  onChange={(e) => setNavSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
-                />
+          {/* Search + User - Right (Desktop) */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Search */}
+            <div ref={searchWrapperRef} className="relative">
+              {showNavSearch ? (
+                <div className="flex items-center">
+                  <input
+                    ref={navSearchRef}
+                    type="text"
+                    value={navSearchQuery}
+                    onChange={(e) => setNavSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !isWatchPage) {
+                        handleSearchNavigate();
+                      }
+                    }}
+                    placeholder="Search..."
+                    className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNavSearch(false);
+                      setNavSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    className="ml-2 p-2 text-gray-400 hover:text-white"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  
+                  {/* Dropdown - Only on watch pages */}
+                  {isWatchPage && searchResults.length > 0 && (
+                    <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                      {searchResults.map((item) => (
+                        <button
+                          key={`${item.media_type}-${item.id}`}
+                          onClick={() => handleSelectResult(item)}
+                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-left"
+                        >
+                          {item.poster_path ? (
+                            <div className="relative w-10 h-14 flex-shrink-0">
+                              <Image
+                                src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                                alt={getTitle(item)}
+                                fill
+                                className="object-cover rounded"
+                                sizes="40px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-14 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
+                              No img
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-medium truncate">{getTitle(item)}</p>
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                item.media_type === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
+                              }`}>
+                                {item.media_type === 'movie' ? 'Movie' : 'TV'}
+                              </span>
+                              {item.vote_average && item.vote_average > 0 && (
+                                <span className="text-yellow-400">★ {item.vote_average.toFixed(1)}</span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <button
-                  type="button"
-                  onClick={() => {
-                    setShowNavSearch(false);
-                    setNavSearchQuery('');
-                  }}
-                  className="ml-2 p-2 text-gray-400 hover:text-white"
+                  onClick={() => setShowNavSearch(true)}
+                  className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Search"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </button>
-              </form>
-            ) : (
-              <button
-                onClick={() => setShowNavSearch(true)}
-                className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-                title="Search"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* User Menu (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
+            {/* User Menu */}
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-700 animate-pulse"></div>
             ) : user ? (
@@ -210,7 +347,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Search + Menu Button */}
+          {/* Mobile - Search + Menu Button */}
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={() => setShowNavSearch(!showNavSearch)}
@@ -236,32 +373,30 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search Bar - shows below navbar when search icon clicked */}
+        {/* Mobile Search Bar */}
         {showNavSearch && (
-          <div className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900">
-            <form onSubmit={handleNavSearch} className="flex items-center gap-2">
+          <div className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900 relative">
+            <div className="flex items-center gap-2">
               <input
                 ref={navSearchRef}
                 type="text"
                 value={navSearchQuery}
                 onChange={(e) => setNavSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isWatchPage) {
+                    handleSearchNavigate();
+                  }
+                }}
                 placeholder="Search movies, TV shows, anime..."
                 className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 autoFocus
               />
               <button
-                type="submit"
-                className="p-2 bg-blue-600 text-white rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-              <button
                 type="button"
                 onClick={() => {
                   setShowNavSearch(false);
                   setNavSearchQuery('');
+                  setSearchResults([]);
                 }}
                 className="p-2 text-gray-400"
               >
@@ -269,7 +404,44 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </form>
+            </div>
+            
+            {/* Mobile Dropdown - Only on watch pages */}
+            {isWatchPage && searchResults.length > 0 && (
+              <div className="absolute left-4 right-4 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                {searchResults.map((item) => (
+                  <button
+                    key={`${item.media_type}-${item.id}`}
+                    onClick={() => handleSelectResult(item)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-left"
+                  >
+                    {item.poster_path ? (
+                      <div className="relative w-10 h-14 flex-shrink-0">
+                        <Image
+                          src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                          alt={getTitle(item)}
+                          fill
+                          className="object-cover rounded"
+                          sizes="40px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-14 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
+                        No img
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate">{getTitle(item)}</p>
+                      <span className={`px-1.5 py-0.5 rounded text-xs ${
+                        item.media_type === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
+                      }`}>
+                        {item.media_type === 'movie' ? 'Movie' : 'TV'}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
