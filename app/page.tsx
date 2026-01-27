@@ -22,7 +22,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
     : null;
   
   const progress = item.progress_seconds && item.duration_seconds 
@@ -46,7 +46,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
                   alt={item.title}
                   fill
                   className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  sizes="154px"
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
                   unoptimized
@@ -108,7 +108,7 @@ const WatchlistCard = memo(function WatchlistCard({
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
     : null;
 
   return (
@@ -128,7 +128,7 @@ const WatchlistCard = memo(function WatchlistCard({
                   alt={item.title}
                   fill
                   className={`object-cover group-hover:brightness-110 transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  sizes="154px"
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
                   unoptimized
@@ -295,15 +295,15 @@ export default function Home() {
 
   // Infinite scroll observer with throttling
   useEffect(() => {
-    if (hasSearched) return;
+    if (hasSearched || loadingBrowse || authLoading) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loadingBrowse) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
           loadMoreFeed();
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '200px' }
     );
 
     const currentRef = loadMoreRef.current;
@@ -316,7 +316,7 @@ export default function Home() {
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, loadingMore, loadingBrowse, hasSearched, loadMoreFeed]);
+  }, [hasMore, loadingMore, loadingBrowse, authLoading, hasSearched, loadMoreFeed]);
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
@@ -488,15 +488,15 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-
-                {/* Infinite scroll trigger */}
-                <div ref={loadMoreRef} className="py-8 text-center">
-                  {loadingMore && (
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
-                  )}
-                </div>
               </>
             )}
+
+            {/* Infinite scroll trigger - always rendered so ref is always attached */}
+            <div ref={loadMoreRef} className="py-8 text-center">
+              {loadingMore && (
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+              )}
+            </div>
           </>
         )}
       </div>
