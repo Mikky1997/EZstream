@@ -21,9 +21,11 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 - **Responsive Design** - Optimized for all screen sizes
 - **Performance Optimized** - Fast image loading, API caching, and minimal bundle size
 
-## Screenshot
+## Screenshots
 
-![EZstream Homepage](ezs.png)
+![EZstream Homepage](ezez2.png)
+
+![EZstream TVShows](ezez1.png)
 
 ## Tech Stack
 
