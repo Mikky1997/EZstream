@@ -53,6 +53,7 @@ export default function BrowseAnime() {
         // For rating sort: fetch 13 pages (260 items) at once for accurate IMDB sorting
         // For other sorts: normal single page fetch
         if (isRatingSort && reset) {
+          // Fetch 13 pages (260 items) for accurate IMDB sorting
           const pagesToFetch = Array.from({ length: 13 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
@@ -60,7 +61,6 @@ export default function BrowseAnime() {
               sort_by: currentSortBy,
               language: "ja",
               genre: "16",
-              min_votes: "5",
             });
             return fetch(`${endpoint}?${params}`).then((r) => r.json());
           });
@@ -84,7 +84,7 @@ export default function BrowseAnime() {
             setMovies(uniqueItems);
           }
           setPage(14);
-          setHasMore(results[12]?.results?.length >= 20);
+          setHasMore(false); // No infinite scroll for rating sort - show top 250 only
         } else {
           // Normal fetch for other sort options or loading more
           const params = new URLSearchParams({

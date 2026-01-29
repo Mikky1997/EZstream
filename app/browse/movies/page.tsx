@@ -112,8 +112,8 @@ export default function BrowseMovies() {
           );
 
           setMovies(uniqueMovies);
-          setPage(14); // Next page would be 14
-          setHasMore(results[12]?.results?.length >= 20); // Check if last page was full
+          setPage(14);
+          setHasMore(false); // No infinite scroll for rating sort - show top 250 only
         } else {
           // Normal fetch for other sort options or loading more
           const params = new URLSearchParams({
