@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { discoverMoviesWithFilters, getIMDbId } from "@/lib/tmdb";
+import { discoverMoviesWithFilters, getIMDbId, filterBlockedContent } from "@/lib/tmdb";
 import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
 
@@ -25,10 +25,13 @@ export async function GET(request: Request) {
       minVotes,
     });
 
+    // Filter out blocked adult content
+    const filteredResults = filterBlockedContent(data.results || []);
+
     // Always fetch IMDB ratings for all results (uses 24h cache)
-    if (data.results?.length > 0) {
+    if (filteredResults.length > 0) {
       const moviesWithImdb = await Promise.all(
-        data.results.map(async (movie) => {
+        filteredResults.map(async (movie) => {
           try {
             const imdbId = await getIMDbId("movie", movie.id);
             if (imdbId) {

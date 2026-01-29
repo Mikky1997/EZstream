@@ -9,6 +9,25 @@ import type {
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
+// Blocklist of adult/hentai anime TMDB IDs that slip through TMDB's adult filter
+// These are ecchi/hentai anime that TMDB doesn't properly flag as adult
+const BLOCKED_ANIME_IDS = new Set([
+  // TV Shows (hentai/borderline hentai)
+  91239,   // Overflow
+  94954,   // Joshiochi!: 2-kai kara Onnanoko ga... Futtekita!?
+  91400,   // Redo of Healer (extreme content)
+  128388,  // Overflow 2nd Season
+  85819,   // Interspecies Reviewers
+  93678,   // Kaifuku Jutsushi no Yarinaoshi
+  205006,  // Overflow (2024)
+  // Add more IDs as needed
+]);
+
+// Filter out blocked content from results
+export function filterBlockedContent<T extends { id: number }>(items: T[]): T[] {
+  return items.filter(item => !BLOCKED_ANIME_IDS.has(item.id));
+}
+
 if (!TMDB_API_KEY) {
   throw new Error("TMDB_API_KEY is not set in environment variables");
 }

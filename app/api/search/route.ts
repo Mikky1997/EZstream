@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchMovies } from '@/lib/tmdb';
+import { searchMovies, filterBlockedContent } from '@/lib/tmdb';
 import { safeParseInt, sanitizeString } from '@/lib/security';
 
 // Cache search results for 2 minutes
@@ -44,9 +44,12 @@ export async function GET(request: NextRequest) {
         index === self.findIndex((t) => t.id === item.id)
       );
       
+      // Filter out blocked adult content
+      const filteredResults = filterBlockedContent(uniqueResults);
+      
       return NextResponse.json({
         ...results,
-        results: uniqueResults.slice(0, 40), // Limit to 40 results
+        results: filteredResults.slice(0, 40), // Limit to 40 results
       }, {
         headers: {
           'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
@@ -54,7 +57,13 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    return NextResponse.json(results, {
+    // Filter out blocked adult content
+    const filteredResults = filterBlockedContent(results.results || []);
+    
+    return NextResponse.json({
+      ...results,
+      results: filteredResults,
+    }, {
       headers: {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
       },
