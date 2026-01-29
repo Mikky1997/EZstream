@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from 'next/navigation';
-import VideoPlayer from '@/app/components/VideoPlayer';
-import MediaActions from '@/app/components/MediaActions';
-import EpisodeList from '@/app/components/EpisodeList';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { getAllEmbedUrls, type EmbedUrl } from '@/lib/vidsrc';
-import type { Movie, TVShow, StreamingSource } from '@/types';
-import { isAnimeContent } from '@/types';
-import Image from 'next/image';
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "next/navigation";
+import VideoPlayer from "@/app/components/VideoPlayer";
+import MediaActions from "@/app/components/MediaActions";
+import EpisodeList from "@/app/components/EpisodeList";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
+import type { Movie, TVShow, StreamingSource } from "@/types";
+import { isAnimeContent } from "@/types";
+import Image from "next/image";
 
 interface Season {
   season_number: number;
@@ -19,14 +19,15 @@ interface Season {
 
 export default function WatchPage() {
   const params = useParams();
-  const type = params.type as 'movie' | 'tv';
+  const type = params.type as "movie" | "tv";
   const id = params.id as string;
   const { user } = useAuth();
 
   const [item, setItem] = useState<Movie | TVShow | null>(null);
   const [imdbId, setImdbId] = useState<string | null>(null);
   const [tmdbId, setTmdbId] = useState<string>(id);
-  const [streamingSource, setStreamingSource] = useState<StreamingSource | null>(null);
+  const [streamingSource, setStreamingSource] =
+    useState<StreamingSource | null>(null);
   const [availableSources, setAvailableSources] = useState<EmbedUrl[]>([]);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -49,65 +50,67 @@ export default function WatchPage() {
   // For saving watch progress
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const lastSavedProgress = useRef<number>(0);
-  const hasSavedToHistory = useRef<string>('');
+  const hasSavedToHistory = useRef<string>("");
 
   // Save watch progress periodically
-  const saveProgress = useCallback(async (progressSeconds: number, durationSeconds: number = 0) => {
-    if (!user || !item) return;
-    
-    if (Math.abs(progressSeconds - lastSavedProgress.current) < 10) return;
-    
-    lastSavedProgress.current = progressSeconds;
-    const title = 'title' in item ? item.title : item.name;
-    
-    try {
-      await fetch('/api/user/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mediaType: type,
-          mediaId: parseInt(id),
-          title,
-          posterPath: item.poster_path,
-          progressSeconds,
-          durationSeconds,
-          season: type === 'tv' ? season : undefined,
-          episode: type === 'tv' ? episode : undefined,
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
-  }, [user, item, type, id, season, episode]);
+  const saveProgress = useCallback(
+    async (progressSeconds: number, durationSeconds: number = 0) => {
+      if (!user || !item) return;
+
+      if (Math.abs(progressSeconds - lastSavedProgress.current) < 10) return;
+
+      lastSavedProgress.current = progressSeconds;
+      const title = "title" in item ? item.title : item.name;
+
+      try {
+        await fetch("/api/user/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaType: type,
+            mediaId: parseInt(id),
+            title,
+            posterPath: item.poster_path,
+            progressSeconds,
+            durationSeconds,
+            season: type === "tv" ? season : undefined,
+            episode: type === "tv" ? episode : undefined,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to save progress:", error);
+      }
+    },
+    [user, item, type, id, season, episode],
+  );
 
   // Save to watch history when user starts watching
   // Only save once per unique content (movie or episode)
   useEffect(() => {
     if (user && item && streamingSource) {
-      const historyKey = type === 'tv' 
-        ? `${type}-${id}-${season}-${episode}` 
-        : `${type}-${id}`;
-      
+      const historyKey =
+        type === "tv" ? `${type}-${id}-${season}-${episode}` : `${type}-${id}`;
+
       // Don't save if we've already saved this exact content
       if (hasSavedToHistory.current === historyKey) {
         return;
       }
-      
+
       hasSavedToHistory.current = historyKey;
-      const title = 'title' in item ? item.title : item.name;
-      
-      fetch('/api/user/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const title = "title" in item ? item.title : item.name;
+
+      fetch("/api/user/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mediaType: type,
           mediaId: parseInt(id),
           title,
           posterPath: item.poster_path,
           progressSeconds: 120,
-          durationSeconds: type === 'movie' ? 7200 : 2400,
-          season: type === 'tv' ? season : undefined,
-          episode: type === 'tv' ? episode : undefined,
+          durationSeconds: type === "movie" ? 7200 : 2400,
+          season: type === "tv" ? season : undefined,
+          episode: type === "tv" ? episode : undefined,
         }),
       }).catch(console.error);
     }
@@ -116,18 +119,18 @@ export default function WatchPage() {
   const updateSourcesForEpisode = useCallback(() => {
     // Check if content is anime for optimized source ordering
     const isAnime = item ? isAnimeContent(item) : false;
-    
+
     const sources = getAllEmbedUrls(
-      imdbId || '', 
-      tmdbId, 
-      type, 
-      season, 
+      imdbId || "",
+      tmdbId,
+      type,
+      season,
       episode,
-      isAnime
+      isAnime,
     );
     setAvailableSources(sources);
     if (sources.length > 0) {
-      setStreamingSource({ type: 'vidsrc', url: sources[0].url });
+      setStreamingSource({ type: "vidsrc", url: sources[0].url });
       setCurrentSourceIndex(0);
       setSourceError(false);
     }
@@ -145,11 +148,12 @@ export default function WatchPage() {
     setError(null);
 
     try {
-      const apiEndpoint = type === 'movie' ? `/api/movie/${id}` : `/api/tv/${id}`;
+      const apiEndpoint =
+        type === "movie" ? `/api/movie/${id}` : `/api/tv/${id}`;
       const response = await fetch(apiEndpoint);
-      
+
       if (!response.ok) {
-        throw new Error('Failed to load content');
+        throw new Error("Failed to load content");
       }
 
       const data = await response.json();
@@ -159,27 +163,27 @@ export default function WatchPage() {
       setImdbId(imdb);
 
       // For TV shows, get season info
-      if (type === 'tv' && data.seasons) {
+      if (type === "tv" && data.seasons) {
         setSeasons(data.seasons);
       }
 
       // Get sources - check if content is anime for optimized ordering
       const isAnime = isAnimeContent(data);
       const sources = getAllEmbedUrls(
-        imdb || '', 
-        id, 
-        type, 
-        season, 
+        imdb || "",
+        id,
+        type,
+        season,
         episode,
-        isAnime
+        isAnime,
       );
       setAvailableSources(sources);
 
       if (sources.length > 0) {
-        setStreamingSource({ type: 'vidsrc', url: sources[0].url });
+        setStreamingSource({ type: "vidsrc", url: sources[0].url });
       }
     } catch (err) {
-      setError('Failed to load content. Please try again.');
+      setError("Failed to load content. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -189,10 +193,10 @@ export default function WatchPage() {
   // Load content and clean up interval on unmount
   useEffect(() => {
     loadContent();
-    
+
     // Capture ref value for cleanup
     const interval = progressInterval.current;
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -210,28 +214,28 @@ export default function WatchPage() {
   // Mark content as fully watched (removes from Continue Watching)
   const markAsWatched = async () => {
     if (!user || !item || markingWatched) return;
-    
+
     setMarkingWatched(true);
-    const itemTitle = 'title' in item ? item.title : item.name;
-    
+    const itemTitle = "title" in item ? item.title : item.name;
+
     try {
-      await fetch('/api/user/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/user/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mediaType: type,
           mediaId: parseInt(id),
           title: itemTitle,
           posterPath: item.poster_path,
-          progressSeconds: type === 'movie' ? 7200 : 2400, // Full duration
-          durationSeconds: type === 'movie' ? 7200 : 2400,
-          season: type === 'tv' ? season : undefined,
-          episode: type === 'tv' ? episode : undefined,
+          progressSeconds: type === "movie" ? 7200 : 2400, // Full duration
+          durationSeconds: type === "movie" ? 7200 : 2400,
+          season: type === "tv" ? season : undefined,
+          episode: type === "tv" ? episode : undefined,
         }),
       });
       setIsMarkedWatched(true);
     } catch (error) {
-      console.error('Failed to mark as watched:', error);
+      console.error("Failed to mark as watched:", error);
     } finally {
       setMarkingWatched(false);
     }
@@ -240,7 +244,7 @@ export default function WatchPage() {
   const switchSource = (index: number) => {
     if (index >= 0 && index < availableSources.length) {
       setCurrentSourceIndex(index);
-      setStreamingSource({ type: 'vidsrc', url: availableSources[index].url });
+      setStreamingSource({ type: "vidsrc", url: availableSources[index].url });
       setShowSourceSelector(false);
       setSourceError(false);
     }
@@ -257,7 +261,7 @@ export default function WatchPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
           <p className="mt-4 text-gray-400 text-lg">Loading content...</p>
@@ -268,7 +272,7 @@ export default function WatchPage() {
 
   if (error && !streamingSource && availableSources.length === 0) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="text-red-500 text-xl mb-4">⚠️</div>
           <p className="text-white text-lg mb-4">{error}</p>
@@ -285,22 +289,22 @@ export default function WatchPage() {
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <p className="text-gray-400">Content not found</p>
       </div>
     );
   }
 
-  const title = 'title' in item ? item.title : item.name;
+  const title = "title" in item ? item.title : item.name;
   const overview = item.overview;
   const backdropPath = item.backdrop_path
     ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
     : null;
   const currentSource = availableSources[currentSourceIndex];
-  const isTVShow = type === 'tv';
+  const isTVShow = type === "tv";
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gray-900">
       {backdropPath && (
         <div className="absolute inset-0 opacity-10">
           <Image
@@ -312,7 +316,7 @@ export default function WatchPage() {
           />
         </div>
       )}
-      
+
       <div className="relative z-10">
         {/* Header */}
         <div className="container mx-auto px-4 py-4">
@@ -320,8 +324,18 @@ export default function WatchPage() {
             onClick={() => window.history.back()}
             className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back
           </button>
@@ -329,14 +343,18 @@ export default function WatchPage() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 pb-8">
-          <div className={`flex gap-6 ${isTVShow ? 'flex-col lg:flex-row' : ''}`}>
-            
+          <div
+            className={`flex gap-6 ${isTVShow ? "flex-col lg:flex-row" : ""}`}
+          >
             {/* Episode List - Left Side (TV Shows only) */}
             {isTVShow && seasons.length > 0 && (
               <>
                 {/* Desktop Episode List */}
                 <div className="hidden lg:block w-80 flex-shrink-0">
-                  <div className="sticky top-20" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+                  <div
+                    className="sticky top-20"
+                    style={{ maxHeight: "calc(100vh - 120px)" }}
+                  >
                     <EpisodeList
                       mediaId={parseInt(id)}
                       seasons={seasons}
@@ -355,7 +373,9 @@ export default function WatchPage() {
                     onClick={() => setShowEpisodePanel(true)}
                     className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center justify-between"
                   >
-                    <span className="font-medium">S{season} E{episode}</span>
+                    <span className="font-medium">
+                      S{season} E{episode}
+                    </span>
                     <span className="text-gray-400">Select Episode</span>
                   </button>
                 </div>
@@ -363,7 +383,7 @@ export default function WatchPage() {
                 {/* Mobile Episode Panel */}
                 {showEpisodePanel && (
                   <div className="fixed inset-0 z-50 lg:hidden">
-                    <div 
+                    <div
                       className="absolute inset-0 bg-black/80"
                       onClick={() => setShowEpisodePanel(false)}
                     />
@@ -374,8 +394,18 @@ export default function WatchPage() {
                           onClick={() => setShowEpisodePanel(false)}
                           className="p-2 text-gray-400 hover:text-white"
                         >
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -409,7 +439,9 @@ export default function WatchPage() {
                   )}
                 </h1>
                 {overview && (
-                  <p className="text-gray-400 text-sm line-clamp-2 mb-3">{overview}</p>
+                  <p className="text-gray-400 text-sm line-clamp-2 mb-3">
+                    {overview}
+                  </p>
                 )}
                 <div className="flex flex-wrap items-center gap-3">
                   <MediaActions
@@ -425,21 +457,41 @@ export default function WatchPage() {
                       disabled={markingWatched || isMarkedWatched}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                         isMarkedWatched
-                          ? 'bg-green-600 text-white cursor-default'
-                          : 'bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white'
-                      } ${markingWatched ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      title={isMarkedWatched ? 'Marked as watched' : 'Mark as watched (removes from Continue Watching)'}
+                          ? "bg-green-600 text-white cursor-default"
+                          : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
+                      } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+                      title={
+                        isMarkedWatched
+                          ? "Marked as watched"
+                          : "Mark as watched (removes from Continue Watching)"
+                      }
                     >
                       {isMarkedWatched ? (
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       )}
-                      <span>{isMarkedWatched ? 'Watched' : 'Mark as Watched'}</span>
+                      <span>
+                        {isMarkedWatched ? "Watched" : "Mark as Watched"}
+                      </span>
                     </button>
                   )}
                 </div>
@@ -454,8 +506,18 @@ export default function WatchPage() {
                       className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
                     >
                       <span>Source: {currentSource?.name}</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </button>
                     {showSourceSelector && (
@@ -465,7 +527,9 @@ export default function WatchPage() {
                             key={source.source}
                             onClick={() => switchSource(index)}
                             className={`w-full text-left px-4 py-2.5 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-sm ${
-                              index === currentSourceIndex ? 'bg-blue-900 text-blue-200' : 'text-white'
+                              index === currentSourceIndex
+                                ? "bg-blue-900 text-blue-200"
+                                : "text-white"
                             }`}
                           >
                             {source.name}
@@ -488,17 +552,16 @@ export default function WatchPage() {
               {/* Video Player */}
               {streamingSource && (
                 <div className="bg-black rounded-lg overflow-hidden mb-4">
-                  <VideoPlayer
-                    source={streamingSource}
-                    title={title}
-                  />
+                  <VideoPlayer source={streamingSource} title={title} />
                 </div>
               )}
 
               {/* Source Error */}
               {sourceError && (
                 <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-4">
-                  <h3 className="text-red-200 font-medium mb-2">Content Not Available</h3>
+                  <h3 className="text-red-200 font-medium mb-2">
+                    Content Not Available
+                  </h3>
                   <p className="text-red-100 text-sm">
                     All sources tried. This content may not be available yet.
                   </p>

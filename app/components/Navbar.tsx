@@ -399,8 +399,9 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile - Search + Menu Button */}
+          {/* Mobile - Theme + Search + Menu Button */}
           <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setShowNavSearch(!showNavSearch)}
               className="p-2 text-gray-300 hover:text-white"
