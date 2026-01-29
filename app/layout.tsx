@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import BackToTop from "./components/BackToTop";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -80,6 +81,7 @@ export default function RootLayout({
               <WatchlistProvider>
                 <Navbar />
                 {children}
+                <BackToTop />
               </WatchlistProvider>
             </AuthProvider>
           </ThemeProvider>

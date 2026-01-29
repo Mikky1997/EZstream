@@ -186,6 +186,10 @@ export default function Home() {
   const [loadingBrowse, setLoadingBrowse] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  
+  // Expand states for user lists
+  const [showAllContinue, setShowAllContinue] = useState(false);
+  const [showAllWatchlist, setShowAllWatchlist] = useState(false);
 
   // Memoized continue watching - filter items with > 60s progress
   const continueWatching = useMemo(() => 
@@ -438,11 +442,25 @@ export default function Home() {
                 {/* Continue Watching */}
                 {user && continueWatching.length > 0 && (
                   <div className="mb-10">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <span className="text-red-500">▶</span> Continue Watching
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {continueWatching.slice(0, 6).map((item) => (
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <span className="text-red-500">▶</span> Continue Watching
+                        <span className="text-sm font-normal text-gray-400">({continueWatching.length})</span>
+                      </h2>
+                      {continueWatching.length > 6 && (
+                        <button
+                          onClick={() => setShowAllContinue(!showAllContinue)}
+                          className="text-sm text-blue-400 hover:text-blue-300 active:text-blue-200 transition-colors flex items-center gap-1.5 py-2 px-3 -mr-3 touch-manipulation rounded-lg"
+                        >
+                          {showAllContinue ? 'Show Less' : `See All (${continueWatching.length})`}
+                          <svg className={`w-4 h-4 transition-transform duration-200 ${showAllContinue ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-fadeIn">
+                      {(showAllContinue ? continueWatching : continueWatching.slice(0, 6)).map((item) => (
                         <ContinueWatchingCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}
@@ -457,11 +475,25 @@ export default function Home() {
                 {/* Watchlist */}
                 {user && watchlist.length > 0 && (
                   <div className="mb-10">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <span className="text-blue-500">+</span> My Watchlist
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {watchlist.slice(0, 6).map((item) => (
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <span className="text-blue-500">+</span> My Watchlist
+                        <span className="text-sm font-normal text-gray-400">({watchlist.length})</span>
+                      </h2>
+                      {watchlist.length > 6 && (
+                        <button
+                          onClick={() => setShowAllWatchlist(!showAllWatchlist)}
+                          className="text-sm text-blue-400 hover:text-blue-300 active:text-blue-200 transition-colors flex items-center gap-1.5 py-2 px-3 -mr-3 touch-manipulation rounded-lg"
+                        >
+                          {showAllWatchlist ? 'Show Less' : `See All (${watchlist.length})`}
+                          <svg className={`w-4 h-4 transition-transform duration-200 ${showAllWatchlist ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-fadeIn">
+                      {(showAllWatchlist ? watchlist : watchlist.slice(0, 6)).map((item) => (
                         <WatchlistCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}

@@ -78,6 +78,16 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
                 <span className="text-gray-500 text-sm">No Image</span>
               </div>
             )}
+            {/* Media type badge */}
+            <div className="absolute top-2 left-2 z-10">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                mediaType === 'movie' 
+                  ? 'bg-blue-600/90 text-white' 
+                  : 'bg-purple-600/90 text-white'
+              }`}>
+                {mediaType === 'movie' ? 'MOVIE' : 'TV'}
+              </span>
+            </div>
             {/* Gradient overlay - always visible on mobile, hover on desktop */}
             <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
               <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -109,12 +119,13 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
       {user && (
         <button
           onClick={handleWatchlistClick}
-          className={`card-action-btn absolute top-2 right-2 w-8 h-8 rounded-full z-10 flex items-center justify-center ${
+          className={`card-action-btn absolute top-1 right-1 md:top-2 md:right-2 w-9 h-9 md:w-8 md:h-8 rounded-full z-10 flex items-center justify-center touch-manipulation ${
             inWatchlist 
               ? 'bg-blue-600 active:bg-red-600' 
               : 'bg-black/80 active:bg-blue-600'
           }`}
           title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+          aria-label={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
         >
           {inWatchlist ? (
             // X icon - properly centered
