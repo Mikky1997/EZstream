@@ -465,6 +465,9 @@ export default function WatchPage() {
                     <div className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded">
                       <span className="font-bold text-yellow-300">IMDb</span>
                       <span className="font-semibold">{item.imdbRating}</span>
+                      {item.imdbVotes && (
+                        <span className="text-yellow-500/70 text-xs">({item.imdbVotes})</span>
+                      )}
                     </div>
                   )}
                   {/* Fallback to TMDB rating if no IMDB */}
