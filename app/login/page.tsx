@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, checkAuth } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       const result = await login(username, password);
 
       if (!result.success) {
-        setError(result.error || 'Login failed');
+        setError(result.error || "Login failed");
         setLoading(false);
         return;
       }
@@ -29,28 +29,27 @@ export default function LoginPage() {
       // Small delay to ensure cookie is set, then full page reload
       // This ensures all contexts (Auth, Watchlist, etc.) refresh properly
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = "/";
       }, 50);
     } catch {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center px-4">
+    <div className="min-h-screen login-gradient flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            <span className="text-5xl mr-2">🎬</span>
+          <h1 className="text-5xl font-bold text-white mb-2 tracking-tight">
             EZstream
           </h1>
           <p className="text-gray-400">Sign in to continue watching</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700">
+        <div className="bg-black/60 backdrop-blur-sm rounded-xl p-8 border border-gray-800">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-900/50 border border-red-500 rounded-lg p-3 text-red-200 text-sm">
@@ -59,7 +58,10 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 Username
               </label>
               <input
@@ -67,7 +69,7 @@ export default function LoginPage() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 outline-none focus:outline-none focus:border-accent transition-colors"
                 placeholder="Enter your username"
                 required
                 autoComplete="username"
@@ -75,7 +77,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 Password
               </label>
               <input
@@ -83,7 +88,7 @@ export default function LoginPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 outline-none focus:outline-none focus:border-accent transition-colors"
                 placeholder="Enter your password"
                 required
                 autoComplete="current-password"
@@ -93,7 +98,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-accent hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -101,7 +106,7 @@ export default function LoginPage() {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>

@@ -176,30 +176,30 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               href="/browse/movies"
-              className={`px-3 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith("/browse/movies")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  ? "bg-accent text-white"
+                  : "text-gray-300 hover:text-white hover:bg-accent/20"
               }`}
             >
               Movies
             </Link>
             <Link
               href="/browse/tv"
-              className={`px-3 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith("/browse/tv")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  ? "bg-accent text-white"
+                  : "text-gray-300 hover:text-white hover:bg-accent/20"
               }`}
             >
               TV Shows
             </Link>
             <Link
               href="/browse/anime"
-              className={`px-3 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith("/browse/anime")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+                  ? "bg-accent text-white"
+                  : "text-gray-300 hover:text-white hover:bg-accent/20"
               }`}
             >
               Anime
@@ -225,7 +225,7 @@ export default function Navbar() {
                       }
                     }}
                     placeholder="Search..."
-                    className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-48 lg:w-64 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 outline-none focus:outline-none focus:border-accent text-sm"
                     autoFocus
                   />
                   <button
@@ -469,7 +469,7 @@ export default function Navbar() {
                   }
                 }}
                 placeholder="Search..."
-                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 outline-none focus:outline-none focus:border-accent"
                 autoFocus
               />
               <button
@@ -568,10 +568,10 @@ export default function Navbar() {
               <Link
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-colors ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith("/browse/movies")
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    ? "bg-accent text-white"
+                    : "text-gray-300 hover:text-white hover:bg-accent/20"
                 }`}
               >
                 Movies
@@ -579,10 +579,10 @@ export default function Navbar() {
               <Link
                 href="/browse/tv"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-colors ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith("/browse/tv")
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    ? "bg-accent text-white"
+                    : "text-gray-300 hover:text-white hover:bg-accent/20"
                 }`}
               >
                 TV Shows
@@ -590,10 +590,10 @@ export default function Navbar() {
               <Link
                 href="/browse/anime"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-colors ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith("/browse/anime")
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    ? "bg-accent text-white"
+                    : "text-gray-300 hover:text-white hover:bg-accent/20"
                 }`}
               >
                 Anime

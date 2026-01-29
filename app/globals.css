@@ -121,11 +121,23 @@ body {
   background-color: var(--accent) !important;
 }
 
+.bg-accent\/20 {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+.hover\:bg-accent\/20:hover {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
 .text-accent {
   color: var(--accent) !important;
 }
 
 .border-accent {
+  border-color: var(--accent) !important;
+}
+
+.focus\:border-accent:focus {
   border-color: var(--accent) !important;
 }
 
@@ -226,6 +238,11 @@ body {
   background: linear-gradient(to bottom, var(--bg-primary), var(--bg-deep)) !important;
 }
 
+/* Netflix-style login gradient - red to black */
+.login-gradient {
+  background: linear-gradient(to bottom, #1a0000 0%, #0d0000 30%, #000000 100%) !important;
+}
+
 /* Override Tailwind gradient utility for better mobile support */
 .bg-gradient-to-b.from-gray-900.to-black,
 .bg-gradient-to-b.from-gray-900.via-gray-900.to-black {
@@ -303,6 +320,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -315,26 +333,47 @@ body {
 
 /* Staggered fade-in for grid children - desktop only for performance */
 @media (hover: hover) and (pointer: fine) {
-  .stagger-fadeIn > * {
+  .stagger-fadeIn>* {
     opacity: 0;
     animation: fadeIn 0.3s ease-out forwards;
   }
 
-  .stagger-fadeIn > *:nth-child(1) { animation-delay: 0.05s; }
-  .stagger-fadeIn > *:nth-child(2) { animation-delay: 0.1s; }
-  .stagger-fadeIn > *:nth-child(3) { animation-delay: 0.15s; }
-  .stagger-fadeIn > *:nth-child(4) { animation-delay: 0.2s; }
-  .stagger-fadeIn > *:nth-child(5) { animation-delay: 0.25s; }
-  .stagger-fadeIn > *:nth-child(6) { animation-delay: 0.3s; }
-  .stagger-fadeIn > *:nth-child(n+7) { animation-delay: 0.35s; }
+  .stagger-fadeIn>*:nth-child(1) {
+    animation-delay: 0.05s;
+  }
+
+  .stagger-fadeIn>*:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-fadeIn>*:nth-child(3) {
+    animation-delay: 0.15s;
+  }
+
+  .stagger-fadeIn>*:nth-child(4) {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-fadeIn>*:nth-child(5) {
+    animation-delay: 0.25s;
+  }
+
+  .stagger-fadeIn>*:nth-child(6) {
+    animation-delay: 0.3s;
+  }
+
+  .stagger-fadeIn>*:nth-child(n+7) {
+    animation-delay: 0.35s;
+  }
 }
 
 /* Mobile: instant display, no staggered animation for speed */
-@media (hover: none), (pointer: coarse) {
-  .stagger-fadeIn > * {
+@media (hover: none),
+(pointer: coarse) {
+  .stagger-fadeIn>* {
     opacity: 1;
   }
-  
+
   .animate-fadeIn {
     animation: none;
     opacity: 1;
@@ -466,7 +505,7 @@ body {
   .touch-manipulation {
     touch-action: manipulation;
   }
-  
+
   /* Larger touch targets on mobile */
   .card-action-btn {
     min-width: 44px;

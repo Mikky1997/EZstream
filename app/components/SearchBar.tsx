@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -9,7 +9,7 @@ interface SearchBarProps {
   placeholder?: string;
   mobilePlaceholder?: string;
   autoFocus?: boolean;
-  filterType?: 'movie' | 'tv' | 'anime' | 'all';
+  filterType?: "movie" | "tv" | "anime" | "all";
   initialQuery?: string;
 }
 
@@ -24,15 +24,15 @@ interface SearchResult {
   vote_average?: number;
 }
 
-export default function SearchBar({ 
-  onSearch, 
-  onLiveResults, 
-  loading, 
+export default function SearchBar({
+  onSearch,
+  onLiveResults,
+  loading,
   placeholder = "Search movies, TV shows, anime...",
   mobilePlaceholder = "Search...",
   autoFocus = false,
-  filterType = 'all',
-  initialQuery = ''
+  filterType = "all",
+  initialQuery = "",
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
   const [isMobile, setIsMobile] = useState(false);
@@ -43,8 +43,8 @@ export default function SearchBar({
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Update query when initialQuery changes (from URL param)
@@ -76,25 +76,33 @@ export default function SearchBar({
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(query)}`,
+        );
         if (response.ok) {
           const data = await response.json();
-          let filtered = (data.results || [])
-            .filter((item: SearchResult) => item.media_type === 'movie' || item.media_type === 'tv');
-          
+          let filtered = (data.results || []).filter(
+            (item: SearchResult) =>
+              item.media_type === "movie" || item.media_type === "tv",
+          );
+
           // Apply filterType filtering
-          if (filterType === 'movie') {
-            filtered = filtered.filter((item: SearchResult) => item.media_type === 'movie');
-          } else if (filterType === 'tv' || filterType === 'anime') {
-            filtered = filtered.filter((item: SearchResult) => item.media_type === 'tv');
+          if (filterType === "movie") {
+            filtered = filtered.filter(
+              (item: SearchResult) => item.media_type === "movie",
+            );
+          } else if (filterType === "tv" || filterType === "anime") {
+            filtered = filtered.filter(
+              (item: SearchResult) => item.media_type === "tv",
+            );
           }
-          
+
           if (onLiveResults) {
             onLiveResults(filtered);
           }
         }
       } catch (err) {
-        console.error('Search error:', err);
+        console.error("Search error:", err);
       }
     }, 200);
 
@@ -106,7 +114,7 @@ export default function SearchBar({
   }, [query, onLiveResults, filterType]);
 
   const handleClear = () => {
-    setQuery('');
+    setQuery("");
     if (onLiveResults) {
       onLiveResults([]);
     }
@@ -118,8 +126,18 @@ export default function SearchBar({
       <div className="relative">
         {/* Search icon on the left */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </div>
         <input
@@ -128,7 +146,7 @@ export default function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={isMobile ? mobilePlaceholder : placeholder}
-          className="w-full pl-12 pr-12 py-3.5 md:py-4 text-base md:text-lg bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 focus:bg-gray-700 transition-all"
+          className="w-full pl-12 pr-12 py-3.5 md:py-4 text-base md:text-lg bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 outline-none focus:outline-none focus:border-accent focus:bg-gray-700 transition-all"
           disabled={loading}
         />
         {/* Clear button on the right */}
@@ -139,8 +157,18 @@ export default function SearchBar({
             className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors"
             title="Clear search"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
