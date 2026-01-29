@@ -84,10 +84,10 @@ export default function BrowseMovies() {
       const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        // For rating sort: fetch 13 pages (260 items) at once for accurate IMDB sorting
+        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
         // For other sorts: normal single page fetch
         if (isRatingSort && reset) {
-          const pagesToFetch = Array.from({ length: 13 }, (_, i) => i + 1);
+          const pagesToFetch = Array.from({ length: 5 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -112,8 +112,8 @@ export default function BrowseMovies() {
           );
 
           setMovies(uniqueMovies);
-          setPage(14);
-          setHasMore(false); // No infinite scroll for rating sort - show top 250 only
+          setPage(6);
+          setHasMore(false); // No infinite scroll for rating sort - show top 100 only
         } else {
           // Normal fetch for other sort options or loading more
           const params = new URLSearchParams({
