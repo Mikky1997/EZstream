@@ -121,7 +121,7 @@ export default function SearchBar({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [query, onLiveResults, filterType]);
+  }, [query, onLiveResults, filterType, includePeople]);
 
   const handleClear = () => {
     setQuery("");
