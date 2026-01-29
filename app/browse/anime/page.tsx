@@ -55,11 +55,20 @@ export default function BrowseAnime() {
           const newResults = data.results || [];
           const currentSortBy = category?.sortBy || "popularity.desc";
 
+          // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+          const getEffectiveRating = (item: TVShow) => {
+            if (item.imdbRating && item.imdbRating !== "N/A") {
+              return parseFloat(item.imdbRating);
+            }
+            return item.vote_average || 0;
+          };
+
           // Helper function to sort results
           const sortResults = (items: TVShow[]) => {
             if (currentSortBy === "vote_average.desc") {
+              // Use IMDB rating when available (same as API)
               return items.sort(
-                (a, b) => (b.vote_average || 0) - (a.vote_average || 0),
+                (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
               );
             } else if (currentSortBy === "popularity.desc") {
               return items.sort(

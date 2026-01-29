@@ -93,6 +93,14 @@ export default function BrowseMovies() {
           const data = await response.json();
           const newResults = data.results || [];
 
+          // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+          const getEffectiveRating = (movie: Movie) => {
+            if (movie.imdbRating && movie.imdbRating !== "N/A") {
+              return parseFloat(movie.imdbRating);
+            }
+            return movie.vote_average || 0;
+          };
+
           if (reset) {
             setMovies(newResults);
             setPage(2);
@@ -102,8 +110,9 @@ export default function BrowseMovies() {
               const combined = [...prev, ...newResults];
               // Re-sort based on current sort option
               if (sortBy === "vote_average.desc") {
+                // Use IMDB rating when available (same as API)
                 return combined.sort(
-                  (a, b) => (b.vote_average || 0) - (a.vote_average || 0),
+                  (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
                 );
               } else if (sortBy === "popularity.desc") {
                 return combined.sort(
