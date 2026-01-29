@@ -109,8 +109,8 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
             mozallowfullscreen: true,
           } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           // Extended permissions for video playback across all browsers
-          // Using proper Feature Policy / Permissions Policy syntax
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+          // Wildcards (*) allow cross-origin iframes to use these features
+          allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture *; fullscreen *"
           // Prevent iframe scrollbars that can interfere with mobile fullscreen
           scrolling="no"
           // Referrer policy for better compatibility with video sources
