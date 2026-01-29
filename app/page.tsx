@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, memo, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -201,7 +201,8 @@ const WatchlistCard = memo(function WatchlistCard({
   );
 });
 
-export default function Home() {
+// Inner component that uses useSearchParams (needs Suspense boundary)
+function HomeContent() {
   const { user, loading: authLoading } = useAuth();
   const { history, removeFromHistory } = useWatchHistory();
   const { watchlist, removeFromWatchlist } = useWatchlistContext();
@@ -719,5 +720,22 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+// Wrapper with Suspense boundary for useSearchParams
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent"></div>
+          </div>
+        </div>
+      </main>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
