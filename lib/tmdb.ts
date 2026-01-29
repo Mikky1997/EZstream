@@ -67,13 +67,13 @@ export async function searchMovies(
 
 export async function getMovieDetails(id: number): Promise<Movie> {
   return fetchTMDB<Movie>(`/movie/${id}`, {
-    append_to_response: "videos,external_ids",
+    append_to_response: "videos,external_ids,credits",
   });
 }
 
 export async function getTVShowDetails(id: number): Promise<TVShow> {
   return fetchTMDB<TVShow>(`/tv/${id}`, {
-    append_to_response: "videos,external_ids",
+    append_to_response: "videos,external_ids,credits",
   });
 }
 
@@ -155,14 +155,14 @@ export async function discoverMoviesWithFilters(
     minVotes = 100,
   } = options;
 
-  // Check if we need weighted rating sort
-  const useWeightedRating = sortBy === "vote_average.desc";
-
-  // For weighted rating, require more votes to filter out niche content with inflated ratings
-  const actualMinVotes = useWeightedRating ? Math.max(minVotes, 500) : minVotes;
+  // For "highest rated", require significantly more votes to filter out
+  // niche content with inflated ratings (similar to IMDB's Top 250 approach)
+  const isHighestRated = sortBy === "vote_average.desc";
+  const actualMinVotes = isHighestRated ? Math.max(minVotes, 2000) : minVotes;
 
   const params: Record<string, string | number | boolean> = {
-    sort_by: "popularity.desc", // Always fetch by popularity, we re-sort for weighted
+    page,
+    sort_by: sortBy,
     include_adult: false,
     "vote_count.gte": actualMinVotes,
   };
@@ -177,103 +177,7 @@ export async function discoverMoviesWithFilters(
     params.with_original_language = language;
   }
 
-  // If using weighted rating, use the helper to fetch and re-sort
-  if (useWeightedRating) {
-    return fetchWithWeightedRating(
-      "/discover/movie",
-      params,
-      page,
-      2000, // Higher threshold for movies (more data available)
-      6.5, // Mean rating for movies
-    );
-  }
-
-  // For non-weighted sorts, use TMDB's native sorting
-  return fetchTMDB<SearchResult>("/discover/movie", {
-    ...params,
-    page,
-    sort_by: sortBy,
-  });
-}
-
-// Calculate weighted rating using IMDB's Bayesian formula
-// This prevents shows with few votes from ranking artificially high
-function calculateWeightedRating(
-  voteAverage: number,
-  voteCount: number,
-  minVotes: number = 1000,
-  meanRating: number = 7.0,
-): number {
-  // Formula: (v/(v+m)) × R + (m/(v+m)) × C
-  // v = vote count, m = minimum votes, R = average rating, C = mean rating
-  return (
-    (voteCount / (voteCount + minVotes)) * voteAverage +
-    (minVotes / (voteCount + minVotes)) * meanRating
-  );
-}
-
-// Helper to fetch and sort by weighted rating
-async function fetchWithWeightedRating(
-  endpoint: string,
-  params: Record<string, string | number | boolean>,
-  page: number,
-  minVotesThreshold: number,
-  meanRating: number,
-): Promise<SearchResult> {
-  // Fetch a larger pool of content to properly sort by weighted rating
-  // We fetch 5 pages worth of popular content, sort, then paginate
-  const poolSize = 5; // 5 TMDB pages = 100 items
-  const itemsPerPage = 20;
-
-  // Calculate which TMDB page batch we need
-  // Pages 1-5 of our weighted results come from TMDB pages 1-5
-  // Pages 6-10 come from TMDB pages 6-10, etc.
-  const batchNumber = Math.ceil(page / poolSize);
-  const startPage = (batchNumber - 1) * poolSize + 1;
-  const pagesToFetch = Array.from(
-    { length: poolSize },
-    (_, i) => startPage + i,
-  );
-
-  const results = await Promise.all(
-    pagesToFetch.map((p) =>
-      fetchTMDB<SearchResult>(endpoint, { ...params, page: p }),
-    ),
-  );
-
-  // Combine all results and remove duplicates
-  const allItems = results.flatMap((r) => r.results || []);
-  const uniqueItems = allItems.filter(
-    (item, index, self) => index === self.findIndex((t) => t.id === item.id),
-  );
-
-  // Calculate weighted rating for each item and sort
-  const itemsWithWeightedRating = uniqueItems.map((item) => ({
-    ...item,
-    weighted_rating: calculateWeightedRating(
-      item.vote_average || 0,
-      item.vote_count || 0,
-      minVotesThreshold,
-      meanRating,
-    ),
-  }));
-
-  // Sort by weighted rating descending
-  itemsWithWeightedRating.sort((a, b) => b.weighted_rating - a.weighted_rating);
-
-  // Calculate the index within our batch
-  const indexInBatch = ((page - 1) % poolSize) * itemsPerPage;
-  const paginatedResults = itemsWithWeightedRating.slice(
-    indexInBatch,
-    indexInBatch + itemsPerPage,
-  );
-
-  return {
-    page,
-    results: paginatedResults,
-    total_pages: Math.min(results[0]?.total_pages || 1, 500), // Cap at reasonable number
-    total_results: results[0]?.total_results || 0,
-  };
+  return fetchTMDB<SearchResult>("/discover/movie", params);
 }
 
 export async function discoverTVWithFilters(
@@ -295,14 +199,14 @@ export async function discoverTVWithFilters(
     minVotes = 50,
   } = options;
 
-  // Check if we need weighted rating sort
-  const useWeightedRating = sortBy === "vote_average.desc";
-
-  // For weighted rating, require more votes to filter out niche content with inflated ratings
-  const actualMinVotes = useWeightedRating ? Math.max(minVotes, 200) : minVotes;
+  // For "highest rated", require significantly more votes to filter out
+  // niche content with inflated ratings (similar to IMDB's Top 250 approach)
+  const isHighestRated = sortBy === "vote_average.desc";
+  const actualMinVotes = isHighestRated ? Math.max(minVotes, 1000) : minVotes;
 
   const params: Record<string, string | number | boolean> = {
-    sort_by: "popularity.desc", // Always fetch by popularity, we re-sort for weighted
+    page,
+    sort_by: sortBy,
     include_adult: false,
     "vote_count.gte": actualMinVotes,
   };
@@ -317,23 +221,7 @@ export async function discoverTVWithFilters(
     params.with_original_language = language;
   }
 
-  // If using weighted rating, use the helper to fetch and re-sort
-  if (useWeightedRating) {
-    return fetchWithWeightedRating(
-      "/discover/tv",
-      params,
-      page,
-      1000, // Minimum votes threshold for weighting formula
-      7.0, // Mean rating (TMDB average is around 6.5-7.0)
-    );
-  }
-
-  // For non-weighted sorts, use TMDB's native sorting
-  return fetchTMDB<SearchResult>("/discover/tv", {
-    ...params,
-    page,
-    sort_by: sortBy,
-  });
+  return fetchTMDB<SearchResult>("/discover/tv", params);
 }
 
 export async function getAnime(page: number = 1): Promise<SearchResult> {

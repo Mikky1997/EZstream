@@ -3,6 +3,15 @@ export interface Genre {
   name: string;
 }
 
+// Cast member for movie/TV credits
+export interface CastMember {
+  id: number;
+  name: string;
+  character?: string;
+  profile_path: string | null;
+  order?: number;
+}
+
 export interface Movie {
   id: number;
   title: string;
@@ -19,6 +28,9 @@ export interface Movie {
   genre_ids?: number[];
   runtime?: number;
   tagline?: string;
+  credits?: {
+    cast: CastMember[];
+  };
 }
 
 export interface TVShow {
@@ -37,6 +49,9 @@ export interface TVShow {
   seasons?: { season_number: number; episode_count: number }[];
   genres?: Genre[];
   genre_ids?: number[];
+  credits?: {
+    cast: CastMember[];
+  };
 }
 
 // Animation genre ID in TMDB

@@ -7,9 +7,10 @@ import MediaActions from "@/app/components/MediaActions";
 import EpisodeList from "@/app/components/EpisodeList";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
-import type { Movie, TVShow, StreamingSource, Genre } from "@/types";
+import type { Movie, TVShow, StreamingSource, Genre, CastMember } from "@/types";
 import { isAnimeContent } from "@/types";
 import Image from "next/image";
+import Link from "next/link";
 
 interface Season {
   season_number: number;
@@ -486,6 +487,22 @@ export default function WatchPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Cast */}
+                {item.credits?.cast && item.credits.cast.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="text-gray-500 text-sm">Starring:</span>
+                    {item.credits.cast.slice(0, 5).map((actor) => (
+                      <Link
+                        key={actor.id}
+                        href={`/person/${actor.id}`}
+                        className="bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white px-2 py-1 rounded text-xs transition-colors"
+                      >
+                        {actor.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
 
                 {overview && (
                   <p className="text-gray-400 text-sm line-clamp-2 mb-3">
