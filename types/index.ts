@@ -36,12 +36,14 @@ export interface Movie {
   vote_average: number;
   vote_count?: number;
   weighted_rating?: number;
+  popularity?: number;
+  revenue?: number;
   media_type?: "movie" | "tv";
   original_language?: string;
   genres?: Genre[];
   genre_ids?: number[];
-  keywords?: { keywords: Keyword[] };  // TMDB keywords (tags)
-  tags?: string[];  // Parsed keyword names for display
+  keywords?: { keywords: Keyword[] }; // TMDB keywords (tags)
+  tags?: string[]; // Parsed keyword names for display
   runtime?: number;
   tagline?: string;
   credits?: {
@@ -57,8 +59,8 @@ export interface Movie {
   metascore?: string | null;
   rottenTomatoes?: string | null;
   imdbGenres?: string[] | null;
-  director?: string | null;  // OMDb string (fallback)
-  writer?: string | null;    // OMDb string (fallback)
+  director?: string | null; // OMDb string (fallback)
+  writer?: string | null; // OMDb string (fallback)
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;
@@ -74,14 +76,15 @@ export interface TVShow {
   vote_average: number;
   vote_count?: number;
   weighted_rating?: number;
+  popularity?: number;
   media_type?: "movie" | "tv";
   original_language?: string;
   number_of_seasons?: number;
   seasons?: { season_number: number; episode_count: number }[];
   genres?: Genre[];
   genre_ids?: number[];
-  keywords?: { results: Keyword[] };  // TMDB keywords (tags) - TV uses 'results' not 'keywords'
-  tags?: string[];  // Parsed keyword names for display
+  keywords?: { results: Keyword[] }; // TMDB keywords (tags) - TV uses 'results' not 'keywords'
+  tags?: string[]; // Parsed keyword names for display
   credits?: {
     cast: CastMember[];
     crew: CrewMember[];
@@ -95,8 +98,8 @@ export interface TVShow {
   metascore?: string | null;
   rottenTomatoes?: string | null;
   imdbGenres?: string[] | null;
-  director?: string | null;  // OMDb string (fallback)
-  writer?: string | null;    // OMDb string (fallback)
+  director?: string | null; // OMDb string (fallback)
+  writer?: string | null; // OMDb string (fallback)
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;

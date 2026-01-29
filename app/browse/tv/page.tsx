@@ -82,11 +82,31 @@ export default function BrowseTV() {
       const response = await fetch(`/api/browse/tv?${params}`);
       if (response.ok) {
         const data = await response.json();
+        const newResults = data.results || [];
+        
         if (reset) {
-          setShows(data.results || []);
+          setShows(newResults);
           setPage(2);
         } else {
-          setShows(prev => [...prev, ...(data.results || [])]);
+          // Merge and re-sort to maintain proper order across pages
+          setShows(prev => {
+            const combined = [...prev, ...newResults];
+            // Re-sort based on current sort option
+            if (sortBy === 'vote_average.desc') {
+              return combined.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+            } else if (sortBy === 'popularity.desc') {
+              return combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+            } else if (sortBy === 'first_air_date.desc') {
+              return combined.sort((a, b) => 
+                new Date(b.first_air_date || '0').getTime() - new Date(a.first_air_date || '0').getTime()
+              );
+            } else if (sortBy === 'first_air_date.asc') {
+              return combined.sort((a, b) => 
+                new Date(a.first_air_date || '0').getTime() - new Date(b.first_air_date || '0').getTime()
+              );
+            }
+            return combined;
+          });
           setPage(prev => prev + 1);
         }
         setHasMore((data.results?.length || 0) >= 20);
