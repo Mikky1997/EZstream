@@ -24,6 +24,13 @@ const BLOCKED_ANIME_IDS = new Set([
   77464, // Real Eroge Situation! The Animation
   66926, // Valkyrie Drive: Mermaid
   207840, // Harem Camp!
+  128926, // World's End Harem
+  87739, // World's End Harem (alternate)
+  68339, // Testament of Sister New Devil
+  77214, // Testament of Sister New Devil Burst
+  90353, // Mother of the Goddess' Dormitory
+  95842, // Miru Tights
+  93167, // How Heavy Are the Dumbbells You Lift? (censored but borderline)
 
   // ===== BORDERLINE HENTAI (extreme ecchi/near-explicit) =====
   91400, // Redo of Healer (extreme content)
@@ -32,6 +39,19 @@ const BLOCKED_ANIME_IDS = new Set([
   99080, // Peter Grill and the Philosopher's Time
   68005, // Yosuga no Sora
   114477, // Harem in the Labyrinth of Another World (Isekai Meikyuu de Harem wo)
+  74070, // High School DxD (all seasons - extreme ecchi)
+  62745, // High School DxD New
+  68671, // High School DxD BorN
+  77250, // High School DxD Hero
+  62861, // To LOVE-Ru Darkness
+  62738, // To LOVE-Ru Darkness 2nd
+  90354, // Why the Hell are You Here, Teacher!?
+  94119, // Rent-a-Girlfriend (borderline)
+  88336, // Domestic Girlfriend
+  65171, // Prison School
+  91600, // Uzaki-chan Wants to Hang Out! (borderline)
+  210527, // Ayakashi Triangle
+  219345, // The Café Terrace and Its Goddesses
 
   // ===== Add more IDs as needed =====
 ]);
@@ -46,6 +66,17 @@ const BLOCKED_TITLE_PATTERNS = [
   /joshiochi.*2-kai/i, // Joshiochi specific title
   /toshi\s+densetsu\s+series/i, // Toshi Densetsu Series (specific)
   /otome\s+dori/i, // Otome Dori (specific)
+  /world'?s?\s+end\s+harem/i, // World's End Harem
+  /shuumatsu\s+no\s+harem/i, // World's End Harem (Japanese)
+  /overflow/i, // Overflow series
+  /\becchi\b/i, // Ecchi in title usually means explicit
+  /testament.*sister.*devil/i, // Testament of Sister New Devil
+  /mother.*goddess.*dormitory/i, // Mother of the Goddess' Dormitory
+  /interspecies\s+reviewers?/i, // Interspecies Reviewers
+  /ishuzoku\s+reviewers?/i, // Interspecies Reviewers (Japanese)
+  /peter\s+grill/i, // Peter Grill series
+  /redo.*healer/i, // Redo of Healer
+  /kaifuku.*jutsushi/i, // Redo of Healer (Japanese)
 ];
 
 // Filter out blocked content from results (by ID and title patterns)
@@ -218,8 +249,18 @@ export async function discoverMoviesWithFilters(
 
   // For "highest rated", require significantly more votes to filter out
   // niche content with inflated ratings (similar to IMDB's Top 250 approach)
+  // HOWEVER: For anime (genre 16 + Japanese), use much lower threshold
+  // as anime has fewer TMDB votes
   const isHighestRated = sortBy === "vote_average.desc";
-  const actualMinVotes = isHighestRated ? Math.max(minVotes, 2000) : minVotes;
+  const isAnime = genre === 16 && language === "ja";
+
+  let actualMinVotes = minVotes;
+  if (isHighestRated) {
+    // For anime: min 100 votes, for others: min 2000 votes
+    actualMinVotes = isAnime
+      ? Math.max(minVotes, 100)
+      : Math.max(minVotes, 2000);
+  }
 
   const params: Record<string, string | number | boolean> = {
     page,
@@ -262,8 +303,18 @@ export async function discoverTVWithFilters(
 
   // For "highest rated", require significantly more votes to filter out
   // niche content with inflated ratings (similar to IMDB's Top 250 approach)
+  // HOWEVER: For anime (genre 16 + Japanese), use much lower threshold
+  // as anime has fewer TMDB votes
   const isHighestRated = sortBy === "vote_average.desc";
-  const actualMinVotes = isHighestRated ? Math.max(minVotes, 1000) : minVotes;
+  const isAnime = genre === 16 && language === "ja";
+
+  let actualMinVotes = minVotes;
+  if (isHighestRated) {
+    // For anime: min 100 votes, for others: min 1000 votes
+    actualMinVotes = isAnime
+      ? Math.max(minVotes, 100)
+      : Math.max(minVotes, 1000);
+  }
 
   const params: Record<string, string | number | boolean> = {
     page,

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { discoverMoviesWithFilters, getIMDbId, filterBlockedContent } from "@/lib/tmdb";
+import {
+  discoverMoviesWithFilters,
+  getIMDbId,
+  filterBlockedContent,
+} from "@/lib/tmdb";
 import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
 
@@ -13,7 +17,13 @@ export async function GET(request: Request) {
   const sortBy = searchParams.get("sort_by") || "popularity.desc";
   const year = searchParams.get("year");
   const language = searchParams.get("language");
-  const minVotes = safeParseInt(searchParams.get("min_votes"), 100, 1, 10000);
+
+  // For anime (genre 16 + Japanese), use lower min_votes (10) to get more results
+  const isAnime = genre === "16" && language === "ja";
+  const defaultMinVotes = isAnime ? 10 : 100;
+  const minVotes = searchParams.get("min_votes")
+    ? safeParseInt(searchParams.get("min_votes"), defaultMinVotes, 1, 10000)
+    : defaultMinVotes;
 
   try {
     const data = await discoverMoviesWithFilters({
@@ -52,8 +62,12 @@ export async function GET(request: Request) {
       // If sorting by highest rated, re-sort by IMDB rating
       if (sortBy === "vote_average.desc") {
         moviesWithImdb.sort((a, b) => {
-          const ratingA = a.imdbRating ? parseFloat(a.imdbRating) : (a.vote_average ?? 0);
-          const ratingB = b.imdbRating ? parseFloat(b.imdbRating) : (b.vote_average ?? 0);
+          const ratingA = a.imdbRating
+            ? parseFloat(a.imdbRating)
+            : (a.vote_average ?? 0);
+          const ratingB = b.imdbRating
+            ? parseFloat(b.imdbRating)
+            : (b.vote_average ?? 0);
           return ratingB - ratingA;
         });
       }

@@ -60,7 +60,6 @@ export default function BrowseAnime() {
               sort_by: currentSortBy,
               language: "ja",
               genre: "16",
-              min_votes: "1", // Low threshold - anime has fewer TMDB votes
             });
             return fetch(`${endpoint}?${params}`).then((r) => r.json());
           });
@@ -93,7 +92,6 @@ export default function BrowseAnime() {
             sort_by: currentSortBy,
             language: "ja",
             genre: "16",
-            min_votes: "1", // Low threshold - anime has fewer TMDB votes
           });
 
           const response = await fetch(`${endpoint}?${params}`);
