@@ -64,6 +64,14 @@ export default function BrowseMovies() {
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+  const getEffectiveRating = useCallback((movie: Movie) => {
+    if (movie.imdbRating && movie.imdbRating !== "N/A") {
+      return parseFloat(movie.imdbRating);
+    }
+    return movie.vote_average || 0;
+  }, []);
+
   const loadMovies = useCallback(
     async (reset = false) => {
       if (reset) {
@@ -73,73 +81,67 @@ export default function BrowseMovies() {
       }
 
       const currentPage = reset ? 1 : page;
+      const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          sort_by: sortBy,
-        });
-
-        if (selectedGenre) {
-          params.append("genre", selectedGenre.toString());
-        }
-
-        if (selectedLanguage) {
-          params.append("language", selectedLanguage);
-        }
-
-        const response = await fetch(`/api/browse/movies?${params}`);
-        if (response.ok) {
-          const data = await response.json();
-          const newResults = data.results || [];
-
-          // Helper to get effective rating (IMDB preferred, fallback to TMDB)
-          const getEffectiveRating = (movie: Movie) => {
-            if (movie.imdbRating && movie.imdbRating !== "N/A") {
-              return parseFloat(movie.imdbRating);
-            }
-            return movie.vote_average || 0;
-          };
-
-          if (reset) {
-            setMovies(newResults);
-            setPage(2);
-          } else {
-            // Merge and re-sort to maintain proper order across pages
-            setMovies((prev) => {
-              const combined = [...prev, ...newResults];
-              // Re-sort based on current sort option
-              if (sortBy === "vote_average.desc") {
-                // Use IMDB rating when available (same as API)
-                return combined.sort(
-                  (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
-                );
-              } else if (sortBy === "popularity.desc") {
-                return combined.sort(
-                  (a, b) => (b.popularity || 0) - (a.popularity || 0),
-                );
-              } else if (sortBy === "release_date.desc") {
-                return combined.sort(
-                  (a, b) =>
-                    new Date(b.release_date || "0").getTime() -
-                    new Date(a.release_date || "0").getTime(),
-                );
-              } else if (sortBy === "release_date.asc") {
-                return combined.sort(
-                  (a, b) =>
-                    new Date(a.release_date || "0").getTime() -
-                    new Date(b.release_date || "0").getTime(),
-                );
-              } else if (sortBy === "revenue.desc") {
-                return combined.sort(
-                  (a, b) => (b.revenue || 0) - (a.revenue || 0),
-                );
-              }
-              return combined;
+        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
+        // For other sorts: normal single page fetch
+        if (isRatingSort && reset) {
+          const pagesToFetch = [1, 2, 3, 4, 5];
+          const fetchPromises = pagesToFetch.map((p) => {
+            const params = new URLSearchParams({
+              page: p.toString(),
+              sort_by: sortBy,
             });
-            setPage((prev) => prev + 1);
+            if (selectedGenre) params.append("genre", selectedGenre.toString());
+            if (selectedLanguage) params.append("language", selectedLanguage);
+            return fetch(`/api/browse/movies?${params}`).then((r) => r.json());
+          });
+
+          const results = await Promise.all(fetchPromises);
+          const allMovies = results.flatMap((data) => data.results || []);
+          
+          // Remove duplicates by ID
+          const uniqueMovies = Array.from(
+            new Map(allMovies.map((m) => [m.id, m])).values()
+          );
+          
+          // Sort by IMDB rating (accurate sort across all 100 items)
+          uniqueMovies.sort((a, b) => getEffectiveRating(b) - getEffectiveRating(a));
+          
+          setMovies(uniqueMovies);
+          setPage(6); // Next page would be 6
+          setHasMore(results[4]?.results?.length >= 20); // Check if page 5 was full
+        } else {
+          // Normal fetch for other sort options or loading more
+          const params = new URLSearchParams({
+            page: currentPage.toString(),
+            sort_by: sortBy,
+          });
+
+          if (selectedGenre) {
+            params.append("genre", selectedGenre.toString());
           }
-          setHasMore((data.results?.length || 0) >= 20);
+
+          if (selectedLanguage) {
+            params.append("language", selectedLanguage);
+          }
+
+          const response = await fetch(`/api/browse/movies?${params}`);
+          if (response.ok) {
+            const data = await response.json();
+            const newResults = data.results || [];
+
+            if (reset) {
+              setMovies(newResults);
+              setPage(2);
+            } else {
+              // Simply append new results
+              setMovies((prev) => [...prev, ...newResults]);
+              setPage((prev) => prev + 1);
+            }
+            setHasMore((data.results?.length || 0) >= 20);
+          }
         }
       } catch (err) {
         console.error("Failed to load movies:", err);
@@ -148,7 +150,7 @@ export default function BrowseMovies() {
         setLoadingMore(false);
       }
     },
-    [page, sortBy, selectedGenre, selectedLanguage],
+    [page, sortBy, selectedGenre, selectedLanguage, getEffectiveRating],
   );
 
   useEffect(() => {

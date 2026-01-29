@@ -26,6 +26,14 @@ export default function BrowseAnime() {
   const [searchResults, setSearchResults] = useState<TVShow[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+  const getEffectiveRating = useCallback((item: TVShow) => {
+    if (item.imdbRating && item.imdbRating !== "N/A") {
+      return parseFloat(item.imdbRating);
+    }
+    return item.vote_average || 0;
+  }, []);
+
   const loadAnime = useCallback(
     async (reset = false) => {
       if (reset) {
@@ -36,71 +44,78 @@ export default function BrowseAnime() {
 
       const currentPage = reset ? 1 : page;
       const category = ANIME_CATEGORIES.find((c) => c.id === selectedCategory);
+      const currentSortBy = category?.sortBy || "popularity.desc";
+      const isRatingSort = currentSortBy === "vote_average.desc";
+      const endpoint = activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
 
       try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          sort_by: category?.sortBy || "popularity.desc",
-          language: "ja",
-          genre: "16", // Animation
-          min_votes: "5", // Lower threshold for anime (most anime have fewer votes on TMDB)
-        });
+        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
+        // For other sorts: normal single page fetch
+        if (isRatingSort && reset) {
+          const pagesToFetch = [1, 2, 3, 4, 5];
+          const fetchPromises = pagesToFetch.map((p) => {
+            const params = new URLSearchParams({
+              page: p.toString(),
+              sort_by: currentSortBy,
+              language: "ja",
+              genre: "16",
+              min_votes: "5",
+            });
+            return fetch(`${endpoint}?${params}`).then((r) => r.json());
+          });
 
-        const endpoint =
-          activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
-        const response = await fetch(`${endpoint}?${params}`);
-
-        if (response.ok) {
-          const data = await response.json();
-          const newResults = data.results || [];
-          const currentSortBy = category?.sortBy || "popularity.desc";
-
-          // Helper to get effective rating (IMDB preferred, fallback to TMDB)
-          const getEffectiveRating = (item: TVShow) => {
-            if (item.imdbRating && item.imdbRating !== "N/A") {
-              return parseFloat(item.imdbRating);
-            }
-            return item.vote_average || 0;
-          };
-
-          // Helper function to sort results
-          const sortResults = (items: TVShow[]) => {
-            if (currentSortBy === "vote_average.desc") {
-              // Use IMDB rating when available (same as API)
-              return items.sort(
-                (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
-              );
-            } else if (currentSortBy === "popularity.desc") {
-              return items.sort(
-                (a, b) => (b.popularity || 0) - (a.popularity || 0),
-              );
-            } else if (currentSortBy === "first_air_date.desc") {
-              return items.sort(
-                (a, b) =>
-                  new Date(b.first_air_date || "0").getTime() -
-                  new Date(a.first_air_date || "0").getTime(),
-              );
-            }
-            return items;
-          };
-
-          if (reset) {
-            if (activeTab === "tv") {
-              setAnime(newResults);
-            } else {
-              setMovies(newResults);
-            }
-            setPage(2);
+          const results = await Promise.all(fetchPromises);
+          const allItems = results.flatMap((data) => data.results || []);
+          
+          // Remove duplicates by ID
+          const uniqueItems = Array.from(
+            new Map(allItems.map((item) => [item.id, item])).values()
+          );
+          
+          // Sort by IMDB rating (accurate sort across all 100 items)
+          uniqueItems.sort((a, b) => getEffectiveRating(b) - getEffectiveRating(a));
+          
+          if (activeTab === "tv") {
+            setAnime(uniqueItems);
           } else {
-            // Merge and re-sort to maintain proper order across pages
-            if (activeTab === "tv") {
-              setAnime((prev) => sortResults([...prev, ...newResults]));
-            } else {
-              setMovies((prev) => sortResults([...prev, ...newResults]));
-            }
-            setPage((prev) => prev + 1);
+            setMovies(uniqueItems);
           }
-          setHasMore((data.results?.length || 0) >= 20);
+          setPage(6);
+          setHasMore(results[4]?.results?.length >= 20);
+        } else {
+          // Normal fetch for other sort options or loading more
+          const params = new URLSearchParams({
+            page: currentPage.toString(),
+            sort_by: currentSortBy,
+            language: "ja",
+            genre: "16",
+            min_votes: "5",
+          });
+
+          const response = await fetch(`${endpoint}?${params}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            const newResults = data.results || [];
+
+            if (reset) {
+              if (activeTab === "tv") {
+                setAnime(newResults);
+              } else {
+                setMovies(newResults);
+              }
+              setPage(2);
+            } else {
+              // Simply append new results
+              if (activeTab === "tv") {
+                setAnime((prev) => [...prev, ...newResults]);
+              } else {
+                setMovies((prev) => [...prev, ...newResults]);
+              }
+              setPage((prev) => prev + 1);
+            }
+            setHasMore((data.results?.length || 0) >= 20);
+          }
         }
       } catch (err) {
         console.error("Failed to load anime:", err);
@@ -109,7 +124,7 @@ export default function BrowseAnime() {
         setLoadingMore(false);
       }
     },
-    [page, selectedCategory, activeTab],
+    [page, selectedCategory, activeTab, getEffectiveRating],
   );
 
   useEffect(() => {

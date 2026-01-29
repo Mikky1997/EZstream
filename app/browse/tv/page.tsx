@@ -56,6 +56,14 @@ export default function BrowseTV() {
   const [searchResults, setSearchResults] = useState<TVShow[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+  const getEffectiveRating = useCallback((show: TVShow) => {
+    if (show.imdbRating && show.imdbRating !== "N/A") {
+      return parseFloat(show.imdbRating);
+    }
+    return show.vote_average || 0;
+  }, []);
+
   const loadShows = useCallback(
     async (reset = false) => {
       if (reset) {
@@ -65,69 +73,67 @@ export default function BrowseTV() {
       }
 
       const currentPage = reset ? 1 : page;
+      const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          sort_by: sortBy,
-        });
-
-        if (selectedGenre) {
-          params.append("genre", selectedGenre.toString());
-        }
-
-        if (selectedLanguage) {
-          params.append("language", selectedLanguage);
-        }
-
-        const response = await fetch(`/api/browse/tv?${params}`);
-        if (response.ok) {
-          const data = await response.json();
-          const newResults = data.results || [];
-
-          // Helper to get effective rating (IMDB preferred, fallback to TMDB)
-          const getEffectiveRating = (show: TVShow) => {
-            if (show.imdbRating && show.imdbRating !== "N/A") {
-              return parseFloat(show.imdbRating);
-            }
-            return show.vote_average || 0;
-          };
-
-          if (reset) {
-            setShows(newResults);
-            setPage(2);
-          } else {
-            // Merge and re-sort to maintain proper order across pages
-            setShows((prev) => {
-              const combined = [...prev, ...newResults];
-              // Re-sort based on current sort option
-              if (sortBy === "vote_average.desc") {
-                // Use IMDB rating when available (same as API)
-                return combined.sort(
-                  (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
-                );
-              } else if (sortBy === "popularity.desc") {
-                return combined.sort(
-                  (a, b) => (b.popularity || 0) - (a.popularity || 0),
-                );
-              } else if (sortBy === "first_air_date.desc") {
-                return combined.sort(
-                  (a, b) =>
-                    new Date(b.first_air_date || "0").getTime() -
-                    new Date(a.first_air_date || "0").getTime(),
-                );
-              } else if (sortBy === "first_air_date.asc") {
-                return combined.sort(
-                  (a, b) =>
-                    new Date(a.first_air_date || "0").getTime() -
-                    new Date(b.first_air_date || "0").getTime(),
-                );
-              }
-              return combined;
+        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
+        // For other sorts: normal single page fetch
+        if (isRatingSort && reset) {
+          const pagesToFetch = [1, 2, 3, 4, 5];
+          const fetchPromises = pagesToFetch.map((p) => {
+            const params = new URLSearchParams({
+              page: p.toString(),
+              sort_by: sortBy,
             });
-            setPage((prev) => prev + 1);
+            if (selectedGenre) params.append("genre", selectedGenre.toString());
+            if (selectedLanguage) params.append("language", selectedLanguage);
+            return fetch(`/api/browse/tv?${params}`).then((r) => r.json());
+          });
+
+          const results = await Promise.all(fetchPromises);
+          const allShows = results.flatMap((data) => data.results || []);
+          
+          // Remove duplicates by ID
+          const uniqueShows = Array.from(
+            new Map(allShows.map((s) => [s.id, s])).values()
+          );
+          
+          // Sort by IMDB rating (accurate sort across all 100 items)
+          uniqueShows.sort((a, b) => getEffectiveRating(b) - getEffectiveRating(a));
+          
+          setShows(uniqueShows);
+          setPage(6); // Next page would be 6
+          setHasMore(results[4]?.results?.length >= 20); // Check if page 5 was full
+        } else {
+          // Normal fetch for other sort options or loading more
+          const params = new URLSearchParams({
+            page: currentPage.toString(),
+            sort_by: sortBy,
+          });
+
+          if (selectedGenre) {
+            params.append("genre", selectedGenre.toString());
           }
-          setHasMore((data.results?.length || 0) >= 20);
+
+          if (selectedLanguage) {
+            params.append("language", selectedLanguage);
+          }
+
+          const response = await fetch(`/api/browse/tv?${params}`);
+          if (response.ok) {
+            const data = await response.json();
+            const newResults = data.results || [];
+
+            if (reset) {
+              setShows(newResults);
+              setPage(2);
+            } else {
+              // Simply append new results
+              setShows((prev) => [...prev, ...newResults]);
+              setPage((prev) => prev + 1);
+            }
+            setHasMore((data.results?.length || 0) >= 20);
+          }
         }
       } catch (err) {
         console.error("Failed to load TV shows:", err);
@@ -136,7 +142,7 @@ export default function BrowseTV() {
         setLoadingMore(false);
       }
     },
-    [page, sortBy, selectedGenre, selectedLanguage],
+    [page, sortBy, selectedGenre, selectedLanguage, getEffectiveRating],
   );
 
   useEffect(() => {
