@@ -109,8 +109,9 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
             mozallowfullscreen: true,
           } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           // Extended permissions for video playback across all browsers
-          // Wildcards (*) allow cross-origin iframes to use these features
-          allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture *; fullscreen *"
+          // Wildcards (*) allow cross-origin iframes (and their nested iframes) to use these features
+          // This is critical for vidsrc.me which loads nested iframes for actual video playback
+          allow="accelerometer *; autoplay *; clipboard-write *; encrypted-media *; gyroscope *; picture-in-picture *; fullscreen *"
           // Prevent iframe scrollbars that can interfere with mobile fullscreen
           scrolling="no"
           // Referrer policy for better compatibility with video sources
