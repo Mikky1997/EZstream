@@ -63,7 +63,7 @@ export async function getOMDbData(imdbId: string): Promise<OMDbData | null> {
 
   try {
     const url = `${OMDB_BASE_URL}/?i=${imdbId}&plot=short&apikey=${OMDB_API_KEY}`;
-    
+
     const response = await fetch(url, {
       headers: { Accept: "application/json" },
       // Cache for 24 hours in Next.js
@@ -84,13 +84,14 @@ export async function getOMDbData(imdbId: string): Promise<OMDbData | null> {
 
     // Extract Rotten Tomatoes from Ratings array
     const rtRating = data.Ratings?.find(
-      (r) => r.Source === "Rotten Tomatoes"
+      (r) => r.Source === "Rotten Tomatoes",
     )?.Value;
 
     // Parse genres into array
-    const genres = data.Genre && data.Genre !== "N/A" 
-      ? data.Genre.split(", ").map(g => g.trim())
-      : null;
+    const genres =
+      data.Genre && data.Genre !== "N/A"
+        ? data.Genre.split(", ").map((g) => g.trim())
+        : null;
 
     const omdbData: OMDbData = {
       imdbRating: data.imdbRating !== "N/A" ? data.imdbRating || null : null,

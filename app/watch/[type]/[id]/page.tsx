@@ -520,14 +520,16 @@ export default function WatchPage() {
                 {/* IMDB Genres (preferred) or TMDB genres as fallback */}
                 {(item.imdbGenres || genres.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {(item.imdbGenres || genres.map(g => g.name)).slice(0, 6).map((genre, idx) => (
-                      <span
-                        key={typeof genre === 'string' ? genre : genre}
-                        className="bg-gray-700/60 text-gray-300 px-3 py-1 rounded-full text-xs"
-                      >
-                        {typeof genre === 'string' ? genre : genre}
-                      </span>
-                    ))}
+                    {(item.imdbGenres || genres.map((g) => g.name))
+                      .slice(0, 6)
+                      .map((genre, idx) => (
+                        <span
+                          key={typeof genre === "string" ? genre : genre}
+                          className="bg-gray-700/60 text-gray-300 px-3 py-1 rounded-full text-xs"
+                        >
+                          {typeof genre === "string" ? genre : genre}
+                        </span>
+                      ))}
                   </div>
                 )}
 

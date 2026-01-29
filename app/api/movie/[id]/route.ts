@@ -8,7 +8,7 @@ export const revalidate = 3600;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const id = safeParseInt(params.id, 0, 1, Number.MAX_SAFE_INTEGER);
@@ -48,13 +48,13 @@ export async function GET(
         headers: {
           "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("Movie API error:", error);
     return NextResponse.json(
       { error: "Failed to fetch movie details" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
