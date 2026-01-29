@@ -68,6 +68,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" data-theme="charcoal">
       <head>
+        {/* Apply theme immediately before render to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('ezstream_theme') || 'charcoal';
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://image.tmdb.org" />
         <link rel="dns-prefetch" href="https://image.tmdb.org" />

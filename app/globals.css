@@ -169,16 +169,23 @@ body {
   border-color: var(--border-soft) !important;
 }
 
+/* Force theme-aware text colors with higher specificity */
+html[data-theme] .text-white,
+html[data-theme] .text-gray-100,
 .text-white,
 .text-gray-100 {
   color: var(--text-primary) !important;
 }
 
+html[data-theme] .text-gray-200,
+html[data-theme] .text-gray-300,
 .text-gray-200,
 .text-gray-300 {
   color: var(--text-secondary) !important;
 }
 
+html[data-theme] .text-gray-400,
+html[data-theme] .text-gray-500,
 .text-gray-400,
 .text-gray-500 {
   color: var(--text-muted) !important;
