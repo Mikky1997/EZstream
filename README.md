@@ -8,6 +8,7 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css)
 ![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?style=flat-square&logo=sqlite)
+![Vibe Coded](https://img.shields.io/badge/100%25-Vibe_Coded-ff69b4?style=flat-square)
 
 ## Features
 
@@ -23,9 +24,9 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 
 ## Screenshots
 
-![EZstream Homepage](ezez2.png)
+![EZstream Homepage](ez1.png)
 
-![EZstream TVShows](ezez1.png)
+![EZstream TV Shows](ez2.png)
 
 ## Tech Stack
 
@@ -158,21 +159,22 @@ See `DEPLOY.md` for detailed Nginx configuration and Cloudflare setup.
 
 ## Streaming Sources
 
-The platform supports 9 streaming providers with smart fallback:
+The platform supports 10 streaming providers with smart fallback:
 
 | Priority | Source | Notes |
 |----------|--------|-------|
-| 1 | VidSrc.me | Primary - 87K movies, 19K series, 80% 1080p |
-| 2 | Embed.su | Very reliable backup |
-| 3 | VidSrc.cc | Good coverage |
-| 4 | MoviesAPI | Movie-focused |
-| 5 | VidSrc.pro | Additional option |
-| 6 | SuperEmbed | Wide coverage |
-| 7 | 2Embed | Backup |
-| 8 | AutoEmbed | Fallback |
-| 9 | StreamSRC | Last resort |
+| 1 | VidSrc.cc | Primary - fewer ads |
+| 2 | VidSrc.me | 87K movies, 19K series, 80% 1080p |
+| 3 | VidSrc.to | Mirror |
+| 4 | Embed.su | Very reliable |
+| 5 | MoviesAPI | Movie-focused |
+| 6 | AutoEmbed | Good coverage |
+| 7 | VidSrc.pro | Additional option |
+| 8 | SuperEmbed | Wide coverage |
+| 9 | 2Embed | Backup |
+| 10 | StreamSRC | Last resort |
 
-VidSrc.me is the primary source for all content (movies, TV shows, and anime) due to its reliability and quality.
+VidSrc.cc is the primary source for all content due to fewer ads and good reliability.
 
 ## License
 

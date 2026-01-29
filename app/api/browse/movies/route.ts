@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   try {
     const data = await discoverMoviesWithFilters({
       page,
-      genre: genre ? safeParseInt(genre, undefined, 1, 1000) : undefined,
+      genre: genre ? safeParseInt(genre, undefined, 1, 100000) : undefined,
       sortBy,
       year: year ? safeParseInt(year, undefined, 1900, 2100) : undefined,
       language: language || undefined,
