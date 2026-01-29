@@ -99,9 +99,18 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
           ref={iframeRef}
           src={source.url}
           className="video-player-iframe absolute top-0 left-0 w-full h-full rounded-lg"
-          // Modern Permissions Policy for fullscreen and media
-          // Note: Do NOT use legacy allowFullScreen - it conflicts with allow attribute
-          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          // iOS/macOS Safari requires webkit prefix for fullscreen
+          {...({
+            webkitAllowFullScreen: true,
+          } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
+          // Firefox mobile requires moz prefix
+          {...({
+            mozallowfullscreen: true,
+          } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
+          // Extended permissions for video playback across all browsers
+          // Using proper Feature Policy / Permissions Policy syntax
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
           // Prevent iframe scrollbars that can interfere with mobile fullscreen
           scrolling="no"
           // Referrer policy for better compatibility with video sources
