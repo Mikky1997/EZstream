@@ -70,7 +70,12 @@ export default function BrowseAnime() {
             }
             setPage((prev) => prev + 1);
           }
-          setHasMore((data.results?.length || 0) >= 20);
+          const hasMoreResults =
+            typeof data?.page === "number" &&
+            typeof data?.total_pages === "number"
+              ? data.page < data.total_pages
+              : (data.results?.length || 0) >= 20;
+          setHasMore(hasMoreResults);
         }
       } catch (err) {
         console.error("Failed to load anime:", err);
