@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type ThemeName = "midnight" | "charcoal" | "daylight";
+export type ThemeName = "charcoal" | "daylight";
 
 type ThemeOption = {
   name: ThemeName;
@@ -13,22 +13,16 @@ type ThemeOption = {
 
 const THEME_OPTIONS: ThemeOption[] = [
   {
-    name: "daylight",
-    label: "Light",
-    description: "Light UI with soft grays",
-    themeColor: "#f4f4f5",
-  },
-  {
-    name: "midnight",
-    label: "Mid",
-    description: "Original theme balance",
-    themeColor: "#111827",
-  },
-  {
     name: "charcoal",
     label: "Dark",
-    description: "Extra dark, high contrast",
+    description: "Dark theme",
     themeColor: "#0a0c12",
+  },
+  {
+    name: "daylight",
+    label: "Light",
+    description: "Light theme",
+    themeColor: "#f5f5f5",
   },
 ];
 

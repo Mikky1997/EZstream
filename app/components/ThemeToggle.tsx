@@ -14,15 +14,12 @@ export default function ThemeToggle() {
     const iconForTheme = (name: string) => {
       switch (name) {
         case "daylight":
-          // Sun
+          // Sun icon - shown when in light mode (click to go dark)
           return "M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.42-1.42M4.92 19.08l1.42-1.42m0-11.32L4.92 4.92m14.16 14.16-1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z";
         case "charcoal":
-          // Moon
-          return "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
-        case "midnight":
         default:
-          // Half moon
-          return "M12 2a10 10 0 1 0 0 20V2Z";
+          // Moon icon - shown when in dark mode (click to go light)
+          return "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
       }
     };
 
@@ -41,7 +38,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={cycleTheme}
-      className="inline-flex items-center gap-2 p-2 md:px-3 md:py-2 rounded-lg border border-gray-700 bg-gray-800/80 text-gray-100 hover:border-blue-500 hover:text-white transition-colors text-sm"
+      className="inline-flex items-center gap-2 p-2 md:px-3 md:py-2 rounded-lg border border-gray-700 bg-gray-800/80 text-gray-100 hover:border-accent hover:text-white transition-colors text-sm"
       title={title}
       aria-label={title}
     >
