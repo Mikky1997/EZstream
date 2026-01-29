@@ -31,11 +31,17 @@ export interface Movie {
   credits?: {
     cast: CastMember[];
   };
-  // IMDB/OMDb ratings
+  // IMDB/OMDb data
   imdbRating?: string | null;
   imdbVotes?: string | null;
   metascore?: string | null;
   rottenTomatoes?: string | null;
+  imdbGenres?: string[] | null;
+  director?: string | null;
+  writer?: string | null;
+  imdbActors?: string | null;
+  rated?: string | null;
+  awards?: string | null;
 }
 
 export interface TVShow {
@@ -57,11 +63,17 @@ export interface TVShow {
   credits?: {
     cast: CastMember[];
   };
-  // IMDB/OMDb ratings
+  // IMDB/OMDb data
   imdbRating?: string | null;
   imdbVotes?: string | null;
   metascore?: string | null;
   rottenTomatoes?: string | null;
+  imdbGenres?: string[] | null;
+  director?: string | null;
+  writer?: string | null;
+  imdbActors?: string | null;
+  rated?: string | null;
+  awards?: string | null;
 }
 
 // Animation genre ID in TMDB

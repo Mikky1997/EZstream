@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMovieDetails, getIMDbId } from "@/lib/tmdb";
-import { getOMDbRatings } from "@/lib/omdb";
+import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
 
 // Cache movie details for 1 hour (movie info doesn't change often)
@@ -21,20 +21,28 @@ export async function GET(
       getIMDbId("movie", id),
     ]);
 
-    // Fetch IMDB ratings from OMDb if we have an IMDB ID
-    let omdbRatings = null;
+    // Fetch IMDB data from OMDb if we have an IMDB ID
+    let omdbData = null;
     if (imdbId) {
-      omdbRatings = await getOMDbRatings(imdbId);
+      omdbData = await getOMDbData(imdbId);
     }
 
     return NextResponse.json(
       {
         ...details,
         imdbId,
-        imdbRating: omdbRatings?.imdbRating || null,
-        imdbVotes: omdbRatings?.imdbVotes || null,
-        metascore: omdbRatings?.metascore || null,
-        rottenTomatoes: omdbRatings?.rottenTomatoes || null,
+        // Ratings
+        imdbRating: omdbData?.imdbRating || null,
+        imdbVotes: omdbData?.imdbVotes || null,
+        metascore: omdbData?.metascore || null,
+        rottenTomatoes: omdbData?.rottenTomatoes || null,
+        // Crew & details
+        imdbGenres: omdbData?.imdbGenres || null,
+        director: omdbData?.director || null,
+        writer: omdbData?.writer || null,
+        imdbActors: omdbData?.actors || null,
+        rated: omdbData?.rated || null,
+        awards: omdbData?.awards || null,
       },
       {
         headers: {

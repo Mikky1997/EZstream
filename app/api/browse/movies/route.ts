@@ -45,7 +45,7 @@ export async function GET(request: Request) {
             // Ignore errors, fall back to TMDB rating
           }
           return { ...movie, imdbRating: null };
-        })
+        }),
       );
 
       // Sort by IMDB rating (descending), fall back to TMDB rating if no IMDB
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
           headers: {
             "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
           },
-        }
+        },
       );
     }
 
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
     console.error("Browse movies error:", error);
     return NextResponse.json(
       { error: "Failed to fetch movies" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

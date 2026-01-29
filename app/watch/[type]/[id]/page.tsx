@@ -501,6 +501,12 @@ export default function WatchPage() {
                       <span className="font-semibold">{item.metascore}</span>
                     </div>
                   )}
+                  {/* Content Rating (PG-13, R, etc) */}
+                  {item.rated && (
+                    <span className="bg-gray-600 text-white px-2 py-1 rounded text-xs font-medium">
+                      {item.rated}
+                    </span>
+                  )}
                   {releaseYear && (
                     <span className="text-gray-400">{releaseYear}</span>
                   )}
@@ -509,24 +515,44 @@ export default function WatchPage() {
                       {Math.floor(runtime / 60)}h {runtime % 60}m
                     </span>
                   )}
-                  {genres.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {genres.slice(0, 4).map((genre) => (
-                        <span
-                          key={genre.id}
-                          className="bg-gray-700/60 text-gray-300 px-2 py-1 rounded text-xs"
-                        >
-                          {genre.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
+
+                {/* IMDB Genres (preferred) or TMDB genres as fallback */}
+                {(item.imdbGenres || genres.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(item.imdbGenres || genres.map(g => g.name)).slice(0, 6).map((genre, idx) => (
+                      <span
+                        key={typeof genre === 'string' ? genre : genre}
+                        className="bg-gray-700/60 text-gray-300 px-3 py-1 rounded-full text-xs"
+                      >
+                        {typeof genre === 'string' ? genre : genre}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Director & Writers */}
+                {(item.director || item.writer) && (
+                  <div className="text-sm mb-3 space-y-1">
+                    {item.director && (
+                      <div>
+                        <span className="text-gray-500">Director: </span>
+                        <span className="text-blue-400">{item.director}</span>
+                      </div>
+                    )}
+                    {item.writer && (
+                      <div>
+                        <span className="text-gray-500">Writers: </span>
+                        <span className="text-gray-300">{item.writer}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Cast */}
                 {item.credits?.cast && item.credits.cast.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="text-gray-500 text-sm">Starring:</span>
+                    <span className="text-gray-500 text-sm">Stars:</span>
                     {item.credits.cast.slice(0, 5).map((actor) => (
                       <Link
                         key={actor.id}
