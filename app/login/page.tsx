@@ -42,7 +42,7 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{
         background:
-          "linear-gradient(to bottom, #8B0000 0%, #4B0000 25%, #2D0000 50%, #0D0000 75%, #000000 100%)",
+          "linear-gradient(to bottom, #4B0000 0%, #2D0000 20%, #0D0000 40%, #000000 100%)",
       }}
     >
       <div className="w-full max-w-md">
