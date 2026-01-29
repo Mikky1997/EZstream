@@ -97,6 +97,8 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
           src={source.url}
           className="absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
+          // iOS Safari requires webkitallowfullscreen for fullscreen to work
+          webkitallowfullscreen="true"
           // Extended permissions for video playback across all browsers
           allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture *; fullscreen *"
           // Note: Do NOT use sandbox attribute - it breaks video embed functionality
