@@ -8,7 +8,8 @@ import MovieCard from '@/app/components/MovieCard';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
 import { useWatchHistory } from '@/app/hooks/useUserLists';
-import type { Movie, TVShow } from '@/types';
+import type { Movie, TVShow, Person } from '@/types';
+import PersonCard from '@/app/components/PersonCard';
 
 // Memoized helper component for Continue Watching cards
 const ContinueWatchingCard = memo(function ContinueWatchingCard({ 
@@ -172,8 +173,8 @@ export default function Home() {
   const { history, removeFromHistory } = useWatchHistory();
   const { watchlist, removeFromWatchlist } = useWatchlistContext();
   
-  const [searchResults, setSearchResults] = useState<(Movie | TVShow)[]>([]);
-  const [liveResults, setLiveResults] = useState<(Movie | TVShow)[]>([]);
+  const [searchResults, setSearchResults] = useState<(Movie | TVShow | Person)[]>([]);
+  const [liveResults, setLiveResults] = useState<(Movie | TVShow | Person)[]>([]);
   
   // Mixed feed - movies, TV shows, and anime
   const [feed, setFeed] = useState<Array<{ item: Movie | TVShow; type: 'movie' | 'tv' }>>([]);
@@ -350,7 +351,7 @@ export default function Home() {
   };
 
   const handleLiveResults = useCallback((results: unknown[]) => {
-    setLiveResults(results as (Movie | TVShow)[]);
+    setLiveResults(results as (Movie | TVShow | Person)[]);
     if (results.length > 0) {
       setHasSearched(false);
       setSearchResults([]);
@@ -378,6 +379,8 @@ export default function Home() {
             onSearch={handleSearch} 
             onLiveResults={handleLiveResults}
             loading={loading}
+            includePeople={true}
+            placeholder="Search movies, TV shows, actors..."
           />
         </div>
 
@@ -399,11 +402,18 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-4">Results ({liveResults.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {liveResults.slice(0, 18).map((item) => (
-                <MovieCard
-                  key={item.id}
-                  item={item}
-                  mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
-                />
+                item.media_type === 'person' ? (
+                  <PersonCard
+                    key={`person-${item.id}`}
+                    person={item as Person}
+                  />
+                ) : (
+                  <MovieCard
+                    key={item.id}
+                    item={item as Movie | TVShow}
+                    mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
+                  />
+                )
               ))}
             </div>
           </div>
@@ -414,11 +424,18 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-4">Search Results ({searchResults.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {searchResults.map((item) => (
-                <MovieCard
-                  key={item.id}
-                  item={item}
-                  mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
-                />
+                item.media_type === 'person' ? (
+                  <PersonCard
+                    key={`person-${item.id}`}
+                    person={item as Person}
+                  />
+                ) : (
+                  <MovieCard
+                    key={item.id}
+                    item={item as Movie | TVShow}
+                    mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
+                  />
+                )
               ))}
             </div>
           </div>

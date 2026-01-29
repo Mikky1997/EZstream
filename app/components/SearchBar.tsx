@@ -10,6 +10,7 @@ interface SearchBarProps {
   mobilePlaceholder?: string;
   autoFocus?: boolean;
   filterType?: "movie" | "tv" | "anime" | "all";
+  includePeople?: boolean;
   initialQuery?: string;
 }
 
@@ -19,9 +20,11 @@ interface SearchResult {
   name?: string;
   media_type?: string;
   poster_path?: string;
+  profile_path?: string;
   release_date?: string;
   first_air_date?: string;
   vote_average?: number;
+  known_for_department?: string;
 }
 
 export default function SearchBar({
@@ -32,6 +35,7 @@ export default function SearchBar({
   mobilePlaceholder = "Search...",
   autoFocus = false,
   filterType = "all",
+  includePeople = false,
   initialQuery = "",
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
@@ -81,9 +85,15 @@ export default function SearchBar({
         );
         if (response.ok) {
           const data = await response.json();
-          let filtered = (data.results || []).filter(
-            (item: SearchResult) =>
-              item.media_type === "movie" || item.media_type === "tv",
+          
+          // Build allowed media types
+          const allowedTypes = ["movie", "tv"];
+          if (includePeople) {
+            allowedTypes.push("person");
+          }
+          
+          let filtered = (data.results || []).filter((item: SearchResult) =>
+            allowedTypes.includes(item.media_type || ""),
           );
 
           // Apply filterType filtering

@@ -17,6 +17,8 @@ export interface Movie {
   original_language?: string;
   genres?: Genre[];
   genre_ids?: number[];
+  runtime?: number;
+  tagline?: string;
 }
 
 export interface TVShow {
@@ -64,4 +66,45 @@ export interface StreamingSource {
   type: "vidsrc";
   url: string;
   subtitles?: string[];
+}
+
+// Person/Actor types
+export interface Person {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department?: string;
+  biography?: string;
+  birthday?: string;
+  deathday?: string | null;
+  place_of_birth?: string;
+  popularity?: number;
+  also_known_as?: string[];
+  media_type?: "person";
+  known_for?: (Movie | TVShow)[];
+}
+
+export interface CastCredit {
+  id: number;
+  title?: string; // for movies
+  name?: string; // for TV shows
+  poster_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+  character?: string;
+  media_type: "movie" | "tv";
+  popularity?: number;
+}
+
+export interface PersonCredits {
+  id: number;
+  cast: CastCredit[];
+}
+
+export interface PersonSearchResult {
+  page: number;
+  results: Person[];
+  total_pages: number;
+  total_results: number;
 }

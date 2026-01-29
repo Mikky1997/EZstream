@@ -1,4 +1,4 @@
-import type { Movie, TVShow, SearchResult } from "@/types";
+import type { Movie, TVShow, SearchResult, Person, PersonCredits } from "@/types";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
@@ -339,4 +339,24 @@ export async function getAnime(page: number = 1): Promise<SearchResult> {
     with_original_language: "ja",
     "vote_count.gte": 50,
   });
+}
+
+// Person/Actor search and details
+export async function searchPeople(
+  query: string,
+  page: number = 1
+): Promise<{ page: number; results: Person[]; total_pages: number; total_results: number }> {
+  return fetchTMDB("/search/person", {
+    query,
+    page,
+    include_adult: false,
+  });
+}
+
+export async function getPersonDetails(id: number): Promise<Person> {
+  return fetchTMDB<Person>(`/person/${id}`);
+}
+
+export async function getPersonCredits(id: number): Promise<PersonCredits> {
+  return fetchTMDB<PersonCredits>(`/person/${id}/combined_credits`);
 }

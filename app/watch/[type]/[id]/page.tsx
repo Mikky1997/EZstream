@@ -7,7 +7,7 @@ import MediaActions from "@/app/components/MediaActions";
 import EpisodeList from "@/app/components/EpisodeList";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
-import type { Movie, TVShow, StreamingSource } from "@/types";
+import type { Movie, TVShow, StreamingSource, Genre } from "@/types";
 import { isAnimeContent } from "@/types";
 import Image from "next/image";
 
@@ -302,6 +302,16 @@ export default function WatchPage() {
     : null;
   const currentSource = availableSources[currentSourceIndex];
   const isTVShow = type === "tv";
+  
+  // Extract additional metadata
+  const releaseYear = "release_date" in item 
+    ? item.release_date?.split("-")[0] 
+    : "first_air_date" in item 
+      ? (item as TVShow).first_air_date?.split("-")[0]
+      : null;
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
+  const genres = item.genres || [];
+  const runtime = "runtime" in item ? (item as Movie & { runtime?: number }).runtime : null;
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -438,6 +448,39 @@ export default function WatchPage() {
                     </span>
                   )}
                 </h1>
+                
+                {/* Metadata: Rating, Year, Runtime, Genres */}
+                <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
+                  {rating && (
+                    <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="font-semibold">{rating}</span>
+                    </div>
+                  )}
+                  {releaseYear && (
+                    <span className="text-gray-400">{releaseYear}</span>
+                  )}
+                  {runtime && (
+                    <span className="text-gray-400">
+                      {Math.floor(runtime / 60)}h {runtime % 60}m
+                    </span>
+                  )}
+                  {genres.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {genres.slice(0, 4).map((genre) => (
+                        <span
+                          key={genre.id}
+                          className="bg-gray-700/60 text-gray-300 px-2 py-1 rounded text-xs"
+                        >
+                          {genre.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
                 {overview && (
                   <p className="text-gray-400 text-sm line-clamp-2 mb-3">
                     {overview}
