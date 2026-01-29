@@ -519,13 +519,13 @@ export default function WatchPage() {
 
                 {/* IMDB Genres (preferred) or TMDB genres as fallback */}
                 {(item.imdbGenres || genres.length > 0) && (
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {(item.imdbGenres || genres.map((g) => g.name))
-                      .slice(0, 6)
-                      .map((genre, idx) => (
+                      .slice(0, 8)
+                      .map((genre) => (
                         <span
                           key={typeof genre === "string" ? genre : genre}
-                          className="bg-gray-700/60 text-gray-300 px-3 py-1 rounded-full text-xs"
+                          className="bg-gray-700/80 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-600/50"
                         >
                           {typeof genre === "string" ? genre : genre}
                         </span>
@@ -533,61 +533,76 @@ export default function WatchPage() {
                   </div>
                 )}
 
-                {/* Director & Writers - clickable to see their work */}
-                {(item.director || item.writer) && (
-                  <div className="text-sm mb-3 space-y-1">
-                    {item.director && (
-                      <div className="flex flex-wrap items-center gap-1">
-                        <span className="text-gray-500">Director: </span>
-                        {item.director.split(", ").map((name, idx) => (
-                          <span key={name}>
-                            <Link
-                              href={`/?q=${encodeURIComponent(name.trim())}`}
-                              className="text-blue-400 hover:text-blue-300 hover:underline"
-                            >
-                              {name.trim()}
-                            </Link>
-                            {idx < item.director!.split(", ").length - 1 && (
-                              <span className="text-gray-500"> · </span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {item.writer && (
-                      <div className="flex flex-wrap items-center gap-1">
-                        <span className="text-gray-500">Writers: </span>
-                        {item.writer.split(", ").map((name, idx) => {
-                          // Remove parenthetical notes like "(screenplay)"
-                          const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
-                          return (
-                            <span key={name}>
-                              <Link
-                                href={`/?q=${encodeURIComponent(cleanName)}`}
-                                className="text-gray-300 hover:text-blue-400 hover:underline"
-                              >
-                                {name.trim()}
-                              </Link>
-                              {idx < item.writer!.split(", ").length - 1 && (
-                                <span className="text-gray-500"> · </span>
-                              )}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
+                {/* Director/Creator - clickable with direct link */}
+                {((item.directors?.length ?? 0) > 0 || item.director) && (
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-gray-500 text-sm font-medium">
+                      {type === "tv" ? "Creator:" : "Director:"}
+                    </span>
+                    {item.directors && item.directors.length > 0 ? (
+                      item.directors.map((person) => (
+                        <Link
+                          key={person.id}
+                          href={`/person/${person.id}`}
+                          className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500"
+                        >
+                          {person.name}
+                        </Link>
+                      ))
+                    ) : item.director ? (
+                      item.director.split(", ").map((name) => (
+                        <Link
+                          key={name}
+                          href={`/?q=${encodeURIComponent(name.trim())}`}
+                          className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500"
+                        >
+                          {name.trim()}
+                        </Link>
+                      ))
+                    ) : null}
                   </div>
                 )}
 
-                {/* Cast */}
+                {/* Writers - clickable with direct link */}
+                {((item.writers?.length ?? 0) > 0 || item.writer) && (
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-gray-500 text-sm font-medium">Writers:</span>
+                    {item.writers && item.writers.length > 0 ? (
+                      item.writers.map((person) => (
+                        <Link
+                          key={person.id}
+                          href={`/person/${person.id}`}
+                          className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-purple-500/30 hover:border-purple-500"
+                        >
+                          {person.name}
+                        </Link>
+                      ))
+                    ) : item.writer ? (
+                      item.writer.split(", ").slice(0, 5).map((name) => {
+                        const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
+                        return (
+                          <Link
+                            key={name}
+                            href={`/?q=${encodeURIComponent(cleanName)}`}
+                            className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-purple-500/30 hover:border-purple-500"
+                          >
+                            {name.trim()}
+                          </Link>
+                        );
+                      })
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Cast / Stars - clickable with direct link */}
                 {item.credits?.cast && item.credits.cast.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="text-gray-500 text-sm">Stars:</span>
+                    <span className="text-gray-500 text-sm font-medium">Stars:</span>
                     {item.credits.cast.slice(0, 5).map((actor) => (
                       <Link
                         key={actor.id}
                         href={`/person/${actor.id}`}
-                        className="bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white px-2 py-1 rounded text-xs transition-colors"
+                        className="bg-gray-700/50 hover:bg-gray-600 text-gray-300 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-500"
                       >
                         {actor.name}
                       </Link>

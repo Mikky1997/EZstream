@@ -12,6 +12,15 @@ export interface CastMember {
   order?: number;
 }
 
+// Crew member for movie/TV credits (directors, writers, etc.)
+export interface CrewMember {
+  id: number;
+  name: string;
+  job: string;
+  department: string;
+  profile_path: string | null;
+}
+
 export interface Movie {
   id: number;
   title: string;
@@ -30,15 +39,19 @@ export interface Movie {
   tagline?: string;
   credits?: {
     cast: CastMember[];
+    crew: CrewMember[];
   };
+  // Parsed crew with IDs (for direct linking)
+  directors?: CrewMember[];
+  writers?: CrewMember[];
   // IMDB/OMDb data
   imdbRating?: string | null;
   imdbVotes?: string | null;
   metascore?: string | null;
   rottenTomatoes?: string | null;
   imdbGenres?: string[] | null;
-  director?: string | null;
-  writer?: string | null;
+  director?: string | null;  // OMDb string (fallback)
+  writer?: string | null;    // OMDb string (fallback)
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;
@@ -62,15 +75,19 @@ export interface TVShow {
   genre_ids?: number[];
   credits?: {
     cast: CastMember[];
+    crew: CrewMember[];
   };
+  // Parsed crew with IDs (for direct linking)
+  directors?: CrewMember[];
+  writers?: CrewMember[];
   // IMDB/OMDb data
   imdbRating?: string | null;
   imdbVotes?: string | null;
   metascore?: string | null;
   rottenTomatoes?: string | null;
   imdbGenres?: string[] | null;
-  director?: string | null;
-  writer?: string | null;
+  director?: string | null;  // OMDb string (fallback)
+  writer?: string | null;    // OMDb string (fallback)
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;
