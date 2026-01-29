@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPersonDetails, getPersonCredits } from "@/lib/tmdb";
+import { getPersonDetails, getPersonCredits, getIMDbId } from "@/lib/tmdb";
+import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
 
 // Cache person details for 1 day (doesn't change often)
@@ -25,11 +26,39 @@ export async function GET(
       .filter((item) => item.poster_path)
       .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
+    // Fetch IMDB ratings for top 20 credits (uses cache, so this is efficient)
+    const topCredits = sortedCast.slice(0, 20);
+    const creditsWithImdb = await Promise.all(
+      topCredits.map(async (credit) => {
+        try {
+          const mediaType = credit.media_type === "movie" ? "movie" : "tv";
+          const imdbId = await getIMDbId(mediaType, credit.id);
+          if (imdbId) {
+            const omdbData = await getOMDbData(imdbId);
+            return {
+              ...credit,
+              imdbRating: omdbData?.imdbRating || null,
+              imdbVotes: omdbData?.imdbVotes || null,
+            };
+          }
+        } catch {
+          // Ignore errors
+        }
+        return { ...credit, imdbRating: null, imdbVotes: null };
+      }),
+    );
+
+    // Combine top credits with IMDB ratings + rest without
+    const allCredits = [
+      ...creditsWithImdb,
+      ...sortedCast.slice(20).map((c) => ({ ...c, imdbRating: null, imdbVotes: null })),
+    ];
+
     return NextResponse.json(
       {
         ...details,
         credits: {
-          cast: sortedCast,
+          cast: allCredits,
         },
       },
       {

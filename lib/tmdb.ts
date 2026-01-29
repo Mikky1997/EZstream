@@ -67,13 +67,13 @@ export async function searchMovies(
 
 export async function getMovieDetails(id: number): Promise<Movie> {
   return fetchTMDB<Movie>(`/movie/${id}`, {
-    append_to_response: "videos,external_ids,credits",
+    append_to_response: "videos,external_ids,credits,keywords",
   });
 }
 
 export async function getTVShowDetails(id: number): Promise<TVShow> {
   return fetchTMDB<TVShow>(`/tv/${id}`, {
-    append_to_response: "videos,external_ids,credits",
+    append_to_response: "videos,external_ids,credits,keywords",
   });
 }
 

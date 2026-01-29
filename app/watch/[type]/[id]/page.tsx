@@ -517,17 +517,18 @@ export default function WatchPage() {
                   )}
                 </div>
 
-                {/* IMDB Genres (preferred) or TMDB genres as fallback */}
-                {(item.imdbGenres || genres.length > 0) && (
+                {/* Tags from TMDB keywords (more descriptive than genres) */}
+                {((item.tags?.length ?? 0) > 0 || genres.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {(item.imdbGenres || genres.map((g) => g.name))
+                    {/* Show TMDB keyword tags if available, otherwise show genres */}
+                    {(item.tags && item.tags.length > 0 ? item.tags : genres.map((g) => g.name))
                       .slice(0, 8)
-                      .map((genre) => (
+                      .map((tag) => (
                         <span
-                          key={typeof genre === "string" ? genre : genre}
+                          key={tag}
                           className="bg-gray-700/80 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-600/50"
                         >
-                          {typeof genre === "string" ? genre : genre}
+                          {tag}
                         </span>
                       ))}
                   </div>

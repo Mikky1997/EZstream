@@ -54,6 +54,12 @@ export async function GET(
       }, [])
       .slice(0, 5); // Limit to 5 writers
 
+    // Extract keywords as tags (TV shows use 'results' array)
+    const keywordsData = (details as { keywords?: { results: { id: number; name: string }[] } }).keywords;
+    const tags = keywordsData?.results
+      ?.slice(0, 10)
+      .map((k) => k.name.charAt(0).toUpperCase() + k.name.slice(1)) || [];
+
     return NextResponse.json(
       {
         ...details,
@@ -61,6 +67,8 @@ export async function GET(
         // Crew with IDs (for direct linking)
         directors,
         writers,
+        // Tags from TMDB keywords
+        tags,
         // Ratings
         imdbRating: omdbData?.imdbRating || null,
         imdbVotes: omdbData?.imdbVotes || null,

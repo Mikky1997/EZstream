@@ -3,6 +3,11 @@ export interface Genre {
   name: string;
 }
 
+export interface Keyword {
+  id: number;
+  name: string;
+}
+
 // Cast member for movie/TV credits
 export interface CastMember {
   id: number;
@@ -35,6 +40,8 @@ export interface Movie {
   original_language?: string;
   genres?: Genre[];
   genre_ids?: number[];
+  keywords?: { keywords: Keyword[] };  // TMDB keywords (tags)
+  tags?: string[];  // Parsed keyword names for display
   runtime?: number;
   tagline?: string;
   credits?: {
@@ -73,6 +80,8 @@ export interface TVShow {
   seasons?: { season_number: number; episode_count: number }[];
   genres?: Genre[];
   genre_ids?: number[];
+  keywords?: { results: Keyword[] };  // TMDB keywords (tags) - TV uses 'results' not 'keywords'
+  tags?: string[];  // Parsed keyword names for display
   credits?: {
     cast: CastMember[];
     crew: CrewMember[];
