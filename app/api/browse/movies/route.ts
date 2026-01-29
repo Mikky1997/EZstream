@@ -1,20 +1,19 @@
-import { NextResponse } from 'next/server';
-import { discoverMoviesWithFilters } from '@/lib/tmdb';
-import { safeParseInt } from '@/lib/security';
+import { NextResponse } from "next/server";
+import { discoverMoviesWithFilters, getIMDbId } from "@/lib/tmdb";
+import { getOMDbRatings } from "@/lib/omdb";
+import { safeParseInt } from "@/lib/security";
 
 // Cache browse results for 5 minutes
 export const revalidate = 300;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const page = safeParseInt(searchParams.get('page'), 1, 1, 1000);
-  const genre = searchParams.get('genre');
-  const sortBy = searchParams.get('sort_by') || 'popularity.desc';
-  const year = searchParams.get('year');
-  const language = searchParams.get('language');
-  // Higher minVotes = more popular movies = more likely to be available on streaming sources
-  // Default to 100 for better availability
-  const minVotes = safeParseInt(searchParams.get('min_votes'), 100, 1, 10000);
+  const page = safeParseInt(searchParams.get("page"), 1, 1, 1000);
+  const genre = searchParams.get("genre");
+  const sortBy = searchParams.get("sort_by") || "popularity.desc";
+  const year = searchParams.get("year");
+  const language = searchParams.get("language");
+  const minVotes = safeParseInt(searchParams.get("min_votes"), 100, 1, 10000);
 
   try {
     const data = await discoverMoviesWithFilters({
@@ -26,15 +25,55 @@ export async function GET(request: Request) {
       minVotes,
     });
 
+    // If sorting by highest rated, fetch IMDB ratings and re-sort
+    if (sortBy === "vote_average.desc" && data.results?.length > 0) {
+      // Fetch IMDB ratings for all movies in parallel (uses cache when available)
+      const moviesWithImdb = await Promise.all(
+        data.results.map(async (movie) => {
+          try {
+            const imdbId = await getIMDbId("movie", movie.id);
+            if (imdbId) {
+              const ratings = await getOMDbRatings(imdbId);
+              return {
+                ...movie,
+                imdbRating: ratings?.imdbRating
+                  ? parseFloat(ratings.imdbRating)
+                  : null,
+              };
+            }
+          } catch {
+            // Ignore errors, fall back to TMDB rating
+          }
+          return { ...movie, imdbRating: null };
+        })
+      );
+
+      // Sort by IMDB rating (descending), fall back to TMDB rating if no IMDB
+      moviesWithImdb.sort((a, b) => {
+        const ratingA = a.imdbRating ?? a.vote_average ?? 0;
+        const ratingB = b.imdbRating ?? b.vote_average ?? 0;
+        return ratingB - ratingA;
+      });
+
+      return NextResponse.json(
+        { ...data, results: moviesWithImdb },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          },
+        }
+      );
+    }
+
     return NextResponse.json(data, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
   } catch (error) {
-    console.error('Browse movies error:', error);
+    console.error("Browse movies error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch movies' },
+      { error: "Failed to fetch movies" },
       { status: 500 }
     );
   }
