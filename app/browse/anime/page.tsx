@@ -46,13 +46,14 @@ export default function BrowseAnime() {
       const category = ANIME_CATEGORIES.find((c) => c.id === selectedCategory);
       const currentSortBy = category?.sortBy || "popularity.desc";
       const isRatingSort = currentSortBy === "vote_average.desc";
-      const endpoint = activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
+      const endpoint =
+        activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
 
       try {
-        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
+        // For rating sort: fetch 13 pages (260 items) at once for accurate IMDB sorting
         // For other sorts: normal single page fetch
         if (isRatingSort && reset) {
-          const pagesToFetch = [1, 2, 3, 4, 5];
+          const pagesToFetch = Array.from({ length: 13 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -66,22 +67,24 @@ export default function BrowseAnime() {
 
           const results = await Promise.all(fetchPromises);
           const allItems = results.flatMap((data) => data.results || []);
-          
+
           // Remove duplicates by ID
           const uniqueItems = Array.from(
-            new Map(allItems.map((item) => [item.id, item])).values()
+            new Map(allItems.map((item) => [item.id, item])).values(),
           );
-          
+
           // Sort by IMDB rating (accurate sort across all 100 items)
-          uniqueItems.sort((a, b) => getEffectiveRating(b) - getEffectiveRating(a));
-          
+          uniqueItems.sort(
+            (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
+          );
+
           if (activeTab === "tv") {
             setAnime(uniqueItems);
           } else {
             setMovies(uniqueItems);
           }
-          setPage(6);
-          setHasMore(results[4]?.results?.length >= 20);
+          setPage(14);
+          setHasMore(results[12]?.results?.length >= 20);
         } else {
           // Normal fetch for other sort options or loading more
           const params = new URLSearchParams({

@@ -84,10 +84,10 @@ export default function BrowseMovies() {
       const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
+        // For rating sort: fetch 13 pages (260 items) at once for accurate IMDB sorting
         // For other sorts: normal single page fetch
         if (isRatingSort && reset) {
-          const pagesToFetch = [1, 2, 3, 4, 5];
+          const pagesToFetch = Array.from({ length: 13 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -100,18 +100,20 @@ export default function BrowseMovies() {
 
           const results = await Promise.all(fetchPromises);
           const allMovies = results.flatMap((data) => data.results || []);
-          
+
           // Remove duplicates by ID
           const uniqueMovies = Array.from(
-            new Map(allMovies.map((m) => [m.id, m])).values()
+            new Map(allMovies.map((m) => [m.id, m])).values(),
           );
-          
+
           // Sort by IMDB rating (accurate sort across all 100 items)
-          uniqueMovies.sort((a, b) => getEffectiveRating(b) - getEffectiveRating(a));
-          
+          uniqueMovies.sort(
+            (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
+          );
+
           setMovies(uniqueMovies);
-          setPage(6); // Next page would be 6
-          setHasMore(results[4]?.results?.length >= 20); // Check if page 5 was full
+          setPage(14); // Next page would be 14
+          setHasMore(results[12]?.results?.length >= 20); // Check if last page was full
         } else {
           // Normal fetch for other sort options or loading more
           const params = new URLSearchParams({
