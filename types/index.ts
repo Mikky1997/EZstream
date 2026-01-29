@@ -31,6 +31,11 @@ export interface Movie {
   credits?: {
     cast: CastMember[];
   };
+  // IMDB/OMDb ratings
+  imdbRating?: string | null;
+  imdbVotes?: string | null;
+  metascore?: string | null;
+  rottenTomatoes?: string | null;
 }
 
 export interface TVShow {
@@ -52,6 +57,11 @@ export interface TVShow {
   credits?: {
     cast: CastMember[];
   };
+  // IMDB/OMDb ratings
+  imdbRating?: string | null;
+  imdbVotes?: string | null;
+  metascore?: string | null;
+  rottenTomatoes?: string | null;
 }
 
 // Animation genre ID in TMDB
