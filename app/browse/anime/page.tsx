@@ -26,6 +26,14 @@ export default function BrowseAnime() {
   const [searchResults, setSearchResults] = useState<TVShow[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Helper to get effective rating (IMDB preferred, fallback to TMDB)
+  const getEffectiveRating = useCallback((item: TVShow) => {
+    if (item.imdbRating && item.imdbRating !== "N/A") {
+      return parseFloat(item.imdbRating);
+    }
+    return item.vote_average || 0;
+  }, []);
+
   const loadAnime = useCallback(
     async (reset = false) => {
       if (reset) {
@@ -37,45 +45,83 @@ export default function BrowseAnime() {
       const currentPage = reset ? 1 : page;
       const category = ANIME_CATEGORIES.find((c) => c.id === selectedCategory);
       const currentSortBy = category?.sortBy || "popularity.desc";
+      const isRatingSort = currentSortBy === "vote_average.desc";
       const endpoint =
         activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
 
       try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          sort_by: currentSortBy,
-          language: "ja",
-          genre: "16",
-        });
+        // For rating sort: fetch 10 pages (200 items), sort by IMDB, show top 100
+        // This gives a larger pool for more accurate IMDB top 100
+        if (isRatingSort && reset) {
+          const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
+          const fetchPromises = pagesToFetch.map((p) => {
+            const params = new URLSearchParams({
+              page: p.toString(),
+              sort_by: currentSortBy,
+              language: "ja",
+              genre: "16",
+            });
+            return fetch(`${endpoint}?${params}`).then((r) => r.json());
+          });
 
-        const response = await fetch(`${endpoint}?${params}`);
+          const results = await Promise.all(fetchPromises);
+          const allItems = results.flatMap((data) => data.results || []);
 
-        if (response.ok) {
-          const data = await response.json();
-          const newResults = data.results || [];
+          // Remove duplicates by ID
+          const uniqueItems = Array.from(
+            new Map(allItems.map((item) => [item.id, item])).values(),
+          );
 
-          if (reset) {
-            if (activeTab === "tv") {
-              setAnime(newResults);
-            } else {
-              setMovies(newResults);
-            }
-            setPage(2);
+          // Sort by IMDB rating and take top 100
+          uniqueItems.sort(
+            (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
+          );
+          const top100 = uniqueItems.slice(0, 100);
+
+          if (activeTab === "tv") {
+            setAnime(top100);
           } else {
-            // Simply append new results
-            if (activeTab === "tv") {
-              setAnime((prev) => [...prev, ...newResults]);
-            } else {
-              setMovies((prev) => [...prev, ...newResults]);
-            }
-            setPage((prev) => prev + 1);
+            setMovies(top100);
           }
-          const hasMoreResults =
-            typeof data?.page === "number" &&
-            typeof data?.total_pages === "number"
-              ? data.page < data.total_pages
-              : (data.results?.length || 0) >= 20;
-          setHasMore(hasMoreResults);
+          setPage(11);
+          setHasMore(false); // No infinite scroll for rating sort - show top 100 only
+        } else {
+          const params = new URLSearchParams({
+            page: currentPage.toString(),
+            sort_by: currentSortBy,
+            language: "ja",
+            genre: "16",
+          });
+
+          const response = await fetch(`${endpoint}?${params}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            const newResults = data.results || [];
+
+            if (reset) {
+              if (activeTab === "tv") {
+                setAnime(newResults);
+              } else {
+                setMovies(newResults);
+              }
+              setPage(2);
+            } else {
+              // Simply append new results
+              if (activeTab === "tv") {
+                setAnime((prev) => [...prev, ...newResults]);
+              } else {
+                setMovies((prev) => [...prev, ...newResults]);
+              }
+              setPage((prev) => prev + 1);
+            }
+            const hasMoreResults =
+              typeof data?.page === "number" &&
+              typeof data?.total_pages === "number"
+                ? data.page < data.total_pages
+                : (data.results?.length || 0) >= 20;
+            setHasMore(hasMoreResults);
+          }
         }
       } catch (err) {
         console.error("Failed to load anime:", err);
@@ -84,7 +130,7 @@ export default function BrowseAnime() {
         setLoadingMore(false);
       }
     },
-    [page, selectedCategory, activeTab],
+    [page, selectedCategory, activeTab, getEffectiveRating],
   );
 
   useEffect(() => {
