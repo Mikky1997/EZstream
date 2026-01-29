@@ -42,6 +42,7 @@ export default function BrowseAnime() {
         sort_by: category?.sortBy || 'popularity.desc',
         language: 'ja',
         genre: '16', // Animation
+        min_votes: '5', // Lower threshold for anime (most anime have fewer votes on TMDB)
       });
 
       const endpoint = activeTab === 'tv' ? '/api/browse/tv' : '/api/browse/movies';
