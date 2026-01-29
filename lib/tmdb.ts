@@ -12,20 +12,73 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 // Blocklist of adult/hentai anime TMDB IDs that slip through TMDB's adult filter
 // These are ecchi/hentai anime that TMDB doesn't properly flag as adult
 const BLOCKED_ANIME_IDS = new Set([
-  // TV Shows (hentai/borderline hentai)
-  91239,   // Overflow
-  94954,   // Joshiochi!: 2-kai kara Onnanoko ga... Futtekita!?
-  91400,   // Redo of Healer (extreme content)
-  128388,  // Overflow 2nd Season
-  85819,   // Interspecies Reviewers
-  93678,   // Kaifuku Jutsushi no Yarinaoshi
-  205006,  // Overflow (2024)
-  // Add more IDs as needed
+  // ===== HENTAI (explicit adult content) =====
+  91239, // Overflow
+  128388, // Overflow 2nd Season
+  205006, // Overflow (2024)
+  94954, // Joshiochi!: 2-kai kara Onnanoko ga... Futtekita!?
+  241002, // Adam's Sweet Agony (Modaete yo, Adam-kun)
+  95785, // Toshi Densetsu Series
+  93163, // Otome Dori
+  73129, // Eroge! H mo Game mo Kaihatsu Zanmai
+  77464, // Real Eroge Situation! The Animation
+  66926, // Valkyrie Drive: Mermaid
+  207840, // Harem Camp!
+
+  // ===== BORDERLINE HENTAI (extreme ecchi/near-explicit) =====
+  91400, // Redo of Healer (extreme content)
+  93678, // Kaifuku Jutsushi no Yarinaoshi (same as above, alternate ID)
+  85819, // Interspecies Reviewers (Ishuzoku Reviewers)
+  99080, // Peter Grill and the Philosopher's Time
+  68005, // Yosuga no Sora
+  114477, // Harem in the Labyrinth of Another World (Isekai Meikyuu de Harem wo)
+
+  // ===== Add more IDs as needed =====
 ]);
 
-// Filter out blocked content from results
-export function filterBlockedContent<T extends { id: number }>(items: T[]): T[] {
-  return items.filter(item => !BLOCKED_ANIME_IDS.has(item.id));
+// Title patterns that indicate adult/hentai content (case-insensitive)
+const BLOCKED_TITLE_PATTERNS = [
+  /\bhentai\b/i,
+  /\beroge\b/i,
+  /\becchi\b/i,
+  /overflow/i, // Common hentai series
+  /joshiochi/i, // Common hentai series
+  /adam.*sweet.*agony/i, // Adam's Sweet Agony variants
+  /modaete.*adam/i, // Japanese title of Adam's Sweet Agony
+  /toshi.*densetsu/i, // Toshi Densetsu series
+  /otome.*dori/i, // Otome Dori
+  /valkyrie.*drive/i, // Valkyrie Drive
+  /harem.*camp/i, // Harem Camp
+  /redo.*healer/i, // Redo of Healer
+  /kaifuku.*jutsushi/i, // Japanese title of Redo of Healer
+  /interspecies.*review/i, // Interspecies Reviewers
+  /ishuzoku.*review/i, // Japanese title
+  /yosuga.*sora/i, // Yosuga no Sora
+  /peter.*grill/i, // Peter Grill
+  /labyrinth.*harem/i, // Harem in the Labyrinth
+  /meikyuu.*harem/i, // Japanese variant
+];
+
+// Filter out blocked content from results (by ID and title patterns)
+export function filterBlockedContent<
+  T extends { id: number; name?: string; title?: string },
+>(items: T[]): T[] {
+  return items.filter((item) => {
+    // Check ID blocklist
+    if (BLOCKED_ANIME_IDS.has(item.id)) {
+      return false;
+    }
+
+    // Check title patterns
+    const itemTitle = item.name || item.title || "";
+    for (const pattern of BLOCKED_TITLE_PATTERNS) {
+      if (pattern.test(itemTitle)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 
 if (!TMDB_API_KEY) {
