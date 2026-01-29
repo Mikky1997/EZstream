@@ -748,7 +748,7 @@ export default function WatchPage() {
               <div className="bg-gray-900/80 rounded-lg p-4 text-sm">
                 <h3 className="font-semibold text-white mb-2">Tips</h3>
                 <ul className="text-gray-400 space-y-1">
-                  <li>• If source doesn't work, try the next one</li>
+                  <li>• If source doesn&apos;t work, try the next one</li>
                   <li>• Most players have audio/subtitle settings built-in</li>
                   {isTVShow && user && (
                     <li>• Click the checkmark to mark episodes as watched</li>
