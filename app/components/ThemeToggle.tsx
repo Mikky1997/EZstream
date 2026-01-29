@@ -38,7 +38,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={cycleTheme}
-      className="inline-flex items-center gap-2 p-2 md:px-3 md:py-2 rounded-lg border border-gray-700 bg-gray-800/80 text-gray-100 hover:border-accent hover:text-white transition-colors text-sm"
+      className="inline-flex items-center justify-center gap-2 p-2.5 md:px-3 md:py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white active:scale-95 transition-all duration-150 text-sm touch-manipulation"
       title={title}
       aria-label={title}
     >
@@ -51,7 +51,7 @@ export default function ThemeToggle() {
       >
         <path d={iconPath} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className="hidden md:inline">{label}</span>
+      <span className="hidden md:inline font-medium">{label}</span>
     </button>
   );
 }

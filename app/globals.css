@@ -192,6 +192,15 @@ body {
   background-color: color-mix(in srgb, var(--accent) 85%, black) !important;
 }
 
+/* Focus states */
+.focus\:border-blue-500:focus {
+  border-color: var(--border-soft) !important;
+}
+
+.focus\:ring-blue-500\/20:focus {
+  --tw-ring-color: transparent !important;
+}
+
 /* Theme-aware gradient classes */
 .from-gray-900 {
   --tw-gradient-from: var(--bg-primary) !important;

@@ -7,6 +7,7 @@ interface SearchBarProps {
   onLiveResults?: (results: SearchResult[]) => void;
   loading?: boolean;
   placeholder?: string;
+  mobilePlaceholder?: string;
   autoFocus?: boolean;
   filterType?: 'movie' | 'tv' | 'anime' | 'all';
   initialQuery?: string;
@@ -28,13 +29,23 @@ export default function SearchBar({
   onLiveResults, 
   loading, 
   placeholder = "Search movies, TV shows, anime...",
+  mobilePlaceholder = "Search...",
   autoFocus = false,
   filterType = 'all',
   initialQuery = ''
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
+  const [isMobile, setIsMobile] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Detect mobile for placeholder
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Update query when initialQuery changes (from URL param)
   useEffect(() => {
@@ -116,8 +127,8 @@ export default function SearchBar({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="w-full pl-12 pr-12 py-4 text-lg bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+          placeholder={isMobile ? mobilePlaceholder : placeholder}
+          className="w-full pl-12 pr-12 py-3.5 md:py-4 text-base md:text-lg bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 focus:bg-gray-700 transition-all"
           disabled={loading}
         />
         {/* Clear button on the right */}
