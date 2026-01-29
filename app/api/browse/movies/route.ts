@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { discoverMoviesWithFilters, getIMDbId } from "@/lib/tmdb";
-import { getOMDbRatings } from "@/lib/omdb";
+import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
 
 // Cache browse results for 5 minutes
@@ -25,35 +25,35 @@ export async function GET(request: Request) {
       minVotes,
     });
 
-    // If sorting by highest rated, fetch IMDB ratings and re-sort
-    if (sortBy === "vote_average.desc" && data.results?.length > 0) {
-      // Fetch IMDB ratings for all movies in parallel (uses cache when available)
+    // Always fetch IMDB ratings for all results (uses 24h cache)
+    if (data.results?.length > 0) {
       const moviesWithImdb = await Promise.all(
         data.results.map(async (movie) => {
           try {
             const imdbId = await getIMDbId("movie", movie.id);
             if (imdbId) {
-              const ratings = await getOMDbRatings(imdbId);
+              const omdbData = await getOMDbData(imdbId);
               return {
                 ...movie,
-                imdbRating: ratings?.imdbRating
-                  ? parseFloat(ratings.imdbRating)
-                  : null,
+                imdbRating: omdbData?.imdbRating || null,
+                imdbVotes: omdbData?.imdbVotes || null,
               };
             }
           } catch {
             // Ignore errors, fall back to TMDB rating
           }
-          return { ...movie, imdbRating: null };
+          return { ...movie, imdbRating: null, imdbVotes: null };
         }),
       );
 
-      // Sort by IMDB rating (descending), fall back to TMDB rating if no IMDB
-      moviesWithImdb.sort((a, b) => {
-        const ratingA = a.imdbRating ?? a.vote_average ?? 0;
-        const ratingB = b.imdbRating ?? b.vote_average ?? 0;
-        return ratingB - ratingA;
-      });
+      // If sorting by highest rated, re-sort by IMDB rating
+      if (sortBy === "vote_average.desc") {
+        moviesWithImdb.sort((a, b) => {
+          const ratingA = a.imdbRating ? parseFloat(a.imdbRating) : (a.vote_average ?? 0);
+          const ratingB = b.imdbRating ? parseFloat(b.imdbRating) : (b.vote_average ?? 0);
+          return ratingB - ratingA;
+        });
+      }
 
       return NextResponse.json(
         { ...data, results: moviesWithImdb },

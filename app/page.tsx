@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import SearchBar from "@/app/components/SearchBar";
@@ -204,6 +205,9 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { history, removeFromHistory } = useWatchHistory();
   const { watchlist, removeFromWatchlist } = useWatchlistContext();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialQuery = searchParams.get("q") || "";
 
   const [searchResults, setSearchResults] = useState<
     (Movie | TVShow | Person)[]
@@ -225,6 +229,7 @@ export default function Home() {
   const [loadingBrowse, setLoadingBrowse] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   // Expand states for user lists
   const [showAllContinue, setShowAllContinue] = useState(false);
@@ -421,10 +426,13 @@ export default function Home() {
     loadMoreFeed,
   ]);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       setHasSearched(false);
+      setSearchQuery("");
+      // Clear URL param
+      router.replace("/", { scroll: false });
       return;
     }
 
@@ -432,6 +440,7 @@ export default function Home() {
     setError(null);
     setHasSearched(true);
     setLiveResults([]);
+    setSearchQuery(query);
 
     try {
       const response = await fetch(
@@ -448,7 +457,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  // Auto-search when page loads with ?q= parameter
+  useEffect(() => {
+    if (initialQuery && !hasSearched) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery, hasSearched, handleSearch]);
 
   const handleLiveResults = useCallback((results: unknown[]) => {
     setLiveResults(results as (Movie | TVShow | Person)[]);
@@ -482,6 +498,7 @@ export default function Home() {
             loading={loading}
             includePeople={true}
             placeholder="Search movies, TV shows, actors..."
+            initialQuery={searchQuery}
           />
         </div>
 

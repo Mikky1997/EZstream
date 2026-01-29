@@ -91,12 +91,24 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
             {/* Gradient overlay - always visible on mobile, hover on desktop */}
             <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
               <div className="absolute bottom-0 left-0 right-0 p-3">
-                {item.vote_average > 0 && (
+                {/* Prefer IMDB rating if available, fallback to TMDB */}
+                {(item.imdbRating || item.vote_average > 0) && (
                   <div className="flex items-center gap-1">
-                    <span className="text-yellow-400 text-xs">★</span>
-                    <span className="text-white text-xs font-medium">
-                      {item.vote_average.toFixed(1)}
-                    </span>
+                    {item.imdbRating ? (
+                      <>
+                        <span className="text-yellow-400 text-[10px] font-bold">IMDb</span>
+                        <span className="text-white text-xs font-medium">
+                          {item.imdbRating}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-yellow-400 text-xs">★</span>
+                        <span className="text-white text-xs font-medium">
+                          {item.vote_average.toFixed(1)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

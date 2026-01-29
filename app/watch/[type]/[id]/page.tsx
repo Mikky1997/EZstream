@@ -533,19 +533,47 @@ export default function WatchPage() {
                   </div>
                 )}
 
-                {/* Director & Writers */}
+                {/* Director & Writers - clickable to see their work */}
                 {(item.director || item.writer) && (
                   <div className="text-sm mb-3 space-y-1">
                     {item.director && (
-                      <div>
+                      <div className="flex flex-wrap items-center gap-1">
                         <span className="text-gray-500">Director: </span>
-                        <span className="text-blue-400">{item.director}</span>
+                        {item.director.split(", ").map((name, idx) => (
+                          <span key={name}>
+                            <Link
+                              href={`/?q=${encodeURIComponent(name.trim())}`}
+                              className="text-blue-400 hover:text-blue-300 hover:underline"
+                            >
+                              {name.trim()}
+                            </Link>
+                            {idx < item.director!.split(", ").length - 1 && (
+                              <span className="text-gray-500"> · </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {item.writer && (
-                      <div>
+                      <div className="flex flex-wrap items-center gap-1">
                         <span className="text-gray-500">Writers: </span>
-                        <span className="text-gray-300">{item.writer}</span>
+                        {item.writer.split(", ").map((name, idx) => {
+                          // Remove parenthetical notes like "(screenplay)"
+                          const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
+                          return (
+                            <span key={name}>
+                              <Link
+                                href={`/?q=${encodeURIComponent(cleanName)}`}
+                                className="text-gray-300 hover:text-blue-400 hover:underline"
+                              >
+                                {name.trim()}
+                              </Link>
+                              {idx < item.writer!.split(", ").length - 1 && (
+                                <span className="text-gray-500"> · </span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
