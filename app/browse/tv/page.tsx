@@ -39,6 +39,7 @@ const COUNTRY_OPTIONS = [
   { value: "zh", label: "Chinese", flag: "🇨🇳" },
   { value: "th", label: "Thai", flag: "🇹🇭" },
   { value: "de", label: "German", flag: "🇩🇪" },
+  { value: "it", label: "Italian", flag: "🇮🇹" },
 ];
 
 export default function BrowseTV() {

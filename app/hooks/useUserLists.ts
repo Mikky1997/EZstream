@@ -16,15 +16,6 @@ interface HistoryItem {
   last_watched_at: string;
 }
 
-interface ListItem {
-  id: number;
-  media_type: 'movie' | 'tv';
-  media_id: number;
-  title: string;
-  poster_path: string | null;
-  added_at: string;
-}
-
 export function useWatchHistory() {
   const { user } = useAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -100,83 +91,4 @@ export function useWatchHistory() {
   };
 
   return { history, loading, fetchHistory, updateProgress, removeFromHistory };
-}
-
-export function useWatchlist() {
-  const { user } = useAuth();
-  const [watchlist, setWatchlist] = useState<ListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchWatchlist = useCallback(async () => {
-    if (!user) {
-      setWatchlist([]);
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await fetch('/api/user/watchlist?limit=50');
-      if (response.ok) {
-        const data = await response.json();
-        setWatchlist(data.watchlist || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch watchlist:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchWatchlist();
-  }, [fetchWatchlist]);
-
-  const addToWatchlist = async (
-    mediaType: 'movie' | 'tv',
-    mediaId: number,
-    title: string,
-    posterPath: string | null
-  ) => {
-    if (!user) return false;
-
-    try {
-      const response = await fetch('/api/user/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mediaType, mediaId, title, posterPath }),
-      });
-      
-      if (response.ok) {
-        await fetchWatchlist();
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to add to watchlist:', error);
-    }
-    return false;
-  };
-
-  const removeFromWatchlist = async (mediaType: 'movie' | 'tv', mediaId: number) => {
-    if (!user) return false;
-
-    try {
-      const response = await fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        setWatchlist(prev => prev.filter(item => !(item.media_type === mediaType && item.media_id === mediaId)));
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to remove from watchlist:', error);
-    }
-    return false;
-  };
-
-  const isInWatchlist = (mediaType: 'movie' | 'tv', mediaId: number) => {
-    return watchlist.some(item => item.media_type === mediaType && item.media_id === mediaId);
-  };
-
-  return { watchlist, loading, fetchWatchlist, addToWatchlist, removeFromWatchlist, isInWatchlist };
 }

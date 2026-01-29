@@ -164,7 +164,13 @@ export default function BrowseMovies() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !loadingMore &&
+          !loading &&
+          !isSearching
+        ) {
           loadMovies(false);
         }
       },
@@ -181,7 +187,7 @@ export default function BrowseMovies() {
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, loadingMore, loading, loadMovies]);
+  }, [hasMore, loadingMore, loading, loadMovies, isSearching]);
 
   const selectedCountry = COUNTRY_OPTIONS.find(
     (o) => o.value === selectedLanguage,
