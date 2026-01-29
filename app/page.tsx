@@ -239,9 +239,10 @@ export default function Home() {
   // Helper: Check if content is anime (Animation genre + Japanese)
   const isAnime = useCallback((item: Movie | TVShow) => {
     const animationGenreId = 16;
-    const hasAnimation = item.genre_ids?.includes(animationGenreId) || 
-                        item.genres?.some(g => g.id === animationGenreId);
-    const isJapanese = item.original_language === 'ja';
+    const hasAnimation =
+      item.genre_ids?.includes(animationGenreId) ||
+      item.genres?.some((g) => g.id === animationGenreId);
+    const isJapanese = item.original_language === "ja";
     return hasAnimation && isJapanese;
   }, []);
 
@@ -252,21 +253,41 @@ export default function Home() {
       // Use random page numbers for variety on each reload
       const randomPage1 = Math.floor(Math.random() * 3) + 1; // 1-3
       const randomPage2 = Math.floor(Math.random() * 3) + 1;
-      
+
       // Load movies and TV shows (no anime)
-      const [trendingMovies, trendingTV, popularMovies, popularTV, topRatedMovies, topRatedTV] =
-        await Promise.all([
-          fetch(`/api/trending?type=movie&page=${randomPage1}`).then((r) => r.json()),
-          fetch(`/api/trending?type=tv&page=${randomPage1}`).then((r) => r.json()),
-          fetch(`/api/popular?type=movie&page=${randomPage2}`).then((r) => r.json()),
-          fetch(`/api/popular?type=tv&page=${randomPage2}`).then((r) => r.json()),
-          fetch(`/api/browse/movies?sort_by=vote_average.desc&page=1`).then((r) => r.json()),
-          fetch(`/api/browse/tv?sort_by=vote_average.desc&page=1`).then((r) => r.json()),
-        ]);
+      const [
+        trendingMovies,
+        trendingTV,
+        popularMovies,
+        popularTV,
+        topRatedMovies,
+        topRatedTV,
+      ] = await Promise.all([
+        fetch(`/api/trending?type=movie&page=${randomPage1}`).then((r) =>
+          r.json(),
+        ),
+        fetch(`/api/trending?type=tv&page=${randomPage1}`).then((r) =>
+          r.json(),
+        ),
+        fetch(`/api/popular?type=movie&page=${randomPage2}`).then((r) =>
+          r.json(),
+        ),
+        fetch(`/api/popular?type=tv&page=${randomPage2}`).then((r) => r.json()),
+        fetch(`/api/browse/movies?sort_by=vote_average.desc&page=1`).then((r) =>
+          r.json(),
+        ),
+        fetch(`/api/browse/tv?sort_by=vote_average.desc&page=1`).then((r) =>
+          r.json(),
+        ),
+      ]);
 
       // Combine all results and deduplicate
       const seen = new Set<string>();
-      const allItems: Array<{ item: Movie | TVShow; type: "movie" | "tv"; score: number }> = [];
+      const allItems: Array<{
+        item: Movie | TVShow;
+        type: "movie" | "tv";
+        score: number;
+      }> = [];
 
       const addItems = (items: (Movie | TVShow)[], type: "movie" | "tv") => {
         for (const item of items || []) {
@@ -274,13 +295,14 @@ export default function Home() {
           // Skip anime and duplicates
           if (seen.has(key) || isAnime(item)) continue;
           seen.add(key);
-          
+
           // Calculate combined score: popularity (normalized) + rating * 10
           // This weights both factors for better sorting
           const popularityScore = Math.min((item.vote_count || 0) / 1000, 10); // Max 10 from popularity
-          const ratingScore = (item.vote_average || 0); // 0-10 from rating
-          const combinedScore = popularityScore + ratingScore + Math.random() * 5; // Add randomness
-          
+          const ratingScore = item.vote_average || 0; // 0-10 from rating
+          const combinedScore =
+            popularityScore + ratingScore + Math.random() * 5; // Add randomness
+
           allItems.push({ item, type, score: combinedScore });
         }
       };
@@ -295,7 +317,7 @@ export default function Home() {
 
       // Sort by combined score (descending) with randomness built in
       allItems.sort((a, b) => b.score - a.score);
-      
+
       // Take top items and shuffle them for final display variety
       const topItems = allItems.slice(0, 60);
       for (let i = topItems.length - 1; i > 0; i--) {
@@ -323,8 +345,14 @@ export default function Home() {
         { url: "/api/trending?type=tv", type: "tv" as const },
         { url: "/api/popular?type=movie", type: "movie" as const },
         { url: "/api/popular?type=tv", type: "tv" as const },
-        { url: "/api/browse/movies?sort_by=vote_average.desc", type: "movie" as const },
-        { url: "/api/browse/tv?sort_by=vote_average.desc", type: "tv" as const },
+        {
+          url: "/api/browse/movies?sort_by=vote_average.desc",
+          type: "movie" as const,
+        },
+        {
+          url: "/api/browse/tv?sort_by=vote_average.desc",
+          type: "tv" as const,
+        },
       ];
 
       const sourceIndex = (page - 2) % sources.length;
@@ -335,7 +363,7 @@ export default function Home() {
         const data = await response.json();
         // Filter out anime from results
         const filteredResults = (data.results || []).filter(
-          (item: Movie | TVShow) => !isAnime(item)
+          (item: Movie | TVShow) => !isAnime(item),
         );
         const newItems = filteredResults.map((item: Movie | TVShow) => ({
           item,

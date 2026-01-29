@@ -7,7 +7,13 @@ import MediaActions from "@/app/components/MediaActions";
 import EpisodeList from "@/app/components/EpisodeList";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
-import type { Movie, TVShow, StreamingSource, Genre, CastMember } from "@/types";
+import type {
+  Movie,
+  TVShow,
+  StreamingSource,
+  Genre,
+  CastMember,
+} from "@/types";
 import { isAnimeContent } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
