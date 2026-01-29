@@ -551,7 +551,10 @@ export default function WatchPage() {
 
               {/* Video Player */}
               {streamingSource && (
-                <div className="bg-black rounded-lg overflow-hidden mb-4" style={{ position: 'relative', width: '100%' }}>
+                <div
+                  className="bg-black rounded-lg overflow-hidden mb-4"
+                  style={{ position: "relative", width: "100%" }}
+                >
                   <VideoPlayer source={streamingSource} title={title} />
                 </div>
               )}
