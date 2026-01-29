@@ -37,26 +37,15 @@ const BLOCKED_ANIME_IDS = new Set([
 ]);
 
 // Title patterns that indicate adult/hentai content (case-insensitive)
+// NOTE: Only use VERY specific patterns - IDs are more reliable for blocking
 const BLOCKED_TITLE_PATTERNS = [
-  /\bhentai\b/i,
-  /\beroge\b/i,
-  /\becchi\b/i,
-  /overflow/i, // Common hentai series
-  /joshiochi/i, // Common hentai series
-  /adam.*sweet.*agony/i, // Adam's Sweet Agony variants
+  /\bhentai\b/i, // Explicit genre label in title
+  /\beroge\b/i, // Erotic game adaptations
+  /adam'?s?\s+sweet\s+agony/i, // Adam's Sweet Agony
   /modaete.*adam/i, // Japanese title of Adam's Sweet Agony
-  /toshi.*densetsu/i, // Toshi Densetsu series
-  /otome.*dori/i, // Otome Dori
-  /valkyrie.*drive/i, // Valkyrie Drive
-  /harem.*camp/i, // Harem Camp
-  /redo.*healer/i, // Redo of Healer
-  /kaifuku.*jutsushi/i, // Japanese title of Redo of Healer
-  /interspecies.*review/i, // Interspecies Reviewers
-  /ishuzoku.*review/i, // Japanese title
-  /yosuga.*sora/i, // Yosuga no Sora
-  /peter.*grill/i, // Peter Grill
-  /labyrinth.*harem/i, // Harem in the Labyrinth
-  /meikyuu.*harem/i, // Japanese variant
+  /joshiochi.*2-kai/i, // Joshiochi specific title
+  /toshi\s+densetsu\s+series/i, // Toshi Densetsu Series (specific)
+  /otome\s+dori/i, // Otome Dori (specific)
 ];
 
 // Filter out blocked content from results (by ID and title patterns)
