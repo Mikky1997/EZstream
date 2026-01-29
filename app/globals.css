@@ -5,7 +5,8 @@
 :root {
   --bg-primary: #111827;
   --bg-elevated: #1f2937;
-  --bg-muted: #111827;
+  --bg-muted: #0a0f1a;
+  --bg-deep: #050810;
   --border-strong: #1f2937;
   --border-regular: #374151;
   --border-soft: #4b5563;
@@ -18,7 +19,8 @@
 :root[data-theme="midnight"] {
   --bg-primary: #111827;
   --bg-elevated: #1f2937;
-  --bg-muted: #0b1220;
+  --bg-muted: #0a0f1a;
+  --bg-deep: #050810;
   --border-strong: #1f2937;
   --border-regular: #374151;
   --border-soft: #4b5563;
@@ -29,9 +31,10 @@
 }
 
 :root[data-theme="charcoal"] {
-  --bg-primary: #05060a;
-  --bg-elevated: #0b0d14;
-  --bg-muted: #0f1626;
+  --bg-primary: #030305;
+  --bg-elevated: #0a0c12;
+  --bg-muted: #08090e;
+  --bg-deep: #000000;
   --border-strong: #111827;
   --border-regular: #1f2937;
   --border-soft: #374151;
@@ -42,15 +45,16 @@
 }
 
 :root[data-theme="daylight"] {
-  --bg-primary: #f4f4f5;
+  --bg-primary: #f8fafc;
   --bg-elevated: #ffffff;
-  --bg-muted: #e5e7eb;
-  --border-strong: #d4d4d8;
-  --border-regular: #e4e4e7;
-  --border-soft: #e5e7eb;
+  --bg-muted: #e2e8f0;
+  --bg-deep: #cbd5e1;
+  --border-strong: #cbd5e1;
+  --border-regular: #e2e8f0;
+  --border-soft: #f1f5f9;
   --text-primary: #0f172a;
-  --text-secondary: #111827;
-  --text-muted: #4b5563;
+  --text-secondary: #1e293b;
+  --text-muted: #64748b;
   --accent: #2563eb;
 }
 
@@ -100,11 +104,28 @@ body {
   background-color: color-mix(in srgb, var(--bg-elevated) 80%, transparent) !important;
 }
 
+.bg-gray-800\/50 {
+  background-color: color-mix(in srgb, var(--bg-elevated) 50%, transparent) !important;
+}
+
 .bg-gray-700 {
   background-color: var(--bg-muted) !important;
 }
 
 .bg-gray-600 {
+  background-color: color-mix(in srgb, var(--bg-muted) 80%, transparent) !important;
+}
+
+/* Hover state overrides */
+.hover\:bg-gray-800:hover {
+  background-color: var(--bg-elevated) !important;
+}
+
+.hover\:bg-gray-700:hover {
+  background-color: var(--bg-muted) !important;
+}
+
+.hover\:bg-gray-600:hover {
   background-color: color-mix(in srgb, var(--bg-muted) 80%, transparent) !important;
 }
 
@@ -147,10 +168,55 @@ body {
   color: var(--text-muted) !important;
 }
 
+.placeholder-gray-400::placeholder {
+  color: var(--text-muted) !important;
+}
+
 .text-blue-400,
 .text-blue-300,
 .text-blue-200 {
   color: var(--accent) !important;
+}
+
+/* Theme-aware gradient classes */
+.from-gray-900 {
+  --tw-gradient-from: var(--bg-primary) !important;
+  --tw-gradient-to: transparent !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.via-gray-900 {
+  --tw-gradient-to: transparent !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--bg-primary), var(--tw-gradient-to) !important;
+}
+
+.to-black {
+  --tw-gradient-to: var(--bg-deep) !important;
+}
+
+.to-gray-900 {
+  --tw-gradient-to: var(--bg-primary) !important;
+}
+
+/* Theme-aware black backgrounds */
+.bg-black {
+  background-color: var(--bg-deep) !important;
+}
+
+.bg-black\/80 {
+  background-color: color-mix(in srgb, var(--bg-deep) 80%, transparent) !important;
+}
+
+.bg-black\/70 {
+  background-color: color-mix(in srgb, var(--bg-deep) 70%, transparent) !important;
+}
+
+.bg-black\/60 {
+  background-color: color-mix(in srgb, var(--bg-deep) 60%, transparent) !important;
+}
+
+.bg-black\/50 {
+  background-color: color-mix(in srgb, var(--bg-deep) 50%, transparent) !important;
 }
 
 /* GPU-accelerated animations */
@@ -209,7 +275,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #1f2937 0%, #374151 50%, #1f2937 100%);
+  background: linear-gradient(90deg, var(--bg-elevated) 0%, var(--border-regular) 50%, var(--bg-elevated) 100%);
   background-size: 400% 100%;
   animation: shimmer 1.2s ease-in-out infinite;
 }

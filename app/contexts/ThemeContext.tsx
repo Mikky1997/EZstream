@@ -26,9 +26,9 @@ const THEME_OPTIONS: ThemeOption[] = [
   },
   {
     name: "charcoal",
-    label: "Noir",
+    label: "Dark",
     description: "Extra dark, high contrast",
-    themeColor: "#05060a",
+    themeColor: "#030305",
   },
 ];
 
