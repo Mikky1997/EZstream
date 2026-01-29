@@ -91,16 +91,30 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
     }
 
     return (
-      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+      <div
+        className="video-player-container relative w-full"
+        style={{ paddingBottom: "56.25%" }}
+      >
         <iframe
           ref={iframeRef}
           src={source.url}
-          className="absolute top-0 left-0 w-full h-full rounded-lg"
+          className="video-player-iframe absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
-          // iOS Safari requires webkitallowfullscreen for fullscreen to work
-          {...({ webkitallowfullscreen: "true" } as any)}
+          // iOS/macOS Safari requires webkit prefix for fullscreen
+          {...({
+            webkitAllowFullScreen: true,
+          } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
+          // Firefox mobile requires moz prefix
+          {...({
+            mozallowfullscreen: true,
+          } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           // Extended permissions for video playback across all browsers
-          allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture *; fullscreen *"
+          // Using proper Feature Policy / Permissions Policy syntax
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+          // Prevent iframe scrollbars that can interfere with mobile fullscreen
+          scrolling="no"
+          // Referrer policy for better compatibility with video sources
+          referrerPolicy="no-referrer-when-downgrade"
           // Note: Do NOT use sandbox attribute - it breaks video embed functionality
           onLoad={() => setLoading(false)}
           onError={() => {

@@ -524,3 +524,73 @@ html[data-theme] .text-gray-500,
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* ===== VIDEO PLAYER MOBILE FULLSCREEN FIX ===== */
+/* Critical for mobile Safari/Brave iframe fullscreen support */
+
+.video-player-container {
+  /* Ensure container allows fullscreen */
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+  /* iOS Safari: Allow fullscreen presentation */
+  -webkit-overflow-scrolling: touch;
+}
+
+.video-player-iframe {
+  /* Force iframe to fill container properly */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* Prevent any scrollbars that might interfere */
+  overflow: hidden;
+}
+
+/* Mobile-specific video player fixes */
+@media (hover: none),
+(pointer: coarse) {
+  .video-player-container {
+    /* Ensure touch events pass through correctly */
+    touch-action: manipulation;
+    /* Prevent iOS zoom on double-tap */
+    -ms-touch-action: manipulation;
+  }
+
+  .video-player-iframe {
+    /* Critical for iOS Safari fullscreen */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Ensure iframe is interactive on touch */
+    pointer-events: auto;
+  }
+}
+
+/* iOS Safari fullscreen mode - when iframe goes fullscreen */
+@supports (-webkit-touch-callout: none) {
+  .video-player-iframe {
+    /* iOS Safari specific: ensure fullscreen works */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* Landscape mode optimization for video playback */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .video-player-container {
+    /* In landscape on mobile, let the player take more space */
+    max-height: 100vh;
+  }
+}
+
+/* Fix for Brave browser on iOS which has stricter iframe policies */
+@media screen and (-webkit-min-device-pixel-ratio: 2) {
+  .video-player-iframe {
+    /* Hardware acceleration helps with Brave fullscreen */
+    will-change: transform;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
