@@ -95,7 +95,8 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // Allow fullscreen in cross-origin video embeds
+            value: "camera=(), microphone=(), geolocation=(), fullscreen=*",
           },
           {
             key: "Content-Security-Policy",
