@@ -13,6 +13,7 @@ const ALLOWED_VIDEO_DOMAINS = [
   "vidsrc-embed.ru",
   "vidsrc-embed.su",
   "vsrc.su",
+  "vidsrc.to",
   // Other sources
   "vidsrc.cc",
   "vidsrc.pro",

@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/app/contexts/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 
 interface SearchResult {
   id: number;
@@ -22,7 +23,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showNavSearch, setShowNavSearch] = useState(false);
-  const [navSearchQuery, setNavSearchQuery] = useState('');
+  const [navSearchQuery, setNavSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const navSearchRef = useRef<HTMLInputElement>(null);
@@ -33,7 +34,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout();
     setUserMenuOpen(false);
-    router.push('/login');
+    router.push("/login");
   };
 
   // Focus search input when opened - use timeout to ensure DOM is ready
@@ -62,16 +63,21 @@ export default function Navbar() {
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(navSearchQuery)}`);
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(navSearchQuery)}`,
+        );
         if (response.ok) {
           const data = await response.json();
           const filtered = (data.results || [])
-            .filter((item: SearchResult) => item.media_type === 'movie' || item.media_type === 'tv')
+            .filter(
+              (item: SearchResult) =>
+                item.media_type === "movie" || item.media_type === "tv",
+            )
             .slice(0, 8);
           setSearchResults(filtered);
         }
       } catch (err) {
-        console.error('Search error:', err);
+        console.error("Search error:", err);
       } finally {
         setIsSearching(false);
       }
@@ -88,46 +94,48 @@ export default function Navbar() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       const target = event.target as Node;
-      const isOutsideDesktop = searchWrapperRef.current && !searchWrapperRef.current.contains(target);
-      const isOutsideMobile = mobileSearchRef.current && !mobileSearchRef.current.contains(target);
-      
+      const isOutsideDesktop =
+        searchWrapperRef.current && !searchWrapperRef.current.contains(target);
+      const isOutsideMobile =
+        mobileSearchRef.current && !mobileSearchRef.current.contains(target);
+
       // Only close if clicking outside BOTH refs (or if ref doesn't exist)
-      const shouldClose = 
-        (!searchWrapperRef.current || isOutsideDesktop) && 
+      const shouldClose =
+        (!searchWrapperRef.current || isOutsideDesktop) &&
         (!mobileSearchRef.current || isOutsideMobile);
-      
+
       if (shouldClose && showNavSearch) {
         setShowNavSearch(false);
-        setNavSearchQuery('');
+        setNavSearchQuery("");
         setSearchResults([]);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [showNavSearch]);
 
   // Close search on escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setShowNavSearch(false);
-        setNavSearchQuery('');
+        setNavSearchQuery("");
         setSearchResults([]);
       }
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
   // Handle selecting a result from dropdown
   const handleSelectResult = (result: SearchResult) => {
     router.push(`/watch/${result.media_type}/${result.id}`);
     setShowNavSearch(false);
-    setNavSearchQuery('');
+    setNavSearchQuery("");
     setSearchResults([]);
   };
 
@@ -138,10 +146,10 @@ export default function Navbar() {
     }
   };
 
-  const getTitle = (item: SearchResult) => item.title || item.name || 'Unknown';
+  const getTitle = (item: SearchResult) => item.title || item.name || "Unknown";
 
   // Don't show navbar on login page
-  if (pathname === '/login') {
+  if (pathname === "/login") {
     return null;
   }
 
@@ -150,17 +158,17 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Home Icon - Left */}
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="group p-2 rounded-lg hover:bg-gray-800 transition-all flex-shrink-0"
             title="Home"
           >
-            <svg 
-              className="w-8 h-8 text-blue-500 group-hover:text-blue-400 group-hover:scale-110 transition-all duration-200" 
-              fill="currentColor" 
+            <svg
+              className="w-8 h-8 text-blue-500 group-hover:text-blue-400 group-hover:scale-110 transition-all duration-200"
+              fill="currentColor"
               viewBox="0 0 24 24"
             >
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
             </svg>
           </Link>
 
@@ -169,9 +177,9 @@ export default function Navbar() {
             <Link
               href="/browse/movies"
               className={`px-3 py-2 rounded-lg transition-colors ${
-                pathname.startsWith('/browse/movies')
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                pathname.startsWith("/browse/movies")
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
               }`}
             >
               Movies
@@ -179,9 +187,9 @@ export default function Navbar() {
             <Link
               href="/browse/tv"
               className={`px-3 py-2 rounded-lg transition-colors ${
-                pathname.startsWith('/browse/tv')
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                pathname.startsWith("/browse/tv")
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
               }`}
             >
               TV Shows
@@ -189,9 +197,9 @@ export default function Navbar() {
             <Link
               href="/browse/anime"
               className={`px-3 py-2 rounded-lg transition-colors ${
-                pathname.startsWith('/browse/anime')
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                pathname.startsWith("/browse/anime")
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
               }`}
             >
               Anime
@@ -200,6 +208,8 @@ export default function Navbar() {
 
           {/* Search + User - Right (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
+
             {/* Search */}
             <div ref={searchWrapperRef} className="relative">
               {showNavSearch ? (
@@ -210,7 +220,7 @@ export default function Navbar() {
                     value={navSearchQuery}
                     onChange={(e) => setNavSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         handleEnterKey();
                       }
                     }}
@@ -222,18 +232,32 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setShowNavSearch(false);
-                      setNavSearchQuery('');
+                      setNavSearchQuery("");
                       setSearchResults([]);
                     }}
                     className="ml-2 p-2 text-gray-400 hover:text-white"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
-                  
+
                   {/* Dropdown with search results */}
-                  {(searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
+                  {(searchResults.length > 0 ||
+                    isSearching ||
+                    (navSearchQuery.trim().length >= 2 &&
+                      !isSearching &&
+                      searchResults.length === 0)) && (
                     <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
                       {isSearching && (
                         <div className="p-4 text-center text-gray-400">
@@ -241,11 +265,15 @@ export default function Navbar() {
                           <p className="text-sm">Searching...</p>
                         </div>
                       )}
-                      {!isSearching && navSearchQuery.trim().length >= 2 && searchResults.length === 0 && (
-                        <div className="p-4 text-center text-gray-400">
-                          <p className="text-sm">No results found for &quot;{navSearchQuery}&quot;</p>
-                        </div>
-                      )}
+                      {!isSearching &&
+                        navSearchQuery.trim().length >= 2 &&
+                        searchResults.length === 0 && (
+                          <div className="p-4 text-center text-gray-400">
+                            <p className="text-sm">
+                              No results found for &quot;{navSearchQuery}&quot;
+                            </p>
+                          </div>
+                        )}
                       {searchResults.map((item) => (
                         <button
                           key={`${item.media_type}-${item.id}`}
@@ -268,15 +296,23 @@ export default function Navbar() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium truncate">{getTitle(item)}</p>
+                            <p className="text-white font-medium truncate">
+                              {getTitle(item)}
+                            </p>
                             <div className="flex items-center gap-2 text-sm text-gray-400">
-                              <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                item.media_type === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
-                              }`}>
-                                {item.media_type === 'movie' ? 'Movie' : 'TV'}
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-xs ${
+                                  item.media_type === "movie"
+                                    ? "bg-blue-900 text-blue-300"
+                                    : "bg-purple-900 text-purple-300"
+                                }`}
+                              >
+                                {item.media_type === "movie" ? "Movie" : "TV"}
                               </span>
                               {item.vote_average && item.vote_average > 0 && (
-                                <span className="text-yellow-400">★ {item.vote_average.toFixed(1)}</span>
+                                <span className="text-yellow-400">
+                                  ★ {item.vote_average.toFixed(1)}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -291,8 +327,18 @@ export default function Navbar() {
                   className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                   title="Search"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 </button>
               )}
@@ -311,15 +357,27 @@ export default function Navbar() {
                     {user.displayName[0].toUpperCase()}
                   </div>
                   <span className="hidden lg:inline">{user.displayName}</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
-                
+
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
                     <div className="px-4 py-3 border-b border-gray-700">
-                      <p className="text-white font-medium">{user.displayName}</p>
+                      <p className="text-white font-medium">
+                        {user.displayName}
+                      </p>
                       <p className="text-gray-400 text-sm">@{user.username}</p>
                     </div>
                     <button
@@ -348,19 +406,44 @@ export default function Navbar() {
               className="p-2 text-gray-300 hover:text-white"
               title="Search"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-gray-300 hover:text-white"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -369,7 +452,10 @@ export default function Navbar() {
 
         {/* Mobile Search Bar */}
         {showNavSearch && (
-          <div ref={mobileSearchRef} className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900 relative">
+          <div
+            ref={mobileSearchRef}
+            className="md:hidden px-4 py-3 border-t border-gray-800 bg-gray-900 relative"
+          >
             <div className="flex items-center gap-2">
               <input
                 ref={navSearchRef}
@@ -377,7 +463,7 @@ export default function Navbar() {
                 value={navSearchQuery}
                 onChange={(e) => setNavSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     handleEnterKey();
                   }
                 }}
@@ -389,19 +475,33 @@ export default function Navbar() {
                 type="button"
                 onClick={() => {
                   setShowNavSearch(false);
-                  setNavSearchQuery('');
+                  setNavSearchQuery("");
                   setSearchResults([]);
                 }}
                 className="p-2 text-gray-400"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             {/* Mobile Dropdown with search results */}
-            {(searchResults.length > 0 || isSearching || (navSearchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0)) && (
+            {(searchResults.length > 0 ||
+              isSearching ||
+              (navSearchQuery.trim().length >= 2 &&
+                !isSearching &&
+                searchResults.length === 0)) && (
               <div className="absolute left-4 right-4 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
                 {isSearching && (
                   <div className="p-4 text-center text-gray-400">
@@ -409,11 +509,15 @@ export default function Navbar() {
                     <p className="text-sm">Searching...</p>
                   </div>
                 )}
-                {!isSearching && navSearchQuery.trim().length >= 2 && searchResults.length === 0 && (
-                  <div className="p-4 text-center text-gray-400">
-                    <p className="text-sm">No results found for &quot;{navSearchQuery}&quot;</p>
-                  </div>
-                )}
+                {!isSearching &&
+                  navSearchQuery.trim().length >= 2 &&
+                  searchResults.length === 0 && (
+                    <div className="p-4 text-center text-gray-400">
+                      <p className="text-sm">
+                        No results found for &quot;{navSearchQuery}&quot;
+                      </p>
+                    </div>
+                  )}
                 {searchResults.map((item) => (
                   <button
                     key={`${item.media_type}-${item.id}`}
@@ -436,11 +540,17 @@ export default function Navbar() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium truncate">{getTitle(item)}</p>
-                      <span className={`px-1.5 py-0.5 rounded text-xs ${
-                        item.media_type === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
-                      }`}>
-                        {item.media_type === 'movie' ? 'Movie' : 'TV'}
+                      <p className="text-white font-medium truncate">
+                        {getTitle(item)}
+                      </p>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-xs ${
+                          item.media_type === "movie"
+                            ? "bg-blue-900 text-blue-300"
+                            : "bg-purple-900 text-purple-300"
+                        }`}
+                      >
+                        {item.media_type === "movie" ? "Movie" : "TV"}
                       </span>
                     </div>
                   </button>
@@ -458,9 +568,9 @@ export default function Navbar() {
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-colors ${
-                  pathname.startsWith('/browse/movies')
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  pathname.startsWith("/browse/movies")
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
               >
                 Movies
@@ -469,9 +579,9 @@ export default function Navbar() {
                 href="/browse/tv"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-colors ${
-                  pathname.startsWith('/browse/tv')
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  pathname.startsWith("/browse/tv")
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
               >
                 TV Shows
@@ -480,14 +590,14 @@ export default function Navbar() {
                 href="/browse/anime"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-colors ${
-                  pathname.startsWith('/browse/anime')
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  pathname.startsWith("/browse/anime")
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
               >
                 Anime
               </Link>
-              
+
               {/* User section in mobile menu */}
               <div className="border-t border-gray-700 mt-2 pt-2">
                 {user ? (
@@ -497,8 +607,12 @@ export default function Navbar() {
                         {user.displayName[0].toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{user.displayName}</p>
-                        <p className="text-gray-400 text-sm">@{user.username}</p>
+                        <p className="text-white font-medium">
+                          {user.displayName}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          @{user.username}
+                        </p>
                       </div>
                     </div>
                     <button
@@ -525,11 +639,11 @@ export default function Navbar() {
           </div>
         )}
       </div>
-      
+
       {/* Click outside to close user menu */}
       {userMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setUserMenuOpen(false)}
         />
       )}
