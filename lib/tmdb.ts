@@ -1,4 +1,10 @@
-import type { Movie, TVShow, SearchResult, Person, PersonCredits } from "@/types";
+import type {
+  Movie,
+  TVShow,
+  SearchResult,
+  Person,
+  PersonCredits,
+} from "@/types";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
@@ -344,8 +350,13 @@ export async function getAnime(page: number = 1): Promise<SearchResult> {
 // Person/Actor search and details
 export async function searchPeople(
   query: string,
-  page: number = 1
-): Promise<{ page: number; results: Person[]; total_pages: number; total_results: number }> {
+  page: number = 1,
+): Promise<{
+  page: number;
+  results: Person[];
+  total_pages: number;
+  total_results: number;
+}> {
   return fetchTMDB("/search/person", {
     query,
     page,

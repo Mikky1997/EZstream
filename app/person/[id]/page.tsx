@@ -121,10 +121,10 @@ export default function PersonPage() {
   });
 
   const movieCount = person.credits.cast.filter(
-    (c) => c.media_type === "movie"
+    (c) => c.media_type === "movie",
   ).length;
   const tvCount = person.credits.cast.filter(
-    (c) => c.media_type === "tv"
+    (c) => c.media_type === "tv",
   ).length;
 
   return (
@@ -205,7 +205,9 @@ export default function PersonPage() {
             {/* Stats */}
             <div className="flex justify-center md:justify-start gap-6 mb-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{movieCount}</div>
+                <div className="text-2xl font-bold text-white">
+                  {movieCount}
+                </div>
                 <div className="text-xs text-gray-400">Movies</div>
               </div>
               <div className="text-center">

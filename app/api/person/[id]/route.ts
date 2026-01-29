@@ -7,7 +7,7 @@ export const revalidate = 86400;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const id = safeParseInt(params.id, 0, 1, Number.MAX_SAFE_INTEGER);
@@ -37,13 +37,13 @@ export async function GET(
           "Cache-Control":
             "public, s-maxage=86400, stale-while-revalidate=172800",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("Person API error:", error);
     return NextResponse.json(
       { error: "Failed to fetch person details" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

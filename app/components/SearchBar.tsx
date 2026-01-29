@@ -85,13 +85,13 @@ export default function SearchBar({
         );
         if (response.ok) {
           const data = await response.json();
-          
+
           // Build allowed media types
           const allowedTypes = ["movie", "tv"];
           if (includePeople) {
             allowedTypes.push("person");
           }
-          
+
           let filtered = (data.results || []).filter((item: SearchResult) =>
             allowedTypes.includes(item.media_type || ""),
           );
