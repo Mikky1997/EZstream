@@ -41,7 +41,7 @@
   --text-primary: #e5e7eb;
   --text-secondary: #cfd4dc;
   --text-muted: #9ca3af;
-  --accent: #22d3ee;
+  --accent: #a78bfa;
 }
 
 :root[data-theme="daylight"] {
@@ -201,6 +201,17 @@ body {
 
 .to-gray-900 {
   --tw-gradient-to: var(--bg-primary) !important;
+}
+
+/* Robust theme-aware page background - use this for main containers */
+.bg-page-gradient {
+  background: linear-gradient(to bottom, var(--bg-primary), var(--bg-deep)) !important;
+}
+
+/* Override Tailwind gradient utility for better mobile support */
+.bg-gradient-to-b.from-gray-900.to-black,
+.bg-gradient-to-b.from-gray-900.via-gray-900.to-black {
+  background: linear-gradient(to bottom, var(--bg-primary), var(--bg-deep)) !important;
 }
 
 /* Theme-aware black backgrounds */

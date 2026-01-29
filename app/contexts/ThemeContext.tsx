@@ -28,7 +28,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     name: "charcoal",
     label: "Dark",
     description: "Extra dark, high contrast",
-    themeColor: "#030305",
+    themeColor: "#0a0c12",
   },
 ];
 
@@ -42,7 +42,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "ezstream_theme";
-const DEFAULT_THEME: ThemeName = "midnight";
+const DEFAULT_THEME: ThemeName = "charcoal";
 
 function isThemeName(value: string): value is ThemeName {
   return THEME_OPTIONS.some((option) => option.name === value);

@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#111827",
+  themeColor: "#030305",
 };
 
 export const metadata: Metadata = {
@@ -66,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth" data-theme="midnight">
+    <html lang="en" className="scroll-smooth" data-theme="charcoal">
       <head>
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://image.tmdb.org" />
