@@ -76,10 +76,10 @@ export default function BrowseTV() {
       const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        // For rating sort: fetch 5 pages (100 items) at once for accurate IMDB sorting
-        // For other sorts: normal single page fetch
+        // For rating sort: fetch 10 pages (200 items), sort by IMDB, show top 100
+        // This gives a larger pool for more accurate IMDB top 100
         if (isRatingSort && reset) {
-          const pagesToFetch = Array.from({ length: 5 }, (_, i) => i + 1);
+          const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -98,13 +98,14 @@ export default function BrowseTV() {
             new Map(allShows.map((s) => [s.id, s])).values(),
           );
 
-          // Sort by IMDB rating (accurate sort across all 100 items)
+          // Sort by IMDB rating and take top 100
           uniqueShows.sort(
             (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
           );
+          const top100 = uniqueShows.slice(0, 100);
 
-          setShows(uniqueShows);
-          setPage(6);
+          setShows(top100);
+          setPage(11);
           setHasMore(false); // No infinite scroll for rating sort - show top 100 only
         } else {
           // Normal fetch for other sort options or loading more

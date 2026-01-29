@@ -50,11 +50,10 @@ export default function BrowseAnime() {
         activeTab === "tv" ? "/api/browse/tv" : "/api/browse/movies";
 
       try {
-        // For rating sort: fetch 13 pages (260 items) at once for accurate IMDB sorting
-        // For other sorts: normal single page fetch
+        // For rating sort: fetch 10 pages (200 items), sort by IMDB, show top 100
+        // This gives a larger pool for more accurate IMDB top 100
         if (isRatingSort && reset) {
-          // Fetch 5 pages (100 items) for accurate IMDB sorting
-          const pagesToFetch = Array.from({ length: 5 }, (_, i) => i + 1);
+          const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -74,17 +73,18 @@ export default function BrowseAnime() {
             new Map(allItems.map((item) => [item.id, item])).values(),
           );
 
-          // Sort by IMDB rating (accurate sort across all 100 items)
+          // Sort by IMDB rating and take top 100
           uniqueItems.sort(
             (a, b) => getEffectiveRating(b) - getEffectiveRating(a),
           );
+          const top100 = uniqueItems.slice(0, 100);
 
           if (activeTab === "tv") {
-            setAnime(uniqueItems);
+            setAnime(top100);
           } else {
-            setMovies(uniqueItems);
+            setMovies(top100);
           }
-          setPage(6);
+          setPage(11);
           setHasMore(false); // No infinite scroll for rating sort - show top 100 only
         } else {
           // Normal fetch for other sort options or loading more
