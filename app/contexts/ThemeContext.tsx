@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type ThemeName = "midnight" | "charcoal" | "daylight";
 
@@ -81,13 +81,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
-  const cycleTheme = () => {
+  const cycleTheme = useCallback(() => {
     const currentIndex = THEME_OPTIONS.findIndex(
       (option) => option.name === theme,
     );
     const nextIndex = (currentIndex + 1) % THEME_OPTIONS.length;
     setTheme(THEME_OPTIONS[nextIndex].name);
-  };
+  }, [theme]);
 
   const value = useMemo(
     () => ({
@@ -96,7 +96,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       cycleTheme,
       options: THEME_OPTIONS,
     }),
-    [theme],
+    [theme, cycleTheme],
   );
 
   return (
