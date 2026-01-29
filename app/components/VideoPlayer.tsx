@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useMemo } from 'react';
-import type { StreamingSource } from '@/types';
+import { useEffect, useRef, useState, useMemo } from "react";
+import type { StreamingSource } from "@/types";
 
 // Allowed video source domains for security
 const ALLOWED_VIDEO_DOMAINS = [
   // VidSrc.me domains (primary + new domains from their announcement)
-  'vidsrcme.ru',
-  'vidsrcme.su',
-  'vidsrc-embed.ru',
-  'vidsrc-embed.su',
-  'vsrc.su',
+  "vidsrc.me",
+  "vidsrc-embed.me",
+  "vidsrcme.ru",
+  "vidsrcme.su",
+  "vidsrc-embed.ru",
+  "vidsrc-embed.su",
+  "vsrc.su",
   // Other sources
-  'vidsrc.cc',
-  'vidsrc.pro',
-  'moviesapi.club',
-  'embed.su',
-  'autoembed.cc',
-  'multiembed.mov',
-  '2embed.cc',
-  'streamsrc.cc',
+  "vidsrc.cc",
+  "vidsrc.pro",
+  "moviesapi.club",
+  "embed.su",
+  "autoembed.cc",
+  "multiembed.mov",
+  "2embed.cc",
+  "streamsrc.cc",
 ];
 
 // Validate that URL is from an allowed domain
@@ -27,10 +29,10 @@ function isAllowedVideoUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
-    
+
     // Check exact match or subdomain match
-    return ALLOWED_VIDEO_DOMAINS.some(domain => 
-      hostname === domain || hostname.endsWith('.' + domain)
+    return ALLOWED_VIDEO_DOMAINS.some(
+      (domain) => hostname === domain || hostname.endsWith("." + domain),
     );
   } catch {
     return false;
@@ -54,10 +56,10 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
   }, [source.url]);
 
   useEffect(() => {
-    if (source.type === 'vidsrc' && source.url) {
+    if (source.type === "vidsrc" && source.url) {
       setLoading(true);
       if (!isValidUrl) {
-        setError('Invalid video source');
+        setError("Invalid video source");
         setLoading(false);
       } else {
         setError(null);
@@ -77,7 +79,7 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
     }
   }, [loading, isValidUrl, source.url]);
 
-  if (source.type === 'vidsrc' && source.url) {
+  if (source.type === "vidsrc" && source.url) {
     // Block rendering of iframe if URL is not from allowed domain
     if (!isValidUrl) {
       return (
@@ -88,18 +90,18 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
     }
 
     return (
-      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
         <iframe
           ref={iframeRef}
           src={source.url}
           className="absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
           // Extended permissions for video playback across all browsers
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-to-picture; fullscreen"
+          allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture *; fullscreen *"
           // Note: Do NOT use sandbox attribute - it breaks video embed functionality
           onLoad={() => setLoading(false)}
           onError={() => {
-            setError('Failed to load video player');
+            setError("Failed to load video player");
             setLoading(false);
           }}
         />

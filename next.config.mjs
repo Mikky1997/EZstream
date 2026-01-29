@@ -1,19 +1,26 @@
 /** @type {import('next').NextConfig} */
 
 // Validate required environment variables at build/startup time
-const requiredEnvVars = ['TMDB_API_KEY'];
-const requiredProdEnvVars = ['SESSION_SECRET'];
+const requiredEnvVars = ["TMDB_API_KEY"];
+const requiredProdEnvVars = ["SESSION_SECRET"];
 
 // Check required vars (skip during build if not available)
-if (process.env.NODE_ENV === 'production' || process.env.npm_lifecycle_event === 'start') {
+if (
+  process.env.NODE_ENV === "production" ||
+  process.env.npm_lifecycle_event === "start"
+) {
   const missing = [...requiredEnvVars, ...requiredProdEnvVars].filter(
-    (key) => !process.env[key]
+    (key) => !process.env[key],
   );
   if (missing.length > 0) {
-    console.error(`\n❌ Missing required environment variables: ${missing.join(', ')}`);
-    console.error('Please set these in your .env file or environment.\n');
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    console.error(
+      `\n❌ Missing required environment variables: ${missing.join(", ")}`,
+    );
+    console.error("Please set these in your .env file or environment.\n");
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        `Missing required environment variables: ${missing.join(", ")}`,
+      );
     }
   }
 }
@@ -21,114 +28,122 @@ if (process.env.NODE_ENV === 'production' || process.env.npm_lifecycle_event ===
 const nextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
-  
+
   // Optimize production builds
   compiler: {
     // Remove console.log in production
-    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
-  
+
   // Enable gzip compression
   compress: true,
-  
+
   // Optimize package imports
   experimental: {
-    optimizePackageImports: ['react', 'react-dom'],
+    optimizePackageImports: ["react", "react-dom"],
   },
-  
+
   // Image optimization
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'image.tmdb.org',
+        protocol: "https",
+        hostname: "image.tmdb.org",
       },
       {
-        protocol: 'https',
-        hostname: 'vidsrc.me',
+        protocol: "https",
+        hostname: "vidsrc.me",
       },
       {
-        protocol: 'https',
-        hostname: 'vidsrc-embed.ru',
+        protocol: "https",
+        hostname: "vidsrc-embed.ru",
       },
     ],
     // Optimize image formats
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     // Reduce image sizes for faster loading
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     // Minimize layout shift
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
-  
+
   // Add security and caching headers
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
           {
-            key: 'Content-Security-Policy',
+            key: "Content-Security-Policy",
             // Note: 'unsafe-inline' needed for Next.js style injection, 'unsafe-eval' for Next.js dev mode
             // In production, consider using nonces via middleware for stricter CSP
-            value: process.env.NODE_ENV === 'production' 
-              ? "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrcme.su https://*.vidsrcme.su https://vidsrc-embed.ru https://*.vidsrc-embed.ru https://vidsrc-embed.su https://*.vidsrc-embed.su https://vsrc.su https://*.vsrc.su https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:; base-uri 'self'; form-action 'self';"
-              : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrcme.su https://*.vidsrcme.su https://vidsrc-embed.ru https://*.vidsrc-embed.ru https://vidsrc-embed.su https://*.vidsrc-embed.su https://vsrc.su https://*.vsrc.su https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:;",
+            value:
+              process.env.NODE_ENV === "production"
+                ? "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrc.me https://*.vidsrc.me https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrcme.su https://*.vidsrcme.su https://vidsrc-embed.me https://*.vidsrc-embed.me https://vidsrc-embed.ru https://*.vidsrc-embed.ru https://vidsrc-embed.su https://*.vidsrc-embed.su https://vsrc.su https://*.vsrc.su https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:; base-uri 'self'; form-action 'self';"
+                : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org; frame-src 'self' https://vidsrc.me https://*.vidsrc.me https://vidsrcme.ru https://*.vidsrcme.ru https://vidsrcme.su https://*.vidsrcme.su https://vidsrc-embed.me https://*.vidsrc-embed.me https://vidsrc-embed.ru https://*.vidsrc-embed.ru https://vidsrc-embed.su https://*.vidsrc-embed.su https://vsrc.su https://*.vsrc.su https://vidsrc.cc https://*.vidsrc.cc https://vidsrc.pro https://*.vidsrc.pro https://moviesapi.club https://*.moviesapi.club https://embed.su https://*.embed.su https://autoembed.cc https://*.autoembed.cc https://multiembed.mov https://*.multiembed.mov https://2embed.cc https://*.2embed.cc https://streamsrc.cc https://*.streamsrc.cc; font-src 'self' data:;",
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
           // HSTS - only in production with HTTPS
-          ...(process.env.NODE_ENV === 'production' ? [{
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
-          }] : []),
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=31536000; includeSubDomains; preload",
+                },
+              ]
+            : []),
         ],
       },
       {
         // Cache static assets
-        source: '/(.*)\\.(ico|png|jpg|jpeg|svg|gif|webp|avif)',
+        source: "/(.*)\\.(ico|png|jpg|jpeg|svg|gif|webp|avif)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
         // Cache API responses for browsing
-        source: '/api/(trending|popular|browse)/:path*',
+        source: "/api/(trending|popular|browse)/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, s-maxage=300, stale-while-revalidate=600',
+            key: "Cache-Control",
+            value: "public, s-maxage=300, stale-while-revalidate=600",
           },
         ],
       },
     ];
   },
-  
+
   // Optimize redirects
   poweredByHeader: false,
 };
