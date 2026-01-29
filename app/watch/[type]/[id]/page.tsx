@@ -466,7 +466,9 @@ export default function WatchPage() {
                       <span className="font-bold text-yellow-300">IMDb</span>
                       <span className="font-semibold">{item.imdbRating}</span>
                       {item.imdbVotes && (
-                        <span className="text-yellow-500/70 text-xs">({item.imdbVotes})</span>
+                        <span className="text-yellow-500/70 text-xs">
+                          ({item.imdbVotes})
+                        </span>
                       )}
                     </div>
                   )}
@@ -487,7 +489,9 @@ export default function WatchPage() {
                   {item.rottenTomatoes && (
                     <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-2.5 py-1 rounded">
                       <span className="text-xs">🍅</span>
-                      <span className="font-semibold">{item.rottenTomatoes}</span>
+                      <span className="font-semibold">
+                        {item.rottenTomatoes}
+                      </span>
                     </div>
                   )}
                   {/* Metascore */}
