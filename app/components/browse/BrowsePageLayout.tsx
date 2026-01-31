@@ -14,6 +14,12 @@ import {
 import { COUNTRY_OPTIONS, DEFAULT_SORT } from "@/lib/constants/browse";
 import type { MediaType, MediaItem, GenreOption, SortOption } from "@/types";
 
+// Pre-computed country dropdown options (constant, computed once)
+const COUNTRY_DROPDOWN_OPTIONS = COUNTRY_OPTIONS.map((c) => ({
+  value: c.value,
+  label: c.flag ? `${c.flag} ${c.label}` : c.label,
+}));
+
 interface BrowsePageLayoutProps {
   /** Media type for this page */
   mediaType: MediaType;
@@ -73,14 +79,6 @@ export function BrowsePageLayout({
     { value: "", label: "All Genres" },
     ...genres.map((g) => ({ value: String(g.id), label: g.name })),
   ], [genres]);
-
-  // Convert country options to dropdown format (already has value/label, just add flag to label)
-  const countryDropdownOptions = useMemo(() => 
-    COUNTRY_OPTIONS.map((c) => ({ 
-      value: c.value, 
-      label: c.flag ? `${c.flag} ${c.label}` : c.label 
-    })),
-  []);
 
   // Fetch data using TanStack Query
   const {
@@ -144,7 +142,7 @@ export function BrowsePageLayout({
             {showCountryFilter && (
               <FilterDropdown
                 label="Country"
-                options={countryDropdownOptions}
+                options={COUNTRY_DROPDOWN_OPTIONS}
                 value={selectedLanguage}
                 onChange={setSelectedLanguage}
               />
