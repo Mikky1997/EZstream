@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPersonDetails, getPersonCredits, getIMDbId } from "@/lib/tmdb";
 import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
+import type { CastCredit, CrewCredit } from "@/types";
 
 // Cache person details for 1 day (doesn't change often)
 export const revalidate = 86400;
@@ -21,13 +22,57 @@ export async function GET(
       getPersonCredits(id),
     ]);
 
-    // Sort credits by popularity and filter out items without posters
+    // Filter and sort cast credits (acting roles)
     const sortedCast = credits.cast
       .filter((item) => item.poster_path)
       .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
+    // Filter and sort crew credits (directing, writing, producing, etc.)
+    // Prioritize important jobs: Director, Writer, Producer
+    const importantJobs = ["Director", "Writer", "Screenplay", "Producer", "Executive Producer", "Creator"];
+    const sortedCrew = credits.crew
+      .filter((item) => item.poster_path)
+      .sort((a, b) => {
+        // First by importance of job
+        const aImportance = importantJobs.indexOf(a.job || "") !== -1 ? 1 : 0;
+        const bImportance = importantJobs.indexOf(b.job || "") !== -1 ? 1 : 0;
+        if (bImportance !== aImportance) return bImportance - aImportance;
+        // Then by popularity
+        return (b.popularity || 0) - (a.popularity || 0);
+      });
+
+    // Merge cast and crew, remove duplicates (same movie can appear in both)
+    // Create a combined list, prioritizing cast entries but including crew-only items
+    const seenIds = new Set<string>();
+    const allCreditsRaw: (CastCredit | (CrewCredit & { character?: string }))[] = [];
+
+    // Add cast first
+    for (const item of sortedCast) {
+      const key = `${item.media_type}-${item.id}`;
+      if (!seenIds.has(key)) {
+        seenIds.add(key);
+        allCreditsRaw.push(item);
+      }
+    }
+
+    // Add crew items that aren't already in cast
+    for (const item of sortedCrew) {
+      const key = `${item.media_type}-${item.id}`;
+      if (!seenIds.has(key)) {
+        seenIds.add(key);
+        // Convert crew to cast-like format with job info as character
+        allCreditsRaw.push({
+          ...item,
+          character: item.job || "Crew", // Show job role instead of character
+        });
+      }
+    }
+
+    // Sort combined list by popularity
+    allCreditsRaw.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
     // Fetch IMDB ratings for top 20 credits (uses cache, so this is efficient)
-    const topCredits = sortedCast.slice(0, 20);
+    const topCredits = allCreditsRaw.slice(0, 20);
     const creditsWithImdb = await Promise.all(
       topCredits.map(async (credit) => {
         try {
@@ -51,7 +96,7 @@ export async function GET(
     // Combine top credits with IMDB ratings + rest without
     const allCredits = [
       ...creditsWithImdb,
-      ...sortedCast.slice(20).map((c) => ({ ...c, imdbRating: null, imdbVotes: null })),
+      ...allCreditsRaw.slice(20).map((c) => ({ ...c, imdbRating: null, imdbVotes: null })),
     ];
 
     return NextResponse.json(

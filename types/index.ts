@@ -8,6 +8,16 @@ export interface Keyword {
   name: string;
 }
 
+// Video/Trailer from TMDB
+export interface Video {
+  id: string;
+  key: string; // YouTube video ID
+  name: string;
+  site: string; // "YouTube"
+  type: string; // "Trailer", "Teaser", "Clip", etc.
+  official: boolean;
+}
+
 // Cast member for movie/TV credits
 export interface CastMember {
   id: number;
@@ -64,6 +74,9 @@ export interface Movie {
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;
+  // Trailers
+  videos?: { results: Video[] };
+  trailerKey?: string | null; // YouTube video key for main trailer
 }
 
 export interface TVShow {
@@ -103,6 +116,9 @@ export interface TVShow {
   imdbActors?: string | null;
   rated?: string | null;
   awards?: string | null;
+  // Trailers
+  videos?: { results: Video[] };
+  trailerKey?: string | null; // YouTube video key for main trailer
 }
 
 // Animation genre ID in TMDB
@@ -163,9 +179,24 @@ export interface CastCredit {
   popularity?: number;
 }
 
+export interface CrewCredit {
+  id: number;
+  title?: string; // for movies
+  name?: string; // for TV shows
+  poster_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+  job?: string; // Director, Writer, Producer, etc.
+  department?: string;
+  media_type: "movie" | "tv";
+  popularity?: number;
+}
+
 export interface PersonCredits {
   id: number;
   cast: CastCredit[];
+  crew: CrewCredit[];
 }
 
 export interface PersonSearchResult {

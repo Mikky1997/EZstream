@@ -244,22 +244,20 @@ export async function discoverMoviesWithFilters(
     sortBy = "popularity.desc",
     year,
     language,
-    minVotes = 100,
+    minVotes = 10,
   } = options;
 
-  // For "highest rated", require significantly more votes to filter out
-  // niche content with inflated ratings (similar to IMDB's Top 250 approach)
-  // HOWEVER: For anime (genre 16 + Japanese), use much lower threshold
-  // as anime has fewer TMDB votes
+  // For "highest rated", require more votes to filter out niche content
+  // with inflated ratings, but keep thresholds low to show more movies
   const isHighestRated = sortBy === "vote_average.desc";
   const isAnime = genre === 16 && language === "ja";
 
   let actualMinVotes = minVotes;
   if (isHighestRated) {
-    // For anime: min 100 votes, for others: min 2000 votes
+    // For anime: min 50 votes, for others: min 500 votes
     actualMinVotes = isAnime
-      ? Math.max(minVotes, 100)
-      : Math.max(minVotes, 2000);
+      ? Math.max(minVotes, 50)
+      : Math.max(minVotes, 500);
   }
 
   const params: Record<string, string | number | boolean> = {
@@ -298,22 +296,20 @@ export async function discoverTVWithFilters(
     sortBy = "popularity.desc",
     year,
     language,
-    minVotes = 50,
+    minVotes = 10,
   } = options;
 
-  // For "highest rated", require significantly more votes to filter out
-  // niche content with inflated ratings (similar to IMDB's Top 250 approach)
-  // HOWEVER: For anime (genre 16 + Japanese), use much lower threshold
-  // as anime has fewer TMDB votes
+  // For "highest rated", require more votes to filter out niche content
+  // with inflated ratings, but keep thresholds low to show more content
   const isHighestRated = sortBy === "vote_average.desc";
   const isAnime = genre === 16 && language === "ja";
 
   let actualMinVotes = minVotes;
   if (isHighestRated) {
-    // For anime: min 100 votes, for others: min 1000 votes
+    // For anime: min 50 votes, for others: min 250 votes
     actualMinVotes = isAnime
-      ? Math.max(minVotes, 100)
-      : Math.max(minVotes, 1000);
+      ? Math.max(minVotes, 50)
+      : Math.max(minVotes, 250);
   }
 
   const params: Record<string, string | number | boolean> = {
@@ -369,5 +365,16 @@ export async function getPersonDetails(id: number): Promise<Person> {
 }
 
 export async function getPersonCredits(id: number): Promise<PersonCredits> {
-  return fetchTMDB<PersonCredits>(`/person/${id}/combined_credits`);
+  // TMDB returns both cast and crew in combined_credits
+  const data = await fetchTMDB<{
+    id: number;
+    cast: PersonCredits["cast"];
+    crew: PersonCredits["crew"];
+  }>(`/person/${id}/combined_credits`);
+  
+  return {
+    id: data.id,
+    cast: data.cast || [],
+    crew: data.crew || [],
+  };
 }

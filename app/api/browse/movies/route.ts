@@ -18,11 +18,12 @@ export async function GET(request: Request) {
   const year = searchParams.get("year");
   const language = searchParams.get("language");
 
-  // For anime (genre 16 + Japanese), use lower min_votes (10) to get more results
-  const isAnime = genre === "16" && language === "ja";
-  const defaultMinVotes = isAnime ? 10 : 100;
+  // Only use min votes for highest rated (to filter out garbage 10.0 ratings with 2 votes)
+  // For popularity/date sorting, show everything
+  const isHighestRated = sortBy === "vote_average.desc";
+  const defaultMinVotes = isHighestRated ? 10 : 0;
   const minVotes = searchParams.get("min_votes")
-    ? safeParseInt(searchParams.get("min_votes"), defaultMinVotes, 1, 10000)
+    ? safeParseInt(searchParams.get("min_votes"), defaultMinVotes, 0, 10000)
     : defaultMinVotes;
 
   try {
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
     // Filter out blocked adult content
     const filteredResults = filterBlockedContent(data.results || []);
 
-    // Always fetch IMDB ratings for all results (uses 24h cache)
+    // Fetch IMDB ratings for all results (uses 24h cache)
     if (filteredResults.length > 0) {
       const moviesWithImdb = await Promise.all(
         filteredResults.map(async (movie) => {

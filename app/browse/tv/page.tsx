@@ -42,12 +42,23 @@ const COUNTRY_OPTIONS = [
   { value: "it", label: "Italian", flag: "🇮🇹" },
 ];
 
+// Generate year options from current year down to 1950
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS = [
+  { value: "", label: "All Years" },
+  ...Array.from({ length: currentYear - 1949 }, (_, i) => ({
+    value: String(currentYear - i),
+    label: String(currentYear - i),
+  })),
+];
+
 export default function BrowseTV() {
   const [shows, setShows] = useState<TVShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState("popularity.desc");
   const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -77,10 +88,10 @@ export default function BrowseTV() {
       const isRatingSort = sortBy === "vote_average.desc";
 
       try {
-        // For rating sort: fetch 10 pages (200 items), sort by IMDB, show top 100
-        // This gives a larger pool for more accurate IMDB top 100
+        // For rating sort: fetch 5 pages (100 items), sort by IMDB, show top 100
+        // This gives a good pool for accurate IMDB top 100 while being faster than 10 pages
         if (isRatingSort && reset) {
-          const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
+          const pagesToFetch = Array.from({ length: 5 }, (_, i) => i + 1);
           const fetchPromises = pagesToFetch.map((p) => {
             const params = new URLSearchParams({
               page: p.toString(),
@@ -88,6 +99,7 @@ export default function BrowseTV() {
             });
             if (selectedGenre) params.append("genre", selectedGenre.toString());
             if (selectedLanguage) params.append("language", selectedLanguage);
+            if (selectedYear) params.append("year", selectedYear);
             return fetch(`/api/browse/tv?${params}`).then((r) => r.json());
           });
 
@@ -106,7 +118,7 @@ export default function BrowseTV() {
           const top100 = uniqueShows.slice(0, 100);
 
           setShows(top100);
-          setPage(11);
+          setPage(6);
           setHasMore(false); // No infinite scroll for rating sort - show top 100 only
         } else {
           // Normal fetch for other sort options or loading more
@@ -121,6 +133,10 @@ export default function BrowseTV() {
 
           if (selectedLanguage) {
             params.append("language", selectedLanguage);
+          }
+
+          if (selectedYear) {
+            params.append("year", selectedYear);
           }
 
           const response = await fetch(`/api/browse/tv?${params}`);
@@ -146,12 +162,12 @@ export default function BrowseTV() {
         setLoadingMore(false);
       }
     },
-    [page, sortBy, selectedGenre, selectedLanguage, getEffectiveRating],
+    [page, sortBy, selectedGenre, selectedLanguage, selectedYear, getEffectiveRating],
   );
 
   useEffect(() => {
     loadShows(true);
-  }, [selectedGenre, sortBy, selectedLanguage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedGenre, sortBy, selectedLanguage, selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Infinite scroll observer
   useEffect(() => {
@@ -269,19 +285,35 @@ export default function BrowseTV() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="text-gray-400 text-sm">Sort by:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-gray-400 text-sm">Year:</label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none"
+                >
+                  {YEAR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-gray-400 text-sm">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         )}

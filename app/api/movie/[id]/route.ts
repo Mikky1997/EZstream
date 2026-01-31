@@ -50,6 +50,17 @@ export async function GET(
       ?.slice(0, 10)
       .map((k) => k.name.charAt(0).toUpperCase() + k.name.slice(1)) || [];
 
+    // Extract trailer from videos (prefer official YouTube trailers)
+    const videosData = (details as { videos?: { results: { key: string; site: string; type: string; official: boolean }[] } }).videos;
+    const trailers = videosData?.results?.filter(
+      (v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser")
+    ) || [];
+    // Prefer official trailers, then any trailer
+    const trailer = trailers.find((t) => t.official && t.type === "Trailer")
+      || trailers.find((t) => t.type === "Trailer")
+      || trailers[0];
+    const trailerKey = trailer?.key || null;
+
     return NextResponse.json(
       {
         ...details,
@@ -59,6 +70,8 @@ export async function GET(
         writers,
         // Tags from TMDB keywords
         tags,
+        // Trailer
+        trailerKey,
         // Ratings
         imdbRating: omdbData?.imdbRating || null,
         imdbVotes: omdbData?.imdbVotes || null,
