@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     if (process.env.NODE_ENV === 'development') {
       console.error('Error caught by boundary:', error, errorInfo);
     }
-    // In production, you could send to an error reporting service like Sentry
+    // In production, you could send to an error reporting service
   }
 
   handleRetry = () => {
