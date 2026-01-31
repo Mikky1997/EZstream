@@ -264,8 +264,12 @@ export async function discoverMoviesWithFilters(
     page,
     sort_by: sortBy,
     include_adult: false,
-    "vote_count.gte": actualMinVotes,
   };
+
+  // Only add vote_count.gte if it's greater than 0
+  if (actualMinVotes > 0) {
+    params["vote_count.gte"] = actualMinVotes;
+  }
 
   if (genre) {
     params.with_genres = genre;
@@ -316,8 +320,12 @@ export async function discoverTVWithFilters(
     page,
     sort_by: sortBy,
     include_adult: false,
-    "vote_count.gte": actualMinVotes,
   };
+
+  // Only add vote_count.gte if it's greater than 0
+  if (actualMinVotes > 0) {
+    params["vote_count.gte"] = actualMinVotes;
+  }
 
   if (genre) {
     params.with_genres = genre;

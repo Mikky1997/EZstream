@@ -370,6 +370,28 @@ export default function WatchPage() {
               <>
                 {/* Desktop Episode List */}
                 <div className="hidden lg:block w-80 flex-shrink-0">
+                  {/* TV Show quick actions above episode list on desktop */}
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    {item.trailerKey && (
+                      <a
+                        href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        Trailer
+                      </a>
+                    )}
+                    <MediaActions
+                      mediaType={type}
+                      mediaId={parseInt(id)}
+                      title={title}
+                      posterPath={item.poster_path}
+                    />
+                  </div>
                   <div
                     className="sticky top-20"
                     style={{ maxHeight: "calc(100vh - 120px)" }}
@@ -386,8 +408,52 @@ export default function WatchPage() {
                   </div>
                 </div>
 
-                {/* Mobile Episode Button */}
+                {/* Mobile: Quick actions above episode selector */}
                 <div className="lg:hidden mb-4">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    {item.trailerKey && (
+                      <a
+                        href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        Trailer
+                      </a>
+                    )}
+                    <MediaActions
+                      mediaType={type}
+                      mediaId={parseInt(id)}
+                      title={title}
+                      posterPath={item.poster_path}
+                    />
+                    {user && (
+                      <button
+                        onClick={markAsWatched}
+                        disabled={markingWatched || isMarkedWatched}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          isMarkedWatched
+                            ? "bg-green-600 text-white cursor-default"
+                            : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
+                        } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        {isMarkedWatched ? (
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                        <span>{isMarkedWatched ? "Watched" : "Watched"}</span>
+                      </button>
+                    )}
+                  </div>
+                  {/* Mobile Episode Button */}
                   <button
                     onClick={() => setShowEpisodePanel(true)}
                     className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center justify-between"
@@ -517,97 +583,26 @@ export default function WatchPage() {
                   )}
                 </div>
 
-                {/* Tags from TMDB keywords (more descriptive than genres) */}
+                {/* Tags - simplified styling */}
                 {((item.tags?.length ?? 0) > 0 || genres.length > 0) && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {/* Show TMDB keyword tags if available, otherwise show genres */}
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {(item.tags && item.tags.length > 0 ? item.tags : genres.map((g) => g.name))
-                      .slice(0, 8)
+                      .slice(0, 6)
                       .map((tag) => (
                         <span
                           key={tag}
-                          className="bg-gray-700/80 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-600/50"
+                          className="text-gray-400 text-xs"
                         >
                           {tag}
                         </span>
-                      ))}
-                  </div>
-                )}
-
-                {/* Director/Creator - clickable with direct link */}
-                {((item.directors?.length ?? 0) > 0 || item.director) && (
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-gray-500 text-sm font-medium">
-                      {type === "tv" ? "Creator:" : "Director:"}
-                    </span>
-                    {item.directors && item.directors.length > 0 ? (
-                      item.directors.map((person) => (
-                        <Link
-                          key={person.id}
-                          href={`/person/${person.id}`}
-                          className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500"
-                        >
-                          {person.name}
-                        </Link>
                       ))
-                    ) : item.director ? (
-                      item.director.split(", ").map((name) => (
-                        <Link
-                          key={name}
-                          href={`/?q=${encodeURIComponent(name.trim())}`}
-                          className="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500"
-                        >
-                          {name.trim()}
-                        </Link>
-                      ))
-                    ) : null}
-                  </div>
-                )}
-
-                {/* Writers - clickable with direct link */}
-                {((item.writers?.length ?? 0) > 0 || item.writer) && (
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-gray-500 text-sm font-medium">Writers:</span>
-                    {item.writers && item.writers.length > 0 ? (
-                      item.writers.map((person) => (
-                        <Link
-                          key={person.id}
-                          href={`/person/${person.id}`}
-                          className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-purple-500/30 hover:border-purple-500"
-                        >
-                          {person.name}
-                        </Link>
-                      ))
-                    ) : item.writer ? (
-                      item.writer.split(", ").slice(0, 5).map((name) => {
-                        const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
-                        return (
-                          <Link
-                            key={name}
-                            href={`/?q=${encodeURIComponent(cleanName)}`}
-                            className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-purple-500/30 hover:border-purple-500"
-                          >
-                            {name.trim()}
-                          </Link>
-                        );
-                      })
-                    ) : null}
-                  </div>
-                )}
-
-                {/* Cast / Stars - clickable with direct link */}
-                {item.credits?.cast && item.credits.cast.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="text-gray-500 text-sm font-medium">Stars:</span>
-                    {item.credits.cast.slice(0, 5).map((actor) => (
-                      <Link
-                        key={actor.id}
-                        href={`/person/${actor.id}`}
-                        className="bg-gray-700/50 hover:bg-gray-600 text-gray-300 hover:text-white px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-600/50 hover:border-gray-500"
-                      >
-                        {actor.name}
-                      </Link>
-                    ))}
+                      .reduce((acc: React.ReactNode[], elem, i, arr) => {
+                        acc.push(elem);
+                        if (i < arr.length - 1) {
+                          acc.push(<span key={`sep-${i}`} className="text-gray-600">•</span>);
+                        }
+                        return acc;
+                      }, [])}
                   </div>
                 )}
 
@@ -616,125 +611,106 @@ export default function WatchPage() {
                     {overview}
                   </p>
                 )}
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Watch Trailer Button */}
-                  {item.trailerKey && (
-                    <a
-                      href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                      Trailer
-                    </a>
-                  )}
-                  <MediaActions
-                    mediaType={type}
-                    mediaId={parseInt(id)}
-                    title={title}
-                    posterPath={item.poster_path}
-                  />
-                  {/* Mark as Watched button */}
-                  {user && (
-                    <button
-                      onClick={markAsWatched}
-                      disabled={markingWatched || isMarkedWatched}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        isMarkedWatched
-                          ? "bg-green-600 text-white cursor-default"
-                          : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
-                      } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                      title={
-                        isMarkedWatched
-                          ? "Marked as watched"
-                          : "Mark as watched (removes from Continue Watching)"
-                      }
-                    >
-                      {isMarkedWatched ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
+
+                {/* Action buttons row - for movies only (TV shows have buttons above episode list) */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  {/* Left side: Trailer, Watchlist, Mark as Watched - Movies only */}
+                  {!isTVShow && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Watch Trailer Button */}
+                      {item.trailerKey && (
+                        <a
+                          href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
                         >
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                          Trailer
+                        </a>
                       )}
-                      <span>
-                        {isMarkedWatched ? "Watched" : "Mark as Watched"}
-                      </span>
-                    </button>
+                      <MediaActions
+                        mediaType={type}
+                        mediaId={parseInt(id)}
+                        title={title}
+                        posterPath={item.poster_path}
+                      />
+                      {/* Mark as Watched button */}
+                      {user && (
+                        <button
+                          onClick={markAsWatched}
+                          disabled={markingWatched || isMarkedWatched}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                            isMarkedWatched
+                              ? "bg-green-600 text-white cursor-default"
+                              : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
+                          } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+                          title={
+                            isMarkedWatched
+                              ? "Marked as watched"
+                              : "Mark as watched (removes from Continue Watching)"
+                          }
+                        >
+                          {isMarkedWatched ? (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          <span>{isMarkedWatched ? "Watched" : "Watched"}</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Right side: Source selector and next source */}
+                  {availableSources.length > 0 && (
+                    <div className={`flex items-center gap-2 ${isTVShow ? 'w-full justify-end' : ''}`}>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowSourceSelector(!showSourceSelector)}
+                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
+                        >
+                          <span>{currentSource?.name}</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {showSourceSelector && (
+                          <div className="absolute top-full right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]">
+                            {availableSources.map((source, index) => (
+                              <button
+                                key={source.source}
+                                onClick={() => switchSource(index)}
+                                className={`w-full text-left px-4 py-2.5 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-sm ${
+                                  index === currentSourceIndex
+                                    ? "bg-red-900 text-red-200"
+                                    : "text-white"
+                                }`}
+                              >
+                                {source.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {currentSourceIndex < availableSources.length - 1 && (
+                        <button
+                          onClick={tryNextSource}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm border border-gray-600"
+                        >
+                          Next →
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
-
-              {/* Source Selector */}
-              {availableSources.length > 0 && (
-                <div className="mb-4 flex flex-wrap items-center gap-3">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowSourceSelector(!showSourceSelector)}
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
-                    >
-                      <span>Source: {currentSource?.name}</span>
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {showSourceSelector && (
-                      <div className="absolute top-full left-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]">
-                        {availableSources.map((source, index) => (
-                          <button
-                            key={source.source}
-                            onClick={() => switchSource(index)}
-                            className={`w-full text-left px-4 py-2.5 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-sm ${
-                              index === currentSourceIndex
-                                ? "bg-blue-900 text-blue-200"
-                                : "text-white"
-                            }`}
-                          >
-                            {source.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {currentSourceIndex < availableSources.length - 1 && (
-                    <button
-                      onClick={tryNextSource}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm"
-                    >
-                      Try next source →
-                    </button>
-                  )}
-                </div>
-              )}
 
               {/* Video Player */}
               {streamingSource && (
@@ -745,6 +721,79 @@ export default function WatchPage() {
                   <VideoPlayer source={streamingSource} title={title} />
                 </div>
               )}
+
+              {/* Credits - Netflix style simple links under the player */}
+              <div className="mb-4 text-sm space-y-1">
+                {/* Director/Creator */}
+                {((item.directors?.length ?? 0) > 0 || item.director) && (
+                  <div className="flex flex-wrap items-center gap-x-1">
+                    <span className="text-gray-500">{type === "tv" ? "Creator:" : "Director:"}</span>
+                    {item.directors && item.directors.length > 0 ? (
+                      item.directors.map((person, i) => (
+                        <span key={person.id}>
+                          <Link href={`/person/${person.id}`} className="text-white hover:underline">
+                            {person.name}
+                          </Link>
+                          {i < item.directors!.length - 1 && <span className="text-gray-500">,</span>}
+                        </span>
+                      ))
+                    ) : item.director ? (
+                      item.director.split(", ").map((name, i, arr) => (
+                        <span key={name}>
+                          <Link href={`/?q=${encodeURIComponent(name.trim())}`} className="text-white hover:underline">
+                            {name.trim()}
+                          </Link>
+                          {i < arr.length - 1 && <span className="text-gray-500">,</span>}
+                        </span>
+                      ))
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Writers */}
+                {((item.writers?.length ?? 0) > 0 || item.writer) && (
+                  <div className="flex flex-wrap items-center gap-x-1">
+                    <span className="text-gray-500">Writers:</span>
+                    {item.writers && item.writers.length > 0 ? (
+                      item.writers.map((person, i) => (
+                        <span key={person.id}>
+                          <Link href={`/person/${person.id}`} className="text-white hover:underline">
+                            {person.name}
+                          </Link>
+                          {i < item.writers!.length - 1 && <span className="text-gray-500">,</span>}
+                        </span>
+                      ))
+                    ) : item.writer ? (
+                      item.writer.split(", ").slice(0, 5).map((name, i, arr) => {
+                        const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
+                        return (
+                          <span key={name}>
+                            <Link href={`/?q=${encodeURIComponent(cleanName)}`} className="text-white hover:underline">
+                              {name.trim()}
+                            </Link>
+                            {i < arr.length - 1 && <span className="text-gray-500">,</span>}
+                          </span>
+                        );
+                      })
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Cast / Stars */}
+                {item.credits?.cast && item.credits.cast.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-1">
+                    <span className="text-gray-500">Stars:</span>
+                    {item.credits.cast.slice(0, 5).map((actor, i, arr) => (
+                      <span key={actor.id}>
+                        <Link href={`/person/${actor.id}`} className="text-white hover:underline">
+                          {actor.name}
+                        </Link>
+                        {i < arr.length - 1 && <span className="text-gray-500">,</span>}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Source Error */}
               {sourceError && (

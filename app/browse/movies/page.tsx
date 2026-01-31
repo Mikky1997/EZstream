@@ -242,7 +242,7 @@ export default function BrowseMovies() {
 
         {/* Filters - hide when searching */}
         {!isSearching && (
-          <div className="mb-8 space-y-4">
+          <div className="mb-8 space-y-4 overflow-visible">
             <div>
               <h3 className="text-gray-400 text-sm mb-2">Country / Language</h3>
               <div className="flex flex-wrap gap-2">
@@ -298,7 +298,7 @@ export default function BrowseMovies() {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none"
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-base"
                 >
                   {YEAR_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>

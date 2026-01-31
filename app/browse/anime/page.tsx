@@ -206,7 +206,7 @@ export default function BrowseAnime() {
                 onClick={() => setActiveTab("tv")}
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   activeTab === "tv"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-red-600 text-white"
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
@@ -216,7 +216,7 @@ export default function BrowseAnime() {
                 onClick={() => setActiveTab("movies")}
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   activeTab === "movies"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-red-600 text-white"
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
@@ -234,7 +234,7 @@ export default function BrowseAnime() {
                     onClick={() => setSelectedCategory(category.id)}
                     className={`px-4 py-2 rounded-full text-sm transition-colors ${
                       selectedCategory === category.id
-                        ? "bg-purple-600 text-white"
+                        ? "bg-red-600 text-white"
                         : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                     }`}
                   >
@@ -251,13 +251,13 @@ export default function BrowseAnime() {
           {isSearching ? (
             <span>
               Found{" "}
-              <span className="text-purple-400">{searchResults.length}</span>{" "}
+              <span className="text-red-400">{searchResults.length}</span>{" "}
               anime results
             </span>
           ) : (
             <>
               Showing:{" "}
-              <span className="text-purple-400">
+              <span className="text-red-400">
                 {ANIME_CATEGORIES.find((c) => c.id === selectedCategory)?.name}
               </span>{" "}
               {activeTab === "tv" ? "anime series" : "anime movies"}

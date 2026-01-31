@@ -6,6 +6,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import QueryProvider from "./providers/QueryProvider";
 
 // Viewport configuration for better mobile experience
 export const viewport: Viewport = {
@@ -89,15 +90,17 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-gray-900">
         <ErrorBoundary>
-          <ThemeProvider>
-            <AuthProvider>
-              <WatchlistProvider>
-                <Navbar />
-                {children}
-                <BackToTop />
-              </WatchlistProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <WatchlistProvider>
+                  <Navbar />
+                  {children}
+                  <BackToTop />
+                </WatchlistProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </ErrorBoundary>
       </body>
     </html>
