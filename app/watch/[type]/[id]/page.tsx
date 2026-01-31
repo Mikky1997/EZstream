@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
 import EpisodeList from "@/app/components/EpisodeList";
@@ -18,6 +19,18 @@ import { isAnimeContent } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 
+// Fetch media content (movie or TV show)
+async function fetchMediaContent(type: "movie" | "tv", id: string): Promise<Movie | TVShow> {
+  const apiEndpoint = type === "movie" ? `/api/movie/${id}` : `/api/tv/${id}`;
+  const response = await fetch(apiEndpoint);
+  
+  if (!response.ok) {
+    throw new Error("Failed to load content");
+  }
+  
+  return response.json();
+}
+
 interface Season {
   season_number: number;
   episode_count: number;
@@ -30,15 +43,23 @@ export default function WatchPage() {
   const id = params.id as string;
   const { user } = useAuth();
 
-  const [item, setItem] = useState<Movie | TVShow | null>(null);
-  const [imdbId, setImdbId] = useState<string | null>(null);
-  const [tmdbId, setTmdbId] = useState<string>(id);
+  // Use React Query for data fetching
+  const { data: item, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ["media", type, id],
+    queryFn: () => fetchMediaContent(type, id),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+  });
+
+  const error = queryError ? "Failed to load content. Please try again." : null;
+  const imdbId = item?.imdbId || null;
+  const tmdbId = id;
+  const seasons = (type === "tv" && item && "seasons" in item) ? (item as TVShow).seasons || [] : [];
+
   const [streamingSource, setStreamingSource] =
     useState<StreamingSource | null>(null);
   const [availableSources, setAvailableSources] = useState<EmbedUrl[]>([]);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showSourceSelector, setShowSourceSelector] = useState(false);
   const [sourceError, setSourceError] = useState(false);
 
@@ -150,66 +171,15 @@ export default function WatchPage() {
     }
   }, [item, updateSourcesForEpisode]);
 
-  const loadContent = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const apiEndpoint =
-        type === "movie" ? `/api/movie/${id}` : `/api/tv/${id}`;
-      const response = await fetch(apiEndpoint);
-
-      if (!response.ok) {
-        throw new Error("Failed to load content");
-      }
-
-      const data = await response.json();
-      setItem(data);
-      setTmdbId(id);
-      const imdb = data.imdbId || null;
-      setImdbId(imdb);
-
-      // For TV shows, get season info
-      if (type === "tv" && data.seasons) {
-        setSeasons(data.seasons);
-      }
-
-      // Get sources - check if content is anime for optimized ordering
-      const isAnime = isAnimeContent(data);
-      const sources = getAllEmbedUrls(
-        imdb || "",
-        id,
-        type,
-        season,
-        episode,
-        isAnime,
-      );
-      setAvailableSources(sources);
-
-      if (sources.length > 0) {
-        setStreamingSource({ type: "vidsrc", url: sources[0].url });
-      }
-    } catch (err) {
-      setError("Failed to load content. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [type, id, season, episode]);
-
-  // Load content and clean up interval on unmount
+  // Clean up interval on unmount
   useEffect(() => {
-    loadContent();
-
-    // Capture ref value for cleanup
     const interval = progressInterval.current;
-
     return () => {
       if (interval) {
         clearInterval(interval);
       }
     };
-  }, [loadContent]);
+  }, []);
 
   const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
     setSeason(newSeason);
@@ -434,22 +404,23 @@ export default function WatchPage() {
                       <button
                         onClick={markAsWatched}
                         disabled={markingWatched || isMarkedWatched}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                           isMarkedWatched
                             ? "bg-green-600 text-white cursor-default"
                             : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
                         } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+                        title={isMarkedWatched ? "Marked as watched" : "Mark as watched"}
                       >
                         {isMarkedWatched ? (
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                           </svg>
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         )}
-                        <span>{isMarkedWatched ? "Watched" : "Watched"}</span>
                       </button>
                     )}
                   </div>
@@ -583,26 +554,15 @@ export default function WatchPage() {
                   )}
                 </div>
 
-                {/* Tags - simplified styling */}
-                {((item.tags?.length ?? 0) > 0 || genres.length > 0) && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {(item.tags && item.tags.length > 0 ? item.tags : genres.map((g) => g.name))
-                      .slice(0, 6)
-                      .map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-gray-400 text-xs"
-                        >
-                          {tag}
-                        </span>
-                      ))
-                      .reduce((acc: React.ReactNode[], elem, i, arr) => {
-                        acc.push(elem);
-                        if (i < arr.length - 1) {
-                          acc.push(<span key={`sep-${i}`} className="text-gray-600">•</span>);
-                        }
-                        return acc;
-                      }, [])}
+                {/* Genres - simple text with dots */}
+                {genres.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3 text-gray-400 text-xs">
+                    {genres.slice(0, 4).map((genre, i) => (
+                      <span key={genre.id}>
+                        {genre.name}
+                        {i < Math.min(genres.length, 4) - 1 && <span className="ml-1.5 text-gray-600">•</span>}
+                      </span>
+                    ))}
                   </div>
                 )}
 
@@ -642,27 +602,23 @@ export default function WatchPage() {
                         <button
                           onClick={markAsWatched}
                           disabled={markingWatched || isMarkedWatched}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                             isMarkedWatched
                               ? "bg-green-600 text-white cursor-default"
                               : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
                           } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                          title={
-                            isMarkedWatched
-                              ? "Marked as watched"
-                              : "Mark as watched (removes from Continue Watching)"
-                          }
+                          title={isMarkedWatched ? "Marked as watched" : "Mark as watched"}
                         >
                           {isMarkedWatched ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                             </svg>
                           ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           )}
-                          <span>{isMarkedWatched ? "Watched" : "Watched"}</span>
                         </button>
                       )}
                     </div>
@@ -682,16 +638,26 @@ export default function WatchPage() {
                           </svg>
                         </button>
                         {showSourceSelector && (
-                          <div className="absolute top-full right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]">
+                          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: '#1f2937' }}>
                             {availableSources.map((source, index) => (
                               <button
                                 key={source.source}
                                 onClick={() => switchSource(index)}
-                                className={`w-full text-left px-4 py-2.5 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-sm ${
-                                  index === currentSourceIndex
-                                    ? "bg-red-900 text-red-200"
-                                    : "text-white"
-                                }`}
+                                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-700 last:border-b-0 text-sm"
+                                style={{
+                                  backgroundColor: index === currentSourceIndex ? '#7f1d1d' : 'transparent',
+                                  color: index === currentSourceIndex ? '#fecaca' : 'white',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (index !== currentSourceIndex) {
+                                    e.currentTarget.style.backgroundColor = '#374151';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (index !== currentSourceIndex) {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }
+                                }}
                               >
                                 {source.name}
                               </button>
