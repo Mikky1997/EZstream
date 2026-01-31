@@ -446,17 +446,7 @@ export default function WatchPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {backdropPath && (
-        <div className="absolute inset-0 opacity-10">
-          <Image
-            src={backdropPath}
-            alt={title}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-      )}
+
 
       <div className="relative z-10">
         {/* Header */}

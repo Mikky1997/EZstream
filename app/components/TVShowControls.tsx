@@ -226,7 +226,7 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={seasonRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
-          className="flex items-center gap-1.5 bg-gray-800 text-white pl-3 pr-9 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[100px]"
+          className="flex items-center gap-1.5 bg-gray-800 text-white pl-2 pr-8 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
             backgroundPosition: 'right 8px center',
