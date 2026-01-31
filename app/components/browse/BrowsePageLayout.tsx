@@ -15,10 +15,6 @@ import { COUNTRY_OPTIONS, DEFAULT_SORT } from "@/lib/constants/browse";
 import type { MediaType, MediaItem, GenreOption, SortOption } from "@/types";
 
 interface BrowsePageLayoutProps {
-  /** Page title */
-  title: string;
-  /** Page subtitle/description */
-  subtitle: string;
   /** Media type for this page */
   mediaType: MediaType;
   /** Available genres for this media type */
@@ -27,8 +23,6 @@ interface BrowsePageLayoutProps {
   sortOptions: readonly SortOption[];
   /** Year options for the filter */
   yearOptions: readonly { value: string; label: string }[];
-  /** Accent color for active filters */
-  accentColor?: "blue" | "red" | "purple";
   /** Search bar placeholder */
   searchPlaceholder?: string;
   /** Filter type for search */
@@ -45,27 +39,20 @@ interface BrowsePageLayoutProps {
  * @example
  * ```tsx
  * <BrowsePageLayout
- *   title="Browse Movies"
- *   subtitle="Discover movies from around the world"
  *   mediaType="movie"
  *   genres={MOVIE_GENRES}
  *   sortOptions={MOVIE_SORT_OPTIONS}
  *   yearOptions={MOVIE_YEAR_OPTIONS}
- *   accentColor="blue"
  *   searchPlaceholder="Search movies..."
- *   searchFilterType="movie"
  *   mediaLabel="movies"
  * />
  * ```
  */
 export function BrowsePageLayout({
-  title,
-  subtitle,
   mediaType,
   genres,
   sortOptions,
   yearOptions,
-  accentColor = "blue",
   searchPlaceholder = "Search...",
   searchFilterType = "all",
   mediaLabel = "items",
@@ -94,13 +81,6 @@ export function BrowsePageLayout({
       label: c.flag ? `${c.flag} ${c.label}` : c.label 
     })),
   []);
-
-  // Accent text class for status
-  const accentTextClass = {
-    blue: "text-blue-400",
-    red: "text-red-400",
-    purple: "text-purple-400",
-  }[accentColor];
 
   // Fetch data using TanStack Query
   const {
@@ -146,13 +126,9 @@ export function BrowsePageLayout({
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
-        <p className="text-gray-400 mb-4">{subtitle}</p>
-
+      <div className="container mx-auto px-4 py-4">
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-4">
           <SearchBar
             onSearch={() => {}}
             onLiveResults={handleLiveResults}
@@ -204,20 +180,20 @@ export function BrowsePageLayout({
         <div className="mb-4 text-sm text-gray-400">
           {isSearching ? (
             <span>
-              Found <span className={accentTextClass}>{searchResults.length}</span>{" "}
+              Found <span className="text-accent">{searchResults.length}</span>{" "}
               results
             </span>
           ) : (
             <>
               Showing:{" "}
-              <span className={accentTextClass}>
+              <span className="text-accent">
                 {selectedCountry?.flag} {selectedCountry?.label}
               </span>{" "}
               {mediaLabel}
               {selectedGenreName && (
                 <span>
                   {" "}
-                  in <span className="text-purple-400">{selectedGenreName}</span>
+                  in <span className="text-accent">{selectedGenreName}</span>
                 </span>
               )}
             </>

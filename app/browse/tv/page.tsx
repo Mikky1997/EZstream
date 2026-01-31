@@ -10,13 +10,10 @@ import {
 export default function BrowseTV() {
   return (
     <BrowsePageLayout
-      title="Browse TV Shows"
-      subtitle="Discover TV series from around the world"
       mediaType="tv"
       genres={TV_GENRES}
       sortOptions={TV_SORT_OPTIONS}
       yearOptions={TV_YEAR_OPTIONS}
-      accentColor="blue"
       searchPlaceholder="Search TV shows..."
       searchFilterType="tv"
       mediaLabel="TV shows"
