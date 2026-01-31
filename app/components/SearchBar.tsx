@@ -30,7 +30,7 @@ interface SearchResult {
 export default function SearchBar({
   onSearch,
   onLiveResults,
-
+  loading = false,
   placeholder = "Search movies, TV shows, anime...",
   mobilePlaceholder = "Search...",
   autoFocus = false,
