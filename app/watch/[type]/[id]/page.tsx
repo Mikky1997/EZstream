@@ -340,7 +340,7 @@ export default function WatchPage() {
     <button
       onClick={toggleWatched}
       disabled={markingWatched}
-      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all flex-shrink-0 ${
         isMarkedWatched
           ? "bg-green-600 text-white hover:bg-green-700"
           : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
@@ -362,13 +362,13 @@ export default function WatchPage() {
 
   const sourceControls = availableSources.length > 0 ? (
     <>
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <button
           onClick={() => setShowSourceSelector(!showSourceSelector)}
-          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
+          className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1.5 text-sm"
         >
-          <span>{currentSource?.name}</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="max-w-[80px] truncate">{currentSource?.name}</span>
+          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -403,9 +403,12 @@ export default function WatchPage() {
       {currentSourceIndex < availableSources.length - 1 && (
         <button
           onClick={tryNextSource}
-          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm border border-gray-600"
+          className="flex items-center justify-center w-9 h-9 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 flex-shrink-0"
+          title="Try next source"
         >
-          Next →
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       )}
     </>
@@ -472,13 +475,13 @@ export default function WatchPage() {
                 {/* Desktop Episode List */}
                 <div className="hidden lg:block w-80 flex-shrink-0">
                   {/* TV Show quick actions above episode list on desktop */}
-                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <div className="mb-4 flex items-center gap-1.5 flex-nowrap overflow-x-auto">
                     {item.trailerKey && (
                       <a
                         href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -515,13 +518,13 @@ export default function WatchPage() {
 
                 {/* Mobile: Quick actions above episode selector */}
                 <div className="lg:hidden mb-4">
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto mb-3">
                     {item.trailerKey && (
                       <a
                         href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -683,17 +686,17 @@ export default function WatchPage() {
                 )}
 
                 {/* Action buttons row - for movies only (TV shows have buttons above episode list) */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
                   {/* Left side: Trailer, Watchlist, Mark as Watched - Movies only */}
                   {!isTVShow && (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-nowrap">
                       {/* Watch Trailer Button */}
                       {item.trailerKey && (
                         <a
                           href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -714,7 +717,7 @@ export default function WatchPage() {
 
                   {/* Right side: Source selector and next source */}
               {!isTVShow && sourceControls && (
-                <div className="flex items-center gap-2">{sourceControls}</div>
+                <div className="flex items-center gap-1.5 flex-nowrap">{sourceControls}</div>
               )}
                 </div>
               </div>

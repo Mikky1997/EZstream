@@ -40,7 +40,9 @@ export async function fetchBrowsePage(
   page: number
 ): Promise<BrowseResponse> {
   const params = buildBrowseParams(options, page);
-  const response = await fetch(`/api/browse/${options.mediaType}?${params}`);
+  // Map mediaType to API route (movie -> movies, tv -> tv)
+  const apiRoute = options.mediaType === "movie" ? "movies" : options.mediaType;
+  const response = await fetch(`/api/browse/${apiRoute}?${params}`);
 
   if (!response.ok) {
     throw new Error(`Browse API error: ${response.status}`);

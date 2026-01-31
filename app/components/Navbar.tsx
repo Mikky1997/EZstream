@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
-import ThemeToggle from "./ThemeToggle";
 
 interface SearchResult {
   id: number;
@@ -208,8 +207,6 @@ export default function Navbar() {
 
           {/* Search + User - Right (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
-
             {/* Search */}
             <div ref={searchWrapperRef} className="relative">
               {showNavSearch ? (
@@ -354,10 +351,7 @@ export default function Navbar() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-bold">
-                    {user.displayName[0].toUpperCase()}
-                  </div>
-                  <span className="hidden lg:inline">{user.displayName}</span>
+                  <span>{user.displayName}</span>
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -400,9 +394,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile - Theme + Search + Menu Button */}
+          {/* Mobile - Search + Menu Button */}
           <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
             <button
               onClick={() => setShowNavSearch(!showNavSearch)}
               className="p-2 text-gray-300 hover:text-white"
@@ -606,18 +599,13 @@ export default function Navbar() {
               <div className="border-t border-gray-700 mt-2 pt-2">
                 {user ? (
                   <>
-                    <div className="px-4 py-3 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-lg font-bold text-white">
-                        {user.displayName[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">
-                          {user.displayName}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          @{user.username}
-                        </p>
-                      </div>
+                    <div className="px-4 py-3">
+                      <p className="text-white font-medium">
+                        {user.displayName}
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        @{user.username}
+                      </p>
                     </div>
                     <button
                       onClick={() => {

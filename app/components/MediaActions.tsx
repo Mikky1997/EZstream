@@ -70,7 +70,7 @@ export default function MediaActions({
     <button
       onClick={toggleWatchlist}
       disabled={isPending}
-      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all flex-shrink-0 ${
         inWatchlist
           ? 'bg-red-600 text-white hover:bg-red-700'
           : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
