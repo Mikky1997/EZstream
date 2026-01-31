@@ -373,26 +373,16 @@ export default function WatchPage() {
           </svg>
         </button>
         {showSourceSelector && (
-          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: "#000000" }}>
+          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px] bg-black">
             {availableSources.map((source, index) => (
               <button
                 key={source.source}
                 onClick={() => switchSource(index)}
-                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm"
-                style={{
-                  backgroundColor: index === currentSourceIndex ? "#7f1d1d" : "transparent",
-                  color: index === currentSourceIndex ? "#fecaca" : "white",
-                }}
-                onMouseEnter={(e) => {
-                  if (index !== currentSourceIndex) {
-                    e.currentTarget.style.backgroundColor = "#1f2937";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (index !== currentSourceIndex) {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }
-                }}
+                className={`w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
+                  index === currentSourceIndex 
+                    ? "source-active" 
+                    : "text-white hover:bg-gray-700"
+                }`}
               >
                 {source.name}
               </button>

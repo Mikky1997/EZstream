@@ -38,13 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background:
-          "linear-gradient(to bottom, #4B0000 0%, #2D0000 20%, #0D0000 40%, #000000 100%)",
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center px-4 login-gradient">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">

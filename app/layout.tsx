@@ -11,11 +11,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import QueryProvider from "./providers/QueryProvider";
 
 // Viewport configuration for better mobile experience
+// NOTE: themeColor must match --bg-primary in globals.css
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#030305",
+  themeColor: "#030305", // Matches --bg-primary CSS variable
 };
 
 export const metadata: Metadata = {

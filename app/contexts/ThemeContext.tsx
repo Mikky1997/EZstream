@@ -4,8 +4,6 @@ import { createContext, useContext, useEffect, useMemo } from "react";
 
 export type ThemeName = "charcoal";
 
-const THEME_COLOR = "#0a0c12";
-
 type ThemeContextValue = {
   theme: ThemeName;
 };
@@ -21,9 +19,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     root.dataset.theme = theme;
 
+    // Read theme color from CSS variable
+    const themeColor = getComputedStyle(root).getPropertyValue("--bg-elevated").trim();
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute("content", THEME_COLOR);
+    if (meta && themeColor) {
+      meta.setAttribute("content", themeColor);
     }
   }, [theme]);
 

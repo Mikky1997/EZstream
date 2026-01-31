@@ -4,23 +4,45 @@
 
 /* Default/Dark theme */
 :root {
+  /* Background colors */
   --bg-primary: #030305;
   --bg-elevated: #0a0c12;
   --bg-muted: #08090e;
   --bg-deep: #000000;
+  
+  /* Border colors */
   --border-strong: #1a1a1f;
   --border-regular: #2a2a30;
   --border-soft: #3a3a40;
+  
+  /* Text colors */
   --text-primary: #f5f5f5;
   --text-secondary: #d4d4d4;
   --text-muted: #a3a3a3;
+  
+  /* Primary accent (brand color) */
   --accent: #e50914;
-  /* Danger/Red color palette - change these to update all red colors */
-  --danger: #9f1239;           /* Primary red (bg-red-600) */
-  --danger-hover: #881337;     /* Darker red for hover (bg-red-700) */
-  --danger-light: #be123c;     /* Lighter red (bg-red-500) */
-  --danger-text: #fb7185;      /* Red text color (text-red-400) */
-  --danger-text-light: #fecdd3; /* Light red text (text-red-200) */
+  
+  /* Danger/Red palette */
+  --danger: #9f1239;
+  --danger-hover: #881337;
+  --danger-light: #be123c;
+  --danger-text: #fb7185;
+  --danger-text-light: #fecdd3;
+  
+  /* Success/Green palette */
+  --success: #16a34a;
+  --success-hover: #15803d;
+  --success-text: #4ade80;
+  
+  /* Badge colors - for movie/TV type indicators */
+  --badge-bg: #000000;
+  --badge-text: #d4d4d4;
+  
+  /* Interactive states */
+  --hover-overlay: #1f2937;
+  --active-bg: #7f1d1d;
+  --active-text: #fecaca;
 }
 
 :root[data-theme="charcoal"] {
@@ -40,6 +62,14 @@
   --danger-light: #be123c;
   --danger-text: #fb7185;
   --danger-text-light: #fecdd3;
+  --success: #16a34a;
+  --success-hover: #15803d;
+  --success-text: #4ade80;
+  --badge-bg: #000000;
+  --badge-text: #d4d4d4;
+  --hover-overlay: #1f2937;
+  --active-bg: #7f1d1d;
+  --active-text: #fecaca;
 }
 
 /* Light theme removed - dark only */
@@ -255,6 +285,42 @@ html[data-theme] .text-gray-500,
   background-color: var(--danger) !important;
 }
 
+/* ===== BADGE COLOR OVERRIDES ===== */
+/* Movie/TV type badges use neutral black background */
+.bg-blue-900 {
+  background-color: var(--badge-bg) !important;
+}
+
+.bg-purple-900 {
+  background-color: var(--badge-bg) !important;
+}
+
+.text-blue-300,
+.text-purple-300 {
+  color: var(--badge-text) !important;
+}
+
+/* ===== GREEN/SUCCESS COLOR OVERRIDES ===== */
+.bg-green-600 {
+  background-color: var(--success) !important;
+}
+
+.bg-green-700,
+.hover\:bg-green-700:hover {
+  background-color: var(--success-hover) !important;
+}
+
+.text-green-400 {
+  color: var(--success-text) !important;
+}
+
+/* ===== INTERACTIVE STATE CLASSES ===== */
+/* Active source selection in dropdowns */
+.source-active {
+  background-color: var(--active-bg) !important;
+  color: var(--active-text) !important;
+}
+
 .focus\:ring-blue-500\/20:focus {
   --tw-ring-color: transparent !important;
 }
@@ -284,9 +350,14 @@ html[data-theme] .text-gray-500,
   background: linear-gradient(to bottom, var(--bg-primary), var(--bg-deep)) !important;
 }
 
-/* Netflix-style login gradient - red to black */
+/* Netflix-style login gradient - uses danger color mixed with black */
 .login-gradient {
-  background: linear-gradient(to bottom, #1a0000 0%, #0d0000 30%, #000000 100%) !important;
+  background: linear-gradient(
+    to bottom, 
+    color-mix(in srgb, var(--danger-hover) 30%, var(--bg-deep)) 0%, 
+    color-mix(in srgb, var(--danger-hover) 15%, var(--bg-deep)) 30%, 
+    var(--bg-deep) 100%
+  ) !important;
 }
 
 /* Override Tailwind gradient utility for better mobile support */
