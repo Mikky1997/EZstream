@@ -166,7 +166,6 @@ export default function WatchPage() {
     if (sources.length > 0) {
       setStreamingSource({ type: "vidsrc", url: sources[0].url });
       setCurrentSourceIndex(0);
-      setSourceError(false);
     }
   }, [imdbId, tmdbId, type, season, episode, item]);
 
@@ -176,16 +175,6 @@ export default function WatchPage() {
       updateSourcesForEpisode();
     }
   }, [item, updateSourcesForEpisode]);
-
-  // Clean up interval on unmount
-  useEffect(() => {
-    const interval = progressInterval.current;
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, []);
 
   // Update source dropdown position when opened (for portal)
   useEffect(() => {
