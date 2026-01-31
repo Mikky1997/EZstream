@@ -406,7 +406,7 @@ export default function WatchPage() {
         createPortal(
           <div
             ref={sourcePanelRef}
-            className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto min-w-[220px] bg-gray-900"
+            className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto w-max min-w-[100px] max-w-[180px] bg-gray-900"
             style={{
               top: sourceDropdownRect.bottom + 8,
               right: typeof window !== "undefined" ? window.innerWidth - sourceDropdownRect.right : undefined,
@@ -417,7 +417,7 @@ export default function WatchPage() {
               <button
                 key={source.source}
                 onMouseDown={() => switchSource(index)}
-                className={`w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
+                className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
                   index === currentSourceIndex
                     ? "source-active"
                     : "text-white hover:bg-gray-700"

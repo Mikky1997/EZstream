@@ -254,20 +254,30 @@ export const TVShowControls = memo(function TVShowControls({
                 return (
                   <div
                     key={season.season_number}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                    onMouseDown={() => { onSeasonChange(season.season_number); setShowSeasonDropdown(false); }}
+                    className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
+                    onMouseDown={(e) => {
+                      if ((e.target as HTMLElement).closest('button[data-check]')) return;
+                      onSeasonChange(season.season_number);
+                      setShowSeasonDropdown(false);
+                    }}
                   >
                     {user && (
                       <button
+                        type="button"
+                        data-check
                         onClick={(e) => toggleSeasonWatched(season.season_number, season.episode_count, e)}
-                        className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
-                          allWatched ? 'bg-green-600 text-white' : 'bg-gray-600 hover:bg-gray-500'
+                        className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border ${
+                          allWatched ? 'bg-green-600 border-green-500 text-white' : 'border-gray-500 bg-transparent hover:bg-gray-600'
                         }`}
+                        title={allWatched ? 'Mark season unwatched' : 'Mark season watched'}
+                        aria-label={allWatched ? 'Mark season unwatched' : 'Mark season watched'}
                       >
-                        {allWatched && <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                        {allWatched && (
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        )}
                       </button>
                     )}
-                    <span className="text-sm text-white">{season.name || `Season ${season.season_number}`}</span>
+                    <span className="text-sm text-white flex-1 min-w-0 truncate">{season.name || `Season ${season.season_number}`}</span>
                   </div>
                 );
               })}
@@ -305,20 +315,30 @@ export const TVShowControls = memo(function TVShowControls({
               {episodeOptions.map((ep) => (
                 <div
                   key={ep.number}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                  onMouseDown={() => { onEpisodeChange(ep.number); setShowEpisodeDropdown(false); }}
+                  className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
+                  onMouseDown={(e) => {
+                    if ((e.target as HTMLElement).closest('button[data-check]')) return;
+                    onEpisodeChange(ep.number);
+                    setShowEpisodeDropdown(false);
+                  }}
                 >
                   {user && (
                     <button
+                      type="button"
+                      data-check
                       onClick={(e) => toggleEpisodeWatched(ep.number, ep.watched, e)}
-                      className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
-                        ep.watched ? 'bg-green-600 text-white' : 'bg-gray-600 hover:bg-gray-500'
+                      className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border ${
+                        ep.watched ? 'bg-green-600 border-green-500 text-white' : 'border-gray-500 bg-transparent hover:bg-gray-600'
                       }`}
+                      title={ep.watched ? 'Mark episode unwatched' : 'Mark episode watched'}
+                      aria-label={ep.watched ? 'Mark episode unwatched' : 'Mark episode watched'}
                     >
-                      {ep.watched && <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                      {ep.watched && (
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      )}
                     </button>
                   )}
-                  <span className="text-sm text-white">Episode {ep.number}</span>
+                  <span className="text-sm text-white flex-1 min-w-0">E{ep.number}</span>
                 </div>
               ))}
             </div>,
