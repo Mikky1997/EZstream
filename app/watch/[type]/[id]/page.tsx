@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -55,7 +55,11 @@ export default function WatchPage() {
   // imdbId is added by the API response
   const imdbId = (item as Movie & { imdbId?: string })?.imdbId || null;
   const tmdbId = id;
-  const seasons = (type === "tv" && item && "seasons" in item) ? (item as TVShow & { seasons?: Season[] }).seasons || [] : [];
+  const seasons = useMemo(() => {
+    return (type === "tv" && item && "seasons" in item) 
+      ? (item as TVShow & { seasons?: Season[] }).seasons || [] 
+      : [];
+  }, [item, type]);
 
   const [streamingSource, setStreamingSource] =
     useState<StreamingSource | null>(null);
