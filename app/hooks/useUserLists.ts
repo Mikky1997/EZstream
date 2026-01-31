@@ -45,6 +45,17 @@ export function useWatchHistory() {
     fetchHistory();
   }, [fetchHistory]);
 
+  // Refresh when page becomes visible (e.g., navigating back from watch page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchHistory();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchHistory]);
+
   const updateProgress = async (
     mediaType: 'movie' | 'tv',
     mediaId: number,
