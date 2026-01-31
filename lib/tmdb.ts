@@ -79,6 +79,18 @@ const BLOCKED_TITLE_PATTERNS = [
   /kaifuku.*jutsushi/i, // Redo of Healer (Japanese)
 ];
 
+const UPCOMING_YEARS_AHEAD = 1;
+
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function getUpcomingCutoffDate(yearsAhead: number = UPCOMING_YEARS_AHEAD): string {
+  const cutoff = new Date();
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() + yearsAhead);
+  return formatDate(cutoff);
+}
+
 // Filter out blocked content from results (by ID and title patterns)
 export function filterBlockedContent<
   T extends { id: number; name?: string; title?: string },
@@ -255,6 +267,7 @@ export async function discoverMoviesWithFilters(
   // For "highest rated", require more votes to filter out niche content
   // with inflated ratings, but keep thresholds low to show more movies
   const isHighestRated = sortBy === "vote_average.desc";
+  const isNewestSort = sortBy === "release_date.desc";
   const isAnime = genre === 16 && language === "ja";
 
   let actualMinVotes = minVotes;
@@ -281,6 +294,9 @@ export async function discoverMoviesWithFilters(
   }
   if (year) {
     params.primary_release_year = year;
+  }
+  if (isNewestSort && !year) {
+    params["primary_release_date.lte"] = getUpcomingCutoffDate();
   }
   if (language) {
     params.with_original_language = language;
@@ -311,6 +327,7 @@ export async function discoverTVWithFilters(
   // For "highest rated", require more votes to filter out niche content
   // with inflated ratings, but keep thresholds low to show more content
   const isHighestRated = sortBy === "vote_average.desc";
+  const isNewestSort = sortBy === "first_air_date.desc";
   const isAnime = genre === 16 && language === "ja";
 
   let actualMinVotes = minVotes;
@@ -337,6 +354,9 @@ export async function discoverTVWithFilters(
   }
   if (year) {
     params.first_air_date_year = year;
+  }
+  if (isNewestSort && !year) {
+    params["first_air_date.lte"] = getUpcomingCutoffDate();
   }
   if (language) {
     params.with_original_language = language;

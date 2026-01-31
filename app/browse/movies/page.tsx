@@ -159,7 +159,15 @@ export default function BrowseMovies() {
               setMovies((prev) => [...prev, ...newResults]);
               setPage((prev) => prev + 1);
             }
-            setHasMore((data.results?.length || 0) >= 20);
+            const totalPages =
+              typeof data.total_pages === "number" ? data.total_pages : 0;
+            const currentApiPage =
+              typeof data.page === "number" ? data.page : currentPage;
+            setHasMore(
+              totalPages > 0
+                ? currentApiPage < totalPages
+                : (data.results?.length || 0) >= 20,
+            );
           }
         }
       } catch (err) {
