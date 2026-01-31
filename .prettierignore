@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+dist/
+
+# Database
+data/
+
+# Lock files
+package-lock.json
+
+# Misc
+*.log
+.DS_Store

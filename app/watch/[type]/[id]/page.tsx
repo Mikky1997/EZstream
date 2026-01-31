@@ -8,8 +8,15 @@ import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
 
 import { TVShowControls } from "@/app/components/TVShowControls";
+import { LoadingState, ErrorState, NotFoundState } from "@/app/components/watch";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
+import {
+  MOVIE_DURATION_SECONDS,
+  TV_EPISODE_DURATION_SECONDS,
+  WATCH_STARTED_PROGRESS,
+  MEDIA_STALE_TIME,
+} from "@/lib/constants/app";
 import type {
   Movie,
   TVShow,
@@ -47,7 +54,7 @@ export default function WatchPage() {
   const { data: item, isLoading: loading, error: queryError } = useQuery({
     queryKey: ["media", type, id],
     queryFn: () => fetchMediaContent(type, id),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: MEDIA_STALE_TIME,
     retry: 2,
   });
 
@@ -148,8 +155,8 @@ export default function WatchPage() {
           mediaId: parseInt(id),
           title,
           posterPath: item.poster_path,
-          progressSeconds: 120,
-          durationSeconds: type === "movie" ? 7200 : 2400,
+          progressSeconds: WATCH_STARTED_PROGRESS,
+          durationSeconds: type === "movie" ? MOVIE_DURATION_SECONDS : TV_EPISODE_DURATION_SECONDS,
           season: type === "tv" ? season : undefined,
           episode: type === "tv" ? episode : undefined,
         }),
@@ -316,7 +323,7 @@ export default function WatchPage() {
               title: itemTitle,
               posterPath: item.poster_path,
               progressSeconds: 0,
-              durationSeconds: 7200,
+              durationSeconds: MOVIE_DURATION_SECONDS,
             }),
           });
           setIsMarkedWatched(false);
@@ -351,39 +358,15 @@ export default function WatchPage() {
 
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
-          <p className="mt-4 text-gray-400 text-lg">Loading content...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (error && !streamingSource && availableSources.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="text-red-500 text-xl mb-4">⚠️</div>
-          <p className="text-white text-lg mb-4">{error}</p>
-          <button
-            onClick={() => window.history.back()}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorState error={error} />;
   }
 
   if (!item) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-400">Content not found</p>
-      </div>
-    );
+    return <NotFoundState />;
   }
 
   const title = "title" in item ? item.title : item.name;
