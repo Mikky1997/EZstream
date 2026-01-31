@@ -8,8 +8,8 @@ interface FilterDropdownOption {
 }
 
 interface FilterDropdownProps {
-  /** Label shown before the dropdown */
-  label: string;
+  /** Label shown before the dropdown (optional - if not provided, only dropdown shows) */
+  label?: string;
   /** Array of options */
   options: readonly FilterDropdownOption[];
   /** Currently selected value */
@@ -40,15 +40,19 @@ export const FilterDropdown = memo(function FilterDropdown({
   onChange,
   className = "",
 }: FilterDropdownProps) {
-  // Generate a stable ID from the label
-  const selectId = `filter-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  // Generate a stable ID from the label or use a fallback
+  const selectId = label 
+    ? `filter-${label.toLowerCase().replace(/\s+/g, '-')}` 
+    : `filter-${Math.random().toString(36).slice(2, 8)}`;
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={selectId} className="text-gray-400 text-sm">{label}:</label>
+      {label && (
+        <label htmlFor={selectId} className="text-gray-400 text-sm">{label}:</label>
+      )}
       <select
         id={selectId}
-        aria-label={`Select ${label.toLowerCase()}`}
+        aria-label={label ? `Select ${label.toLowerCase()}` : undefined}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`bg-gray-800 text-white pl-4 pr-8 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none ${className}`}

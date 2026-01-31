@@ -166,7 +166,6 @@ export function BrowsePageLayout({
             {/* Anime Type Filter (replaces Country for anime mode) */}
             {animeMode && (
               <FilterDropdown
-                label="Type"
                 options={ANIME_TYPE_DROPDOWN_OPTIONS}
                 value={animeType}
                 onChange={(val) => setAnimeType(val as "tv" | "movie")}
@@ -176,7 +175,6 @@ export function BrowsePageLayout({
             {/* Country/Language Filter (not shown in anime mode) */}
             {!animeMode && showCountryFilter && (
               <FilterDropdown
-                label="Country"
                 options={COUNTRY_DROPDOWN_OPTIONS}
                 value={selectedLanguage}
                 onChange={setSelectedLanguage}
@@ -185,7 +183,6 @@ export function BrowsePageLayout({
 
             {/* Genre Filter */}
             <FilterDropdown
-              label="Genre"
               options={genreDropdownOptions}
               value={selectedGenre}
               onChange={setSelectedGenre}
@@ -193,7 +190,6 @@ export function BrowsePageLayout({
 
             {/* Year Filter */}
             <FilterDropdown
-              label="Year"
               options={yearOptions}
               value={selectedYear}
               onChange={setSelectedYear}
@@ -201,7 +197,6 @@ export function BrowsePageLayout({
 
             {/* Sort Filter */}
             <FilterDropdown
-              label="Sort by"
               options={sortOptions}
               value={sortBy}
               onChange={setSortBy}
