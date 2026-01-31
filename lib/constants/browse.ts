@@ -103,7 +103,7 @@ interface CountryOption {
 }
 
 export const COUNTRY_OPTIONS: CountryOption[] = [
-  { value: "", label: "All Countries", flag: "🌍" },
+  { value: "", label: "All Countries", flag: "" },
   { value: "en", label: "English", flag: "🇺🇸" },
   { value: "ko", label: "Korean", flag: "🇰🇷" },
   { value: "ja", label: "Japanese", flag: "🇯🇵" },

@@ -51,7 +51,7 @@ export const FilterDropdown = memo(function FilterDropdown({
         aria-label={`Select ${label.toLowerCase()}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none ${className}`}
+        className={`bg-gray-800 text-white pl-4 pr-8 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none ${className}`}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

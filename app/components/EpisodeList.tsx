@@ -86,7 +86,6 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
           [`${season}-${episode}`]: true,
         }));
         onWatchedChange?.(season, episode, true);
-        showToast(`Episode ${episode} marked as watched`, 'success');
       } else {
         showToast('Failed to mark episode as watched', 'error');
       }
