@@ -1,23 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
 
 interface MediaActionsProps {
   mediaType: 'movie' | 'tv';
   mediaId: number;
   title: string;
   posterPath: string | null;
-}
-
-// Fetch watchlist status
-async function fetchWatchlistStatus(mediaType: string, mediaId: number): Promise<{ inWatchlist: boolean }> {
-  const response = await fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`);
-  if (!response.ok) {
-    throw new Error('Failed to check watchlist status');
-  }
-  return response.json();
 }
 
 export default function MediaActions({ 
@@ -27,67 +18,46 @@ export default function MediaActions({
   posterPath,
 }: MediaActionsProps) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [optimisticState, setOptimisticState] = useState<boolean | null>(null);
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
+  const [isPending, setIsPending] = useState(false);
 
-  // Use React Query for watchlist status
-  const { data } = useQuery({
-    queryKey: ['watchlist-status', mediaType, mediaId],
-    queryFn: () => fetchWatchlistStatus(mediaType, mediaId),
-    enabled: !!user,
-    staleTime: 30 * 1000, // 30 seconds
-  });
+  const inWatchlist = isInWatchlist(mediaType, mediaId);
 
-  const inWatchlist = optimisticState !== null ? optimisticState : (data?.inWatchlist || false);
-
-  // Mutation for toggling watchlist
-  const mutation = useMutation({
-    mutationFn: async () => {
+  const toggleWatchlist = useCallback(async () => {
+    if (!user || isPending) return;
+    setIsPending(true);
+    try {
       if (inWatchlist) {
-        await fetch(`/api/user/watchlist?mediaType=${mediaType}&mediaId=${mediaId}`, {
-          method: 'DELETE',
-        });
-        return false;
+        await removeFromWatchlist(mediaType, mediaId);
       } else {
-        await fetch('/api/user/watchlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mediaType, mediaId, title, posterPath }),
-        });
-        return true;
+        await addToWatchlist(mediaType, mediaId, title, posterPath);
       }
-    },
-    onMutate: async () => {
-      // Optimistic update
-      setOptimisticState(!inWatchlist);
-    },
-    onSuccess: (newState) => {
-      // Update cache
-      queryClient.setQueryData(['watchlist-status', mediaType, mediaId], { inWatchlist: newState });
-      setOptimisticState(null);
-    },
-    onError: () => {
-      // Revert optimistic update
-      setOptimisticState(null);
-    },
-  });
-
-  const toggleWatchlist = () => {
-    if (!user || mutation.isPending) return;
-    mutation.mutate();
-  };
+    } finally {
+      setIsPending(false);
+    }
+  }, [
+    user,
+    isPending,
+    inWatchlist,
+    mediaType,
+    mediaId,
+    title,
+    posterPath,
+    addToWatchlist,
+    removeFromWatchlist,
+  ]);
 
   if (!user) return null;
 
   return (
     <button
       onClick={toggleWatchlist}
-      disabled={mutation.isPending}
+      disabled={isPending}
       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
         inWatchlist
           ? 'bg-red-600 text-white hover:bg-red-700'
           : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-      } ${mutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
       title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
     >
       {inWatchlist ? (

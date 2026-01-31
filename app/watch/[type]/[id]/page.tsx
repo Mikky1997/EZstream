@@ -300,6 +300,81 @@ export default function WatchPage() {
   const currentSource = availableSources[currentSourceIndex];
   const isTVShow = type === "tv";
 
+  const watchedButton = user ? (
+    <button
+      onClick={toggleWatched}
+      disabled={markingWatched}
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
+        isMarkedWatched
+          ? "bg-green-600 text-white hover:bg-green-700"
+          : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
+      } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+      title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
+    >
+      {isMarkedWatched ? (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+        </svg>
+      ) : (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      )}
+    </button>
+  ) : null;
+
+  const sourceControls = availableSources.length > 0 ? (
+    <>
+      <div className="relative">
+        <button
+          onClick={() => setShowSourceSelector(!showSourceSelector)}
+          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
+        >
+          <span>{currentSource?.name}</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {showSourceSelector && (
+          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: "#000000" }}>
+            {availableSources.map((source, index) => (
+              <button
+                key={source.source}
+                onClick={() => switchSource(index)}
+                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm"
+                style={{
+                  backgroundColor: index === currentSourceIndex ? "#7f1d1d" : "transparent",
+                  color: index === currentSourceIndex ? "#fecaca" : "white",
+                }}
+                onMouseEnter={(e) => {
+                  if (index !== currentSourceIndex) {
+                    e.currentTarget.style.backgroundColor = "#1f2937";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (index !== currentSourceIndex) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                {source.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {currentSourceIndex < availableSources.length - 1 && (
+        <button
+          onClick={tryNextSource}
+          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm border border-gray-600"
+        >
+          Next →
+        </button>
+      )}
+    </>
+  ) : null;
+
   // Extract additional metadata
   const releaseYear =
     "release_date" in item
@@ -381,6 +456,8 @@ export default function WatchPage() {
                       title={title}
                       posterPath={item.poster_path}
                     />
+                    {watchedButton}
+                    {sourceControls}
                   </div>
                   <div
                     className="sticky top-20"
@@ -420,29 +497,8 @@ export default function WatchPage() {
                       title={title}
                       posterPath={item.poster_path}
                     />
-                    {user && (
-                      <button
-                        onClick={toggleWatched}
-                        disabled={markingWatched}
-                        className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
-                          isMarkedWatched
-                            ? "bg-green-600 text-white hover:bg-green-700"
-                            : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
-                        } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                        title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
-                      >
-                        {isMarkedWatched ? (
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        )}
-                      </button>
-                    )}
+                    {watchedButton}
+                    {sourceControls}
                   </div>
                   {/* Mobile Episode Button */}
                   <button
@@ -611,84 +667,15 @@ export default function WatchPage() {
                         title={title}
                         posterPath={item.poster_path}
                       />
-                      {/* Mark as Watched button */}
-                      {user && (
-                        <button
-                          onClick={toggleWatched}
-                          disabled={markingWatched}
-                          className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
-                            isMarkedWatched
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
-                          } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                          title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
-                        >
-                          {isMarkedWatched ? (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                            </svg>
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          )}
-                        </button>
-                      )}
+                  {/* Mark as Watched button */}
+                  {watchedButton}
                     </div>
                   )}
 
                   {/* Right side: Source selector and next source */}
-                  {availableSources.length > 0 && (
-                    <div className={`flex items-center gap-2 ${isTVShow ? 'w-full justify-end' : ''}`}>
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowSourceSelector(!showSourceSelector)}
-                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-2 text-sm"
-                        >
-                          <span>{currentSource?.name}</span>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        {showSourceSelector && (
-                          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: '#000000' }}>
-                            {availableSources.map((source, index) => (
-                              <button
-                                key={source.source}
-                                onClick={() => switchSource(index)}
-                                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm"
-                                style={{
-                                  backgroundColor: index === currentSourceIndex ? '#7f1d1d' : 'transparent',
-                                  color: index === currentSourceIndex ? '#fecaca' : 'white',
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (index !== currentSourceIndex) {
-                                    e.currentTarget.style.backgroundColor = '#1f2937';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (index !== currentSourceIndex) {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                  }
-                                }}
-                              >
-                                {source.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      {currentSourceIndex < availableSources.length - 1 && (
-                        <button
-                          onClick={tryNextSource}
-                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm border border-gray-600"
-                        >
-                          Next →
-                        </button>
-                      )}
-                    </div>
-                  )}
+              {!isTVShow && sourceControls && (
+                <div className="flex items-center gap-2">{sourceControls}</div>
+              )}
                 </div>
               </div>
 
