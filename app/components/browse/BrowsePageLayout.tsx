@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import SearchBar from "@/app/components/SearchBar";
 import { useBrowseMedia } from "@/app/hooks/useBrowseMedia";
 import { useInfiniteScroll } from "@/app/hooks/useInfiniteScroll";
@@ -68,7 +69,8 @@ interface BrowsePageLayoutProps {
  * />
  * ```
  */
-export function BrowsePageLayout({
+// Inner component that uses search params
+function BrowsePageLayoutInner({
   mediaType,
   genres,
   sortOptions,
@@ -79,13 +81,65 @@ export function BrowsePageLayout({
   showCountryFilter = true,
   animeMode = false,
 }: BrowsePageLayoutProps) {
-  // Filter state
-  const [selectedGenre, setSelectedGenre] = useState("");
-  const [sortBy, setSortBy] = useState(DEFAULT_SORT);
-  const [selectedLanguage, setSelectedLanguage] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialize filter state from URL params
+  const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") ?? "");
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") ?? DEFAULT_SORT);
+  const [selectedLanguage, setSelectedLanguage] = useState(searchParams.get("country") ?? "");
+  const [selectedYear, setSelectedYear] = useState(searchParams.get("year") ?? "");
   // Anime type state (tv or movie)
-  const [animeType, setAnimeType] = useState<"tv" | "movie">("tv");
+  const [animeType, setAnimeType] = useState<"tv" | "movie">(
+    (searchParams.get("animeType") as "tv" | "movie") ?? "tv"
+  );
+
+  // Update URL when filters change
+  const updateURL = useCallback((
+    genre: string,
+    sort: string,
+    country: string,
+    year: string,
+    animeTypeValue?: "tv" | "movie"
+  ) => {
+    const params = new URLSearchParams();
+    if (genre) params.set("genre", genre);
+    if (sort && sort !== DEFAULT_SORT) params.set("sort", sort);
+    if (country) params.set("country", country);
+    if (year) params.set("year", year);
+    if (animeMode && animeTypeValue) params.set("animeType", animeTypeValue);
+
+    const newURL = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(newURL, { scroll: false });
+  }, [pathname, router, animeMode]);
+
+  // Wrapper functions to update both state and URL
+  const handleGenreChange = useCallback((value: string) => {
+    setSelectedGenre(value);
+    updateURL(value, sortBy, selectedLanguage, selectedYear, animeType);
+  }, [sortBy, selectedLanguage, selectedYear, animeType, updateURL]);
+
+  const handleSortChange = useCallback((value: string) => {
+    setSortBy(value);
+    updateURL(selectedGenre, value, selectedLanguage, selectedYear, animeType);
+  }, [selectedGenre, selectedLanguage, selectedYear, animeType, updateURL]);
+
+  const handleLanguageChange = useCallback((value: string) => {
+    setSelectedLanguage(value);
+    updateURL(selectedGenre, sortBy, value, selectedYear, animeType);
+  }, [selectedGenre, sortBy, selectedYear, animeType, updateURL]);
+
+  const handleYearChange = useCallback((value: string) => {
+    setSelectedYear(value);
+    updateURL(selectedGenre, sortBy, selectedLanguage, value, animeType);
+  }, [selectedGenre, sortBy, selectedLanguage, animeType, updateURL]);
+
+  const handleAnimeTypeChange = useCallback((value: string) => {
+    const typeValue = value as "tv" | "movie";
+    setAnimeType(typeValue);
+    updateURL(selectedGenre, sortBy, selectedLanguage, selectedYear, typeValue);
+  }, [selectedGenre, sortBy, selectedLanguage, selectedYear, updateURL]);
 
   // Search state
   const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
@@ -168,7 +222,7 @@ export function BrowsePageLayout({
               <FilterDropdown
                 options={ANIME_TYPE_DROPDOWN_OPTIONS}
                 value={animeType}
-                onChange={(val) => setAnimeType(val as "tv" | "movie")}
+                onChange={handleAnimeTypeChange}
               />
             )}
 
@@ -177,7 +231,7 @@ export function BrowsePageLayout({
               <FilterDropdown
                 options={COUNTRY_DROPDOWN_OPTIONS}
                 value={selectedLanguage}
-                onChange={setSelectedLanguage}
+                onChange={handleLanguageChange}
               />
             )}
 
@@ -185,21 +239,21 @@ export function BrowsePageLayout({
             <FilterDropdown
               options={genreDropdownOptions}
               value={selectedGenre}
-              onChange={setSelectedGenre}
+              onChange={handleGenreChange}
             />
 
             {/* Year Filter */}
             <FilterDropdown
               options={yearOptions}
               value={selectedYear}
-              onChange={setSelectedYear}
+              onChange={handleYearChange}
             />
 
             {/* Sort Filter */}
             <FilterDropdown
               options={sortOptions}
               value={sortBy}
-              onChange={setSortBy}
+              onChange={handleSortChange}
             />
           </div>
         )}
@@ -276,5 +330,22 @@ export function BrowsePageLayout({
         )}
       </div>
     </main>
+  );
+}
+
+// Main export with Suspense wrapper
+export function BrowsePageLayout(props: BrowsePageLayoutProps) {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin" />
+          </div>
+        </div>
+      </main>
+    }>
+      <BrowsePageLayoutInner {...props} />
+    </Suspense>
   );
 }
