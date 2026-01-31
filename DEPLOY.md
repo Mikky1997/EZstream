@@ -233,6 +233,33 @@ After pulling the latest code, you need to set up your users:
 
 ## Troubleshooting
 
+**`git pull` fails (local changes would be overwritten):**
+
+Next.js can change `next-env.d.ts` and `tsconfig.json` on the server. Discard those and pull:
+
+```bash
+cd /var/www/mikkystream
+git checkout -- next-env.d.ts tsconfig.json
+git pull
+npm ci
+npm run build
+pm2 restart mikkystream --update-env
+```
+
+If other files block the pull, use a hard reset (this overwrites all local changes; back up `.env.local` and `scripts/seed-users.ts` first):
+
+```bash
+git fetch origin
+git reset --hard origin/main
+npm ci
+npm run build
+pm2 restart mikkystream --update-env
+```
+
+**`npm ci` fails (ERESOLVE / Sentry peer dependency):**
+
+The repo uses `.npmrc` with `legacy-peer-deps=true` so npm accepts @sentry/nextjs with Next 16. If you removed it, run `npm ci --legacy-peer-deps` instead of `npm ci`.
+
 **`npm ci` fails (lock file out of sync with package.json):**
 
 Restore the repo’s lock file and install:
