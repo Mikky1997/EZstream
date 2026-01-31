@@ -12,14 +12,30 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 
 ## Features
 
+### Core Features
 - **User Authentication** - Secure login with JWT sessions and bcrypt password hashing
 - **Watch History** - Continue watching from where you left off
 - **Watchlist** - Save movies and shows to watch later
-- **Multi-Source Streaming** - 9 streaming providers with automatic fallback
+- **Multi-Source Streaming** - 10 streaming providers with automatic fallback
 - **Smart Source Selection** - Optimized source order for movies, TV, and anime
+
+### Discovery & Browsing
 - **Real-time Search** - Instant search with live results as you type
+- **Advanced Filtering** - Filter by genre, language/country, year, and sort options
+- **IMDB Ratings** - Accurate IMDB ratings via OMDb API with smart sorting
+- **Top Rated Lists** - IMDB-ranked top 100 for movies and TV (fetches multiple pages, sorts by IMDB)
 - **Infinite Scroll** - Seamless content discovery with lazy loading
-- **Responsive Design** - Optimized for all screen sizes
+
+### Content Details
+- **YouTube Trailers** - Watch trailers before deciding to watch
+- **Rich Metadata** - IMDB, Rotten Tomatoes, and Metacritic scores
+- **Director/Writer Pages** - Click on any crew member to see their full filmography
+- **Cast Pages** - View actor filmographies with both acting and directing credits
+- **Content Tags** - TMDB keywords displayed as tags for better discovery
+
+### User Experience
+- **Responsive Design** - Optimized for all screen sizes (mobile, tablet, desktop)
+- **Dark Theme** - Easy on the eyes with a modern dark UI
 - **Performance Optimized** - Fast image loading, API caching, and minimal bundle size
 
 ## Screenshots
@@ -37,7 +53,8 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 | Styling | Tailwind CSS |
 | Database | SQLite with better-sqlite3 (WAL mode) |
 | Auth | JWT (jose) + bcryptjs |
-| API | TMDB for metadata |
+| Metadata API | TMDB (movies, TV, people, trailers) |
+| Ratings API | OMDb (IMDB ratings, Rotten Tomatoes, Metacritic) |
 | Deployment | PM2 + Nginx + Cloudflare |
 
 ## Project Structure
@@ -48,8 +65,9 @@ ezstream/
 │   ├── api/                 # API routes
 │   │   ├── auth/            # Authentication endpoints
 │   │   ├── browse/          # Content discovery
-│   │   ├── movie/           # Movie details
-│   │   ├── tv/              # TV show details
+│   │   ├── movie/           # Movie details + trailers
+│   │   ├── tv/              # TV show details + trailers
+│   │   ├── person/          # Actor/Director filmography
 │   │   ├── search/          # Search functionality
 │   │   └── user/            # User data (history, watchlist)
 │   ├── browse/              # Browse pages
@@ -63,7 +81,8 @@ ezstream/
 ├── lib/                     # Utility libraries
 │   ├── auth.ts              # Authentication helpers
 │   ├── db.ts                # Database setup & queries
-│   ├── tmdb.ts              # TMDB API client
+│   ├── omdb.ts              # OMDb API client (IMDB ratings)
+│   ├── tmdb.ts              # TMDB API client (metadata, trailers)
 │   └── vidsrc.ts            # Streaming sources
 ├── types/                   # TypeScript definitions
 └── public/                  # Static assets
@@ -76,6 +95,7 @@ ezstream/
 - Node.js 18+
 - npm or yarn
 - TMDB API key ([Get one free](https://www.themoviedb.org/settings/api))
+- OMDb API key ([Get one free](https://www.omdbapi.com/apikey.aspx)) - for IMDB ratings
 
 ### Installation
 
@@ -95,9 +115,10 @@ ezstream/
    cp .env.example .env.local
    ```
    
-   Edit `.env.local` and add your TMDB API key and session secret:
+   Edit `.env.local` and add your API keys and session secret:
    ```env
-   TMDB_API_KEY=your_api_key_here
+   TMDB_API_KEY=your_tmdb_api_key_here
+   OMDB_API_KEY=your_omdb_api_key_here
    SESSION_SECRET=your_random_secret_here
    ```
    
@@ -132,7 +153,7 @@ ezstream/
 This project implements several performance best practices:
 
 - **Image Loading** - TMDB CDN with optimized sizes, lazy loading, blur placeholders
-- **API Caching** - Server-side caching for TMDB responses (5min browse, 1hr details)
+- **API Caching** - Server-side caching for TMDB (5min browse, 1hr details) and OMDb (24hr ratings)
 - **Code Splitting** - Automatic route-based code splitting
 - **React Optimizations** - `React.memo`, `useMemo`, `useCallback` for efficient re-renders
 - **Database** - SQLite with WAL mode for concurrent read/write access
@@ -182,6 +203,7 @@ This project is for educational purposes only. All streaming content is provided
 
 ## Acknowledgments
 
-- [TMDB](https://www.themoviedb.org/) for the comprehensive movie/TV database
+- [TMDB](https://www.themoviedb.org/) for the comprehensive movie/TV database and trailers
+- [OMDb](https://www.omdbapi.com/) for IMDB ratings, Rotten Tomatoes, and Metacritic scores
 - [Next.js](https://nextjs.org/) for the amazing React framework
 - [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
