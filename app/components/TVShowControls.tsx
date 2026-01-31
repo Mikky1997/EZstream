@@ -85,6 +85,11 @@ export const TVShowControls = memo(function TVShowControls({
     fetchWatchedEpisodes();
   }, [fetchWatchedEpisodes]);
 
+  // Refetch when current episode changes (in case it was auto-marked)
+  useEffect(() => {
+    fetchWatchedEpisodes();
+  }, [currentEpisode, currentSeason, fetchWatchedEpisodes]);
+
   // Update dropdown positions when opened (for portal)
   useEffect(() => {
     if (showSeasonDropdown && seasonRef.current) {
