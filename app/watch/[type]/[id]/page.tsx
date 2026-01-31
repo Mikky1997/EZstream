@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
 import EpisodeList, { type EpisodeListHandle } from "@/app/components/EpisodeList";
+import { TVShowControls } from "@/app/components/TVShowControls";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
 import type {
@@ -456,142 +457,8 @@ export default function WatchPage() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 pb-8">
-          <div
-            className={`flex gap-6 ${isTVShow ? "flex-col lg:flex-row" : ""}`}
-          >
-            {/* Episode List - Left Side (TV Shows only) */}
-            {isTVShow && seasons.length > 0 && (
-              <>
-                {/* Desktop Episode List */}
-                <div className="hidden lg:block w-80 flex-shrink-0">
-                  {/* TV Show quick actions above episode list on desktop */}
-                  <div className="mb-4 flex items-center gap-1.5 flex-nowrap overflow-x-auto">
-                    {item.trailerKey && (
-                      <a
-                        href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                        </svg>
-                        Trailer
-                      </a>
-                    )}
-                    <MediaActions
-                      mediaType={type}
-                      mediaId={parseInt(id)}
-                      title={title}
-                      posterPath={item.poster_path}
-                    />
-                    {watchedButton}
-                    {sourceControls}
-                  </div>
-                  <div
-                    className="sticky top-20"
-                    style={{ maxHeight: "calc(100vh - 120px)" }}
-                  >
-                    <EpisodeList
-                      ref={episodeListRef}
-                      mediaId={parseInt(id)}
-                      seasons={seasons}
-                      currentSeason={season}
-                      currentEpisode={episode}
-                      onSelectEpisode={handleSelectEpisode}
-                      title={title}
-                      posterPath={item.poster_path}
-                      onWatchedChange={handleWatchedChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Mobile: Quick actions above episode selector */}
-                <div className="lg:hidden mb-4">
-                  <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto mb-3">
-                    {item.trailerKey && (
-                      <a
-                        href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                        </svg>
-                        Trailer
-                      </a>
-                    )}
-                    <MediaActions
-                      mediaType={type}
-                      mediaId={parseInt(id)}
-                      title={title}
-                      posterPath={item.poster_path}
-                    />
-                    {watchedButton}
-                    {sourceControls}
-                  </div>
-                  {/* Mobile Episode Button */}
-                  <button
-                    onClick={() => setShowEpisodePanel(true)}
-                    className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center justify-between"
-                  >
-                    <span className="font-medium">
-                      S{season} E{episode}
-                    </span>
-                    <span className="text-gray-400">Select Episode</span>
-                  </button>
-                </div>
-
-                {/* Mobile Episode Panel */}
-                {showEpisodePanel && (
-                  <div className="fixed inset-0 z-50 lg:hidden">
-                    <div
-                      className="absolute inset-0 bg-black/80"
-                      onClick={() => setShowEpisodePanel(false)}
-                    />
-                    <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-gray-900 shadow-xl">
-                      <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-                        <h3 className="text-white font-semibold">Episodes</h3>
-                        <button
-                          onClick={() => setShowEpisodePanel(false)}
-                          className="p-2 text-gray-400 hover:text-white"
-                        >
-                          <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="h-full overflow-y-auto pb-20">
-                        <EpisodeList
-                          ref={episodeListRef}
-                          mediaId={parseInt(id)}
-                          seasons={seasons}
-                          currentSeason={season}
-                          currentEpisode={episode}
-                          onSelectEpisode={handleSelectEpisode}
-                          title={title}
-                          posterPath={item.poster_path}
-                          onWatchedChange={handleWatchedChange}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Video Player & Info - Right Side */}
+          <div className="flex flex-col gap-6">
+            {/* Video Player & Info */}
             <div className="flex-1 min-w-0">
               {/* Title & Info */}
               <div className="mb-4">
@@ -682,12 +549,39 @@ export default function WatchPage() {
                   </p>
                 )}
 
-                {/* Action buttons row - for movies only (TV shows have buttons above episode list) */}
+                {/* Action buttons row */}
                 <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
-                  {/* Left side: Trailer, Watchlist, Mark as Watched - Movies only */}
-                  {!isTVShow && (
+                  {/* Left side: Controls */}
+                  {isTVShow ? (
+                    /* TV Show Controls: Trailer, Watchlist, Season, Episode, Mark Watched, Next */
+                    seasons.length > 0 && (
+                      <TVShowControls
+                        mediaId={parseInt(id)}
+                        title={title}
+                        posterPath={item.poster_path}
+                        seasons={seasons}
+                        currentSeason={season}
+                        currentEpisode={episode}
+                        trailerKey={item.trailerKey}
+                        onSeasonChange={setSeason}
+                        onEpisodeChange={setEpisode}
+                        onNextEpisode={() => {
+                          const currentSeasonData = seasons.find(s => s.season_number === season);
+                          if (currentSeasonData && episode < currentSeasonData.episode_count) {
+                            setEpisode(ep => ep + 1);
+                          } else {
+                            const nextSeason = seasons.find(s => s.season_number === season + 1);
+                            if (nextSeason) {
+                              setSeason(nextSeason.season_number);
+                              setEpisode(1);
+                            }
+                          }
+                        }}
+                      />
+                    )
+                  ) : (
+                    /* Movie Controls: Trailer, Watchlist */
                     <div className="flex items-center gap-1.5 flex-nowrap">
-                      {/* Watch Trailer Button */}
                       {item.trailerKey && (
                         <a
                           href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
@@ -711,9 +605,7 @@ export default function WatchPage() {
                   )}
 
                   {/* Right side: Source selector and next source */}
-              {!isTVShow && sourceControls && (
-                <div className="flex items-center gap-1.5 flex-nowrap">{sourceControls}</div>
-              )}
+                  <div className="flex items-center gap-1.5 flex-nowrap">{sourceControls}</div>
                 </div>
               </div>
 
@@ -812,6 +704,24 @@ export default function WatchPage() {
                 </div>
               )}
             </div>
+
+            {/* Episode List - Below video for TV Shows */}
+            {isTVShow && seasons.length > 0 && (
+              <div className="w-full">
+                <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
+                <EpisodeList
+                  ref={episodeListRef}
+                  mediaId={parseInt(id)}
+                  seasons={seasons}
+                  currentSeason={season}
+                  currentEpisode={episode}
+                  onSelectEpisode={handleSelectEpisode}
+                  title={title}
+                  posterPath={item.poster_path}
+                  onWatchedChange={handleWatchedChange}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
