@@ -560,7 +560,7 @@ export default function WatchPage() {
                 )}
 
                 {/* Action buttons row */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
                   {/* Left side: Controls */}
                   {isTVShow ? (
                     /* TV Show Controls: Trailer, Watchlist, Season, Episode, Mark Watched, Next */
@@ -614,7 +614,7 @@ export default function WatchPage() {
                   )}
 
                   {/* Right side: Source selector and next source */}
-                  <div className="flex items-center gap-1.5">{sourceControls}</div>
+                  <div className="flex items-center gap-1.5 ml-auto">{sourceControls}</div>
                 </div>
               </div>
 
