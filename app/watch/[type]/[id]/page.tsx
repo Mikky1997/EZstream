@@ -157,6 +157,8 @@ export default function WatchPage() {
     }
   }, [user, item, streamingSource, type, id, season, episode]);
 
+  const currentSourceKey = useRef<string | null>(null);
+
   const updateSourcesForEpisode = useCallback(() => {
     // Check if content is anime for optimized source ordering
     const isAnime = item ? isAnimeContent(item) : false;
@@ -170,9 +172,24 @@ export default function WatchPage() {
       isAnime,
     );
     setAvailableSources(sources);
+    
     if (sources.length > 0) {
-      setStreamingSource({ type: "vidsrc", url: sources[0].url });
-      setCurrentSourceIndex(0);
+      // Try to keep the same source if it exists in the new list
+      const previousKey = currentSourceKey.current;
+      const matchingIndex = previousKey 
+        ? sources.findIndex(s => s.source === previousKey)
+        : -1;
+      
+      if (matchingIndex >= 0) {
+        // Keep the same source
+        setStreamingSource({ type: "vidsrc", url: sources[matchingIndex].url });
+        setCurrentSourceIndex(matchingIndex);
+      } else {
+        // Fall back to first source
+        setStreamingSource({ type: "vidsrc", url: sources[0].url });
+        setCurrentSourceIndex(0);
+        currentSourceKey.current = sources[0].source;
+      }
     }
   }, [imdbId, tmdbId, type, season, episode, item]);
 
@@ -325,6 +342,7 @@ export default function WatchPage() {
     if (index >= 0 && index < availableSources.length) {
       setCurrentSourceIndex(index);
       setStreamingSource({ type: "vidsrc", url: availableSources[index].url });
+      currentSourceKey.current = availableSources[index].source;
       setShowSourceSelector(false);
     }
   };
