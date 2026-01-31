@@ -203,7 +203,7 @@ export const TVShowControls = memo(function TVShowControls({
   const nextEpisodeInfo = getNextEpisodeInfo();
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {/* Trailer */}
       {trailerKey && (
         <a
@@ -350,7 +350,7 @@ export const TVShowControls = memo(function TVShowControls({
       {nextEpisodeInfo && (
         <button
           onClick={onNextEpisode}
-          className="flex items-center justify-center w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0"
+          className="flex items-center justify-center w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0"
           title={`Next: S${nextEpisodeInfo.season} E${nextEpisodeInfo.episode}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
