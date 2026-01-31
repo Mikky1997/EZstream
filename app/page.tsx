@@ -74,12 +74,13 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
             <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
               <div
-                className="h-full bg-red-500 transition-[width] duration-300"
+                className="h-full bg-accent transition-[width] duration-300"
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
+            {/* Episode info for TV */}
             {mediaType === "tv" && item.season && item.episode && (
-              <div className="absolute top-2 right-2 bg-black/80 px-2 py-1 rounded-lg text-xs text-white font-medium">
+              <div className="absolute top-9 left-2 bg-black/80 px-1.5 py-0.5 rounded text-xs text-gray-300 font-medium">
                 S{item.season} E{item.episode}
               </div>
             )}
@@ -91,6 +92,15 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
           </div>
         </div>
       </Link>
+      {/* Media type badge - left */}
+      <div className="absolute top-2 left-2 z-10">
+        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+          mediaType === "movie" ? "bg-blue-900 text-blue-300" : "bg-purple-900 text-purple-300"
+        }`}>
+          {mediaType === "movie" ? "Movie" : "TV"}
+        </span>
+      </div>
+      {/* Remove button - right */}
       {onRemove && (
         <button
           onClick={(e) => {
@@ -98,7 +108,7 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="card-action-btn absolute top-2 left-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
+          className="card-action-btn absolute top-2 right-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
           title="Remove"
         >
           <svg
@@ -172,6 +182,15 @@ const WatchlistCard = memo(function WatchlistCard({
           </div>
         </div>
       </Link>
+      {/* Media type badge - left */}
+      <div className="absolute top-2 left-2 z-10">
+        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+          mediaType === "movie" ? "bg-blue-900 text-blue-300" : "bg-purple-900 text-purple-300"
+        }`}>
+          {mediaType === "movie" ? "Movie" : "TV"}
+        </span>
+      </div>
+      {/* Remove button - right */}
       {onRemove && (
         <button
           onClick={(e) => {
@@ -179,7 +198,7 @@ const WatchlistCard = memo(function WatchlistCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="card-action-btn absolute top-2 left-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
+          className="card-action-btn absolute top-2 right-2 w-7 h-7 bg-black/80 active:bg-red-600 rounded-full z-10 flex items-center justify-center"
           title="Remove"
         >
           <svg

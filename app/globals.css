@@ -20,8 +20,8 @@
   --text-secondary: #d4d4d4;
   --text-muted: #a3a3a3;
   
-  /* Primary accent (brand color) */
-  --accent: #e50914;
+  /* Primary accent (brand color) - uses muted red */
+  --accent: #9f1239;
   
   /* Danger/Red palette */
   --danger: #9f1239;
@@ -56,7 +56,7 @@
   --text-primary: #f5f5f5;
   --text-secondary: #d4d4d4;
   --text-muted: #a3a3a3;
-  --accent: #e50914;
+  --accent: #9f1239;
   --danger: #9f1239;
   --danger-hover: #881337;
   --danger-light: #be123c;
@@ -182,9 +182,7 @@ body {
   background-color: color-mix(in srgb, var(--accent) 90%, black) !important;
 }
 
-.bg-blue-900 {
-  background-color: color-mix(in srgb, var(--accent) 45%, black) !important;
-}
+/* Removed - see badge overrides section below */
 
 .border-gray-800 {
   border-color: var(--border-strong) !important;
@@ -285,19 +283,22 @@ html[data-theme] .text-gray-500,
   background-color: var(--danger) !important;
 }
 
-/* ===== BADGE COLOR OVERRIDES ===== */
-/* Movie/TV type badges use neutral black background */
+/* ===== BADGE COLORS ===== */
+/* Movie/TV type badges keep their blue/purple colors */
 .bg-blue-900 {
-  background-color: var(--badge-bg) !important;
+  background-color: #1e3a5f !important;
 }
 
 .bg-purple-900 {
-  background-color: var(--badge-bg) !important;
+  background-color: #4c1d6e !important;
 }
 
-.text-blue-300,
+.text-blue-300 {
+  color: #93c5fd !important;
+}
+
 .text-purple-300 {
-  color: var(--badge-text) !important;
+  color: #d8b4fe !important;
 }
 
 /* ===== GREEN/SUCCESS COLOR OVERRIDES ===== */
@@ -320,6 +321,7 @@ html[data-theme] .text-gray-500,
   background-color: var(--active-bg) !important;
   color: var(--active-text) !important;
 }
+
 
 .focus\:ring-blue-500\/20:focus {
   --tw-ring-color: transparent !important;
