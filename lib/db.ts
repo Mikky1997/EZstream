@@ -199,6 +199,10 @@ export const historyQueries = {
       duration_seconds = 2400,
       last_watched_at = CURRENT_TIMESTAMP
   `),
+  unmarkEpisodeWatched: db.prepare<[number, number, number, number]>(`
+    UPDATE watch_history SET progress_seconds = 0 
+    WHERE user_id = ? AND media_type = 'tv' AND media_id = ? AND season = ? AND episode = ?
+  `),
   delete: db.prepare<[number, string, number]>(
     'DELETE FROM watch_history WHERE user_id = ? AND media_type = ? AND media_id = ?'
   ),

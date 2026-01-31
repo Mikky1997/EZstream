@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
-import EpisodeList from "@/app/components/EpisodeList";
+import EpisodeList, { type EpisodeListHandle } from "@/app/components/EpisodeList";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
 import type {
@@ -79,6 +79,9 @@ export default function WatchPage() {
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const lastSavedProgress = useRef<number>(0);
   const hasSavedToHistory = useRef<string>("");
+
+  // Ref for EpisodeList to sync watched status
+  const episodeListRef = useRef<EpisodeListHandle>(null);
 
   // Save watch progress periodically
   const saveProgress = useCallback(
@@ -185,8 +188,33 @@ export default function WatchPage() {
     setSeason(newSeason);
     setEpisode(newEpisode);
     setShowEpisodePanel(false);
-    setIsMarkedWatched(false); // Reset for new episode
+    // Check if new episode is already watched
+    if (episodeListRef.current) {
+      setIsMarkedWatched(episodeListRef.current.isEpisodeWatched(newSeason, newEpisode));
+    } else {
+      setIsMarkedWatched(false);
+    }
   };
+
+  // Callback when EpisodeList watched status changes
+  const handleWatchedChange = useCallback((watchedSeason: number, watchedEpisode: number, watched: boolean) => {
+    if (watchedSeason === season && watchedEpisode === episode) {
+      setIsMarkedWatched(watched);
+    }
+  }, [season, episode]);
+
+  // Auto-mark TV episode as watched when streaming starts
+  useEffect(() => {
+    if (type === "tv" && user && streamingSource && episodeListRef.current) {
+      const alreadyWatched = episodeListRef.current.isEpisodeWatched(season, episode);
+      if (!alreadyWatched) {
+        episodeListRef.current.markEpisodeWatched(season, episode);
+        setIsMarkedWatched(true);
+      } else {
+        setIsMarkedWatched(true);
+      }
+    }
+  }, [type, user, streamingSource, season, episode]);
 
   // Mark content as fully watched (removes from Continue Watching)
   const toggleWatched = async () => {
@@ -196,40 +224,48 @@ export default function WatchPage() {
     const itemTitle = "title" in item ? item.title : item.name;
 
     try {
-      if (isMarkedWatched) {
-        // Unmark as watched - set progress to 0
-        await fetch("/api/user/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mediaType: type,
-            mediaId: parseInt(id),
-            title: itemTitle,
-            posterPath: item.poster_path,
-            progressSeconds: 0,
-            durationSeconds: type === "movie" ? 7200 : 2400,
-            season: type === "tv" ? season : undefined,
-            episode: type === "tv" ? episode : undefined,
-          }),
-        });
-        setIsMarkedWatched(false);
+      if (type === "tv" && episodeListRef.current) {
+        // For TV shows, use EpisodeList methods to sync the episode list UI
+        if (isMarkedWatched) {
+          await episodeListRef.current.unmarkEpisodeWatched(season, episode);
+          setIsMarkedWatched(false);
+        } else {
+          await episodeListRef.current.markEpisodeWatched(season, episode);
+          setIsMarkedWatched(true);
+        }
       } else {
-        // Mark as watched - set progress to full duration
-        await fetch("/api/user/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mediaType: type,
-            mediaId: parseInt(id),
-            title: itemTitle,
-            posterPath: item.poster_path,
-            progressSeconds: type === "movie" ? 7200 : 2400,
-            durationSeconds: type === "movie" ? 7200 : 2400,
-            season: type === "tv" ? season : undefined,
-            episode: type === "tv" ? episode : undefined,
-          }),
-        });
-        setIsMarkedWatched(true);
+        // For movies, use the history API directly
+        if (isMarkedWatched) {
+          // Unmark as watched - set progress to 0
+          await fetch("/api/user/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mediaType: type,
+              mediaId: parseInt(id),
+              title: itemTitle,
+              posterPath: item.poster_path,
+              progressSeconds: 0,
+              durationSeconds: 7200,
+            }),
+          });
+          setIsMarkedWatched(false);
+        } else {
+          // Mark as watched - set progress to full duration
+          await fetch("/api/user/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mediaType: type,
+              mediaId: parseInt(id),
+              title: itemTitle,
+              posterPath: item.poster_path,
+              progressSeconds: 7200,
+              durationSeconds: 7200,
+            }),
+          });
+          setIsMarkedWatched(true);
+        }
       }
     } catch (error) {
       console.error("Failed to toggle watched status:", error);
@@ -464,6 +500,7 @@ export default function WatchPage() {
                     style={{ maxHeight: "calc(100vh - 120px)" }}
                   >
                     <EpisodeList
+                      ref={episodeListRef}
                       mediaId={parseInt(id)}
                       seasons={seasons}
                       currentSeason={season}
@@ -471,6 +508,7 @@ export default function WatchPage() {
                       onSelectEpisode={handleSelectEpisode}
                       title={title}
                       posterPath={item.poster_path}
+                      onWatchedChange={handleWatchedChange}
                     />
                   </div>
                 </div>
@@ -543,6 +581,7 @@ export default function WatchPage() {
                       </div>
                       <div className="h-full overflow-y-auto pb-20">
                         <EpisodeList
+                          ref={episodeListRef}
                           mediaId={parseInt(id)}
                           seasons={seasons}
                           currentSeason={season}
@@ -550,6 +589,7 @@ export default function WatchPage() {
                           onSelectEpisode={handleSelectEpisode}
                           title={title}
                           posterPath={item.poster_path}
+                          onWatchedChange={handleWatchedChange}
                         />
                       </div>
                     </div>

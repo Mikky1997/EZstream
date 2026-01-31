@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Season {
   season_number: number;
   episode_count: number;
   name: string;
+}
+
+export interface EpisodeListHandle {
+  isEpisodeWatched: (season: number, episode: number) => boolean;
+  markEpisodeWatched: (season: number, episode: number) => Promise<void>;
+  unmarkEpisodeWatched: (season: number, episode: number) => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 interface EpisodeListProps {
@@ -17,9 +24,10 @@ interface EpisodeListProps {
   onSelectEpisode: (season: number, episode: number) => void;
   title: string;
   posterPath: string | null;
+  onWatchedChange?: (season: number, episode: number, watched: boolean) => void;
 }
 
-export default function EpisodeList({
+const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function EpisodeList({
   mediaId,
   seasons,
   currentSeason,
@@ -27,7 +35,8 @@ export default function EpisodeList({
   onSelectEpisode,
   title,
   posterPath,
-}: EpisodeListProps) {
+  onWatchedChange,
+}, ref) {
   const { user } = useAuth();
   const [selectedSeason, setSelectedSeason] = useState(currentSeason);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Record<string, boolean>>({});
@@ -52,10 +61,9 @@ export default function EpisodeList({
     }
   }, [user, fetchWatchedEpisodes]);
 
-  const markAsWatched = async (season: number, episode: number) => {
-    if (!user || loading) return;
+  const markAsWatched = useCallback(async (season: number, episode: number) => {
+    if (!user) return;
     
-    setLoading(true);
     try {
       const response = await fetch('/api/user/episodes', {
         method: 'POST',
@@ -69,18 +77,55 @@ export default function EpisodeList({
         }),
       });
       
-      // Only update UI if the server confirmed the operation
       if (response.ok) {
         setWatchedEpisodes(prev => ({
           ...prev,
           [`${season}-${episode}`]: true,
         }));
+        onWatchedChange?.(season, episode, true);
       }
     } catch (error) {
       console.error('Failed to mark episode:', error);
-    } finally {
-      setLoading(false);
     }
+  }, [user, mediaId, title, posterPath, onWatchedChange]);
+
+  const unmarkAsWatched = useCallback(async (season: number, episode: number) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch(`/api/user/episodes?mediaId=${mediaId}&season=${season}&episode=${episode}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setWatchedEpisodes(prev => ({
+          ...prev,
+          [`${season}-${episode}`]: false,
+        }));
+        onWatchedChange?.(season, episode, false);
+      }
+    } catch (error) {
+      console.error('Failed to unmark episode:', error);
+    }
+  }, [user, mediaId, onWatchedChange]);
+
+  const isWatchedFn = useCallback((season: number, episode: number) => {
+    return watchedEpisodes[`${season}-${episode}`] || false;
+  }, [watchedEpisodes]);
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    isEpisodeWatched: isWatchedFn,
+    markEpisodeWatched: markAsWatched,
+    unmarkEpisodeWatched: unmarkAsWatched,
+    refresh: fetchWatchedEpisodes,
+  }), [isWatchedFn, markAsWatched, unmarkAsWatched, fetchWatchedEpisodes]);
+
+  const handleMarkClick = async (season: number, episode: number) => {
+    if (loading) return;
+    setLoading(true);
+    await markAsWatched(season, episode);
+    setLoading(false);
   };
 
   // Filter out "Specials" season (season 0) and sort
@@ -90,10 +135,6 @@ export default function EpisodeList({
 
   const currentSeasonData = filteredSeasons.find(s => s.season_number === selectedSeason);
   const episodeCount = currentSeasonData?.episode_count || 10;
-
-  const isWatched = (season: number, episode: number) => {
-    return watchedEpisodes[`${season}-${episode}`] || false;
-  };
 
   const isCurrentlyPlaying = (season: number, episode: number) => {
     return season === currentSeason && episode === currentEpisode;
@@ -120,7 +161,7 @@ export default function EpisodeList({
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-2 space-y-1">
           {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => {
-            const watched = isWatched(selectedSeason, ep);
+            const watched = isWatchedFn(selectedSeason, ep);
             const playing = isCurrentlyPlaying(selectedSeason, ep);
             
             return (
@@ -175,7 +216,7 @@ export default function EpisodeList({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      markAsWatched(selectedSeason, ep);
+                      handleMarkClick(selectedSeason, ep);
                     }}
                     disabled={loading}
                     className="p-1.5 rounded hover:bg-gray-600 text-gray-400 hover:text-green-400 transition-colors"
@@ -213,4 +254,6 @@ export default function EpisodeList({
       )}
     </div>
   );
-}
+});
+
+export default EpisodeList;

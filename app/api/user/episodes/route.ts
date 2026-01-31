@@ -83,3 +83,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to mark episode' }, { status: 500 });
   }
 }
+
+// DELETE - Unmark episode as watched
+export async function DELETE(request: Request) {
+  try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    
+    const { searchParams } = new URL(request.url);
+    const mediaId = searchParams.get('mediaId');
+    const season = searchParams.get('season');
+    const episode = searchParams.get('episode');
+    
+    if (!mediaId || !season || !episode) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    
+    const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
+    const validatedSeason = safeParseInt(season, 0, 1, 1000);
+    const validatedEpisode = safeParseInt(episode, 0, 1, 1000);
+    
+    if (validatedMediaId === 0 || validatedSeason === 0 || validatedEpisode === 0) {
+      return NextResponse.json({ error: 'Invalid input values' }, { status: 400 });
+    }
+    
+    historyQueries.unmarkEpisodeWatched.run(
+      user.id,
+      validatedMediaId,
+      validatedSeason,
+      validatedEpisode
+    );
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Unmark episode error:', error);
+    return NextResponse.json({ error: 'Failed to unmark episode' }, { status: 500 });
+  }
+}
