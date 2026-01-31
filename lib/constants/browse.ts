@@ -69,7 +69,13 @@ export const ANIME_CATEGORIES = [
 // Country/Language Options
 // ============================================================================
 
-export const COUNTRY_OPTIONS = [
+interface CountryOption {
+  value: string;
+  label: string;
+  flag: string;
+}
+
+export const COUNTRY_OPTIONS: CountryOption[] = [
   { value: "", label: "All Countries", flag: "🌍" },
   { value: "en", label: "English", flag: "🇺🇸" },
   { value: "ko", label: "Korean", flag: "🇰🇷" },
@@ -82,7 +88,7 @@ export const COUNTRY_OPTIONS = [
   { value: "th", label: "Thai", flag: "🇹🇭" },
   { value: "de", label: "German", flag: "🇩🇪" },
   { value: "it", label: "Italian", flag: "🇮🇹" },
-] as const;
+];
 
 // ============================================================================
 // Year Options Generator
