@@ -66,7 +66,6 @@ export default function WatchPage() {
   // Season/episode for TV shows
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
-  const [seasons, setSeasons] = useState<Season[]>([]);
 
   // Mobile episode panel
   const [showEpisodePanel, setShowEpisodePanel] = useState(false);
