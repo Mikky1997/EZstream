@@ -24,6 +24,8 @@ SENTRY_PROJECT=your-project
 
 Get the DSN from: [Sentry](https://sentry.io) → your project → **Settings → Client Keys (DSN)**.
 
+**To test:** Open your site, open DevTools → Console, run `throw new Error("Sentry test");` then check Sentry → Issues.
+
 ---
 
 ## 2. What gets sent automatically
@@ -93,4 +95,4 @@ In Sentry: **Releases** shows each deploy; **Issues** can be filtered by release
 | `app/global-error.tsx` | Catches React render errors and sends them to Sentry. |
 | `next.config.mjs` | Sentry plugin: source maps, tunnel route, etc. |
 
-No `sentry.server.config.ts` or `sentry.edge.config.ts` anymore; init lives in `instrumentation.ts`.
+Init lives in `instrumentation.ts` (no separate server/edge config files).

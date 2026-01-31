@@ -166,10 +166,11 @@ real_ip_header CF-Connecting-IP;
 ```bash
 cd /var/www/mikkystream
 git pull
-npm install
+npm ci
 npm run build
-pm2 restart mikkystream
+pm2 restart mikkystream --update-env
 ```
+If `npm ci` fails (lock file or peer deps), see **Troubleshooting** below.
 
 ### First Update After History Rewrite (if you get conflicts)
 If you get merge conflicts or "divergent branches" error after a history rewrite:

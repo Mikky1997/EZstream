@@ -141,10 +141,6 @@ async function fetchTMDB<T>(
 ): Promise<T> {
   const url = buildUrl(endpoint, params);
   
-  // Log the request for debugging (without API key)
-  const debugUrl = url.replace(/api_key=[^&]+/, "api_key=***");
-  console.log("TMDB request:", debugUrl);
-
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
