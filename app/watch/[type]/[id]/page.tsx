@@ -219,16 +219,24 @@ export default function WatchPage() {
 
   // Auto-mark TV episode as watched when streaming starts
   useEffect(() => {
-    if (type === "tv" && user && streamingSource && episodeListRef.current) {
-      const alreadyWatched = episodeListRef.current.isEpisodeWatched(season, episode);
-      if (!alreadyWatched) {
-        episodeListRef.current.markEpisodeWatched(season, episode);
+    if (type === "tv" && user && streamingSource && item) {
+      const title = item.name;
+      // Mark episode as watched via API
+      fetch("/api/user/episodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mediaId: parseInt(id),
+          season,
+          episode,
+          title,
+          posterPath: item.poster_path,
+        }),
+      }).then(() => {
         setIsMarkedWatched(true);
-      } else {
-        setIsMarkedWatched(true);
-      }
+      }).catch(console.error);
     }
-  }, [type, user, streamingSource, season, episode]);
+  }, [type, user, streamingSource, season, episode, item, id]);
 
   // Mark content as fully watched (removes from Continue Watching)
   const toggleWatched = async () => {
