@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
-import EpisodeList, { type EpisodeListHandle } from "@/app/components/EpisodeList";
+
 import { TVShowControls } from "@/app/components/TVShowControls";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getAllEmbedUrls, type EmbedUrl } from "@/lib/vidsrc";
@@ -67,8 +67,7 @@ export default function WatchPage() {
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
 
-  // Mobile episode panel
-  const [showEpisodePanel, setShowEpisodePanel] = useState(false);
+
 
   // Mark as watched state
   const [isMarkedWatched, setIsMarkedWatched] = useState(false);
@@ -83,8 +82,7 @@ export default function WatchPage() {
   const sourcePanelRef = useRef<HTMLDivElement>(null);
   const [sourceDropdownRect, setSourceDropdownRect] = useState<DOMRect | null>(null);
 
-  // Ref for EpisodeList to sync watched status
-  const episodeListRef = useRef<EpisodeListHandle>(null);
+
 
   // Save watch progress periodically
   const saveProgress = useCallback(
@@ -201,21 +199,11 @@ export default function WatchPage() {
   const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
     setSeason(newSeason);
     setEpisode(newEpisode);
-    setShowEpisodePanel(false);
-    // Check if new episode is already watched
-    if (episodeListRef.current) {
-      setIsMarkedWatched(episodeListRef.current.isEpisodeWatched(newSeason, newEpisode));
-    } else {
-      setIsMarkedWatched(false);
-    }
+    // Reset watched state - will be updated by auto-mark effect when streaming starts
+    setIsMarkedWatched(false);
   };
 
-  // Callback when EpisodeList watched status changes
-  const handleWatchedChange = useCallback((watchedSeason: number, watchedEpisode: number, watched: boolean) => {
-    if (watchedSeason === season && watchedEpisode === episode) {
-      setIsMarkedWatched(watched);
-    }
-  }, [season, episode]);
+
 
   // Auto-mark TV episode as watched when streaming starts
   useEffect(() => {
@@ -246,13 +234,25 @@ export default function WatchPage() {
     const itemTitle = "title" in item ? item.title : item.name;
 
     try {
-      if (type === "tv" && episodeListRef.current) {
-        // For TV shows, use EpisodeList methods to sync the episode list UI
+      if (type === "tv") {
+        // For TV shows, use episodes API
         if (isMarkedWatched) {
-          await episodeListRef.current.unmarkEpisodeWatched(season, episode);
+          await fetch(`/api/user/episodes?mediaId=${id}&season=${season}&episode=${episode}`, {
+            method: "DELETE"
+          });
           setIsMarkedWatched(false);
         } else {
-          await episodeListRef.current.markEpisodeWatched(season, episode);
+          await fetch("/api/user/episodes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mediaId: parseInt(id),
+              season,
+              episode,
+              title: itemTitle,
+              posterPath: item.poster_path,
+            }),
+          });
           setIsMarkedWatched(true);
         }
       } else {
