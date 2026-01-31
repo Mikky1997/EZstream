@@ -9,11 +9,10 @@ export const revalidate = 3600;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } },
 ) {
   try {
-    const { id: idParam } = await params;
-    const id = safeParseInt(idParam, 0, 1, Number.MAX_SAFE_INTEGER);
+    const id = safeParseInt(params.id, 0, 1, Number.MAX_SAFE_INTEGER);
     if (id === 0) {
       return NextResponse.json(
         { error: "Invalid TV show ID" },
