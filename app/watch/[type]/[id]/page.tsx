@@ -675,6 +675,13 @@ export default function WatchPage() {
                   </div>
                 )}
 
+                {/* Description - moved up to be right after genres */}
+                {overview && (
+                  <p className="text-gray-400 text-sm mb-4">
+                    {overview}
+                  </p>
+                )}
+
                 {/* Action buttons row - for movies only (TV shows have buttons above episode list) */}
                 <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
                   {/* Left side: Trailer, Watchlist, Mark as Watched - Movies only */}
@@ -792,13 +799,6 @@ export default function WatchPage() {
                   </div>
                 )}
               </div>
-
-              {/* Description */}
-              {overview && (
-                <p className="text-gray-400 text-sm mb-4">
-                  {overview}
-                </p>
-              )}
 
               {/* Source Error */}
               {sourceError && (
