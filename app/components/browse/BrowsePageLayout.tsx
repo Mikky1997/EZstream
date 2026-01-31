@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import SearchBar from "@/app/components/SearchBar";
 import { useBrowseMedia } from "@/app/hooks/useBrowseMedia";
 import { useInfiniteScroll } from "@/app/hooks/useInfiniteScroll";
 import {
-  FilterPills,
   FilterDropdown,
   MediaGrid,
   LoadingSpinner,
@@ -73,7 +72,7 @@ export function BrowsePageLayout({
   showCountryFilter = true,
 }: BrowsePageLayoutProps) {
   // Filter state
-  const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState("");
   const [sortBy, setSortBy] = useState(DEFAULT_SORT);
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -82,13 +81,21 @@ export function BrowsePageLayout({
   const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Accent color classes
-  const accentColorClass = {
-    blue: "bg-blue-600",
-    red: "bg-red-600",
-    purple: "bg-purple-600",
-  }[accentColor];
+  // Convert genre options to dropdown format
+  const genreDropdownOptions = useMemo(() => [
+    { value: "", label: "All Genres" },
+    ...genres.map((g) => ({ value: String(g.id), label: g.name })),
+  ], [genres]);
 
+  // Convert country options to dropdown format (already has value/label, just add flag to label)
+  const countryDropdownOptions = useMemo(() => 
+    COUNTRY_OPTIONS.map((c) => ({ 
+      value: c.value, 
+      label: c.flag ? `${c.flag} ${c.label}` : c.label 
+    })),
+  []);
+
+  // Accent text class for status
   const accentTextClass = {
     blue: "text-blue-400",
     red: "text-red-400",
@@ -106,7 +113,7 @@ export function BrowsePageLayout({
     refetch,
   } = useBrowseMedia({
     mediaType,
-    genre: selectedGenre,
+    genre: selectedGenre ? parseInt(selectedGenre, 10) : null,
     language: selectedLanguage,
     year: selectedYear,
     sortBy,
@@ -133,7 +140,9 @@ export function BrowsePageLayout({
   );
 
   // Get selected genre name for status text
-  const selectedGenreName = genres.find((g) => g.id === selectedGenre)?.name;
+  const selectedGenreName = selectedGenre 
+    ? genres.find((g) => g.id === parseInt(selectedGenre, 10))?.name 
+    : null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
@@ -154,45 +163,40 @@ export function BrowsePageLayout({
 
         {/* Filters - hide when searching */}
         {!isSearching && (
-          <div className="mb-8 space-y-4 overflow-visible">
+          <div className="mb-6 flex flex-wrap items-center gap-3 md:gap-4">
             {/* Country/Language Filter */}
             {showCountryFilter && (
-              <FilterPills
-                options={COUNTRY_OPTIONS}
-                selected={selectedLanguage}
-                onSelect={setSelectedLanguage}
-                activeColorClass={accentColorClass}
-                label="Country / Language"
+              <FilterDropdown
+                label="Country"
+                options={countryDropdownOptions}
+                value={selectedLanguage}
+                onChange={setSelectedLanguage}
               />
             )}
 
             {/* Genre Filter */}
-            <FilterPills
-              options={genres}
-              selected={selectedGenre}
-              onSelect={setSelectedGenre}
-              showAllOption
-              allLabel="All"
-              activeColorClass={accentColorClass}
+            <FilterDropdown
               label="Genre"
+              options={genreDropdownOptions}
+              value={selectedGenre}
+              onChange={setSelectedGenre}
             />
 
-            {/* Year and Sort Dropdowns */}
-            <div className="flex flex-wrap items-center gap-4">
-              <FilterDropdown
-                label="Year"
-                options={yearOptions}
-                value={selectedYear}
-                onChange={setSelectedYear}
-                className="text-base"
-              />
-              <FilterDropdown
-                label="Sort by"
-                options={sortOptions}
-                value={sortBy}
-                onChange={setSortBy}
-              />
-            </div>
+            {/* Year Filter */}
+            <FilterDropdown
+              label="Year"
+              options={yearOptions}
+              value={selectedYear}
+              onChange={setSelectedYear}
+            />
+
+            {/* Sort Filter */}
+            <FilterDropdown
+              label="Sort by"
+              options={sortOptions}
+              value={sortBy}
+              onChange={setSortBy}
+            />
           </div>
         )}
 
