@@ -157,8 +157,6 @@ export default function WatchPage() {
     }
   }, [user, item, streamingSource, type, id, season, episode]);
 
-  const currentSourceKey = useRef<string | null>(null);
-
   const updateSourcesForEpisode = useCallback(() => {
     // Check if content is anime for optimized source ordering
     const isAnime = item ? isAnimeContent(item) : false;
@@ -174,10 +172,10 @@ export default function WatchPage() {
     setAvailableSources(sources);
     
     if (sources.length > 0) {
-      // Try to keep the same source if it exists in the new list
-      const previousKey = currentSourceKey.current;
-      const matchingIndex = previousKey 
-        ? sources.findIndex(s => s.source === previousKey)
+      // Try to keep the same source if it exists in the new list (persisted in localStorage)
+      const savedSourceKey = typeof window !== 'undefined' ? localStorage.getItem('preferred_video_source') : null;
+      const matchingIndex = savedSourceKey 
+        ? sources.findIndex(s => s.source === savedSourceKey)
         : -1;
       
       if (matchingIndex >= 0) {
@@ -188,7 +186,6 @@ export default function WatchPage() {
         // Fall back to first source
         setStreamingSource({ type: "vidsrc", url: sources[0].url });
         setCurrentSourceIndex(0);
-        currentSourceKey.current = sources[0].source;
       }
     }
   }, [imdbId, tmdbId, type, season, episode, item]);
@@ -340,9 +337,13 @@ export default function WatchPage() {
 
   const switchSource = (index: number) => {
     if (index >= 0 && index < availableSources.length) {
+      const sourceKey = availableSources[index].source;
       setCurrentSourceIndex(index);
       setStreamingSource({ type: "vidsrc", url: availableSources[index].url });
-      currentSourceKey.current = availableSources[index].source;
+      // Persist source preference in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('preferred_video_source', sourceKey);
+      }
       setShowSourceSelector(false);
     }
   };
