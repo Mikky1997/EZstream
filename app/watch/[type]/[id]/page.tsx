@@ -560,7 +560,7 @@ export default function WatchPage() {
                 )}
 
                 {/* Action buttons row */}
-                <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
                   {/* Left side: Controls */}
                   {isTVShow ? (
                     /* TV Show Controls: Trailer, Watchlist, Season, Episode, Mark Watched, Next */
@@ -591,7 +591,7 @@ export default function WatchPage() {
                     )
                   ) : (
                     /* Movie Controls: Trailer, Watchlist */
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-nowrap flex-shrink-0">
                       {item.trailerKey && (
                         <a
                           href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
@@ -614,7 +614,7 @@ export default function WatchPage() {
                   )}
 
                   {/* Right side: Source selector and next source */}
-                  <div className="flex items-center gap-1.5">{sourceControls}</div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">{sourceControls}</div>
                 </div>
               </div>
 
