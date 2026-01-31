@@ -82,7 +82,7 @@ export const TVShowControls = memo(function TVShowControls({
   // Check if all episodes in current season are watched
   const isSeasonFullyWatched = episodeOptions.length > 0 && episodeOptions.every(ep => ep.watched);
 
-  // Toggle watched status
+  // Toggle watched status for single episode
   const toggleWatched = async () => {
     if (!user || isMarking) return;
     setIsMarking(true);
@@ -124,6 +124,56 @@ export const TVShowControls = memo(function TVShowControls({
       }
     } catch (error) {
       showToast('Failed to update watched status', 'error');
+    } finally {
+      setIsMarking(false);
+    }
+  };
+
+  // Mark entire season as watched
+  const markSeasonAsWatched = async () => {
+    if (!user || isMarking || !currentSeasonData) return;
+    setIsMarking(true);
+
+    try {
+      const unwatchedEpisodes = [];
+      for (let ep = 1; ep <= currentSeasonData.episode_count; ep++) {
+        if (!watchedEpisodes[`${currentSeason}-${ep}`]) {
+          unwatchedEpisodes.push(ep);
+        }
+      }
+
+      if (unwatchedEpisodes.length === 0) {
+        showToast('All episodes already watched', 'info');
+        setIsMarking(false);
+        return;
+      }
+
+      // Mark all unwatched episodes
+      const promises = unwatchedEpisodes.map(ep => 
+        fetch('/api/user/episodes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mediaId,
+            season: currentSeason,
+            episode: ep,
+            title,
+            posterPath,
+          }),
+        })
+      );
+
+      await Promise.all(promises);
+      
+      // Update local state
+      const newWatched = { ...watchedEpisodes };
+      unwatchedEpisodes.forEach(ep => {
+        newWatched[`${currentSeason}-${ep}`] = true;
+      });
+      setWatchedEpisodes(newWatched);
+      showToast(`Marked ${unwatchedEpisodes.length} episodes as watched`, 'success');
+    } catch (error) {
+      showToast('Failed to mark season', 'error');
     } finally {
       setIsMarking(false);
     }
@@ -193,9 +243,7 @@ export const TVShowControls = memo(function TVShowControls({
             );
           })}
         </select>
-        {isSeasonFullyWatched && (
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" title="All episodes watched" />
-        )}
+
       </div>
 
       {/* Episode Dropdown */}
@@ -216,9 +264,7 @@ export const TVShowControls = memo(function TVShowControls({
             </option>
           ))}
         </select>
-        {isCurrentEpisodeWatched && (
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" title="Watched" />
-        )}
+
       </div>
 
       {/* Mark as Watched Button */}
@@ -243,6 +289,23 @@ export const TVShowControls = memo(function TVShowControls({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           )}
+        </button>
+      )}
+
+      {/* Mark Season as Watched Button */}
+      {user && currentSeasonData && !isSeasonFullyWatched && (
+        <button
+          onClick={markSeasonAsWatched}
+          disabled={isMarking}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+            isMarking ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title="Mark entire season as watched"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="hidden sm:inline">Mark Season</span>
         </button>
       )}
 

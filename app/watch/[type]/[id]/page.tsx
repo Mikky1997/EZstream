@@ -80,6 +80,9 @@ export default function WatchPage() {
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const lastSavedProgress = useRef<number>(0);
   const hasSavedToHistory = useRef<string>("");
+  
+  // Ref for source selector dropdown
+  const sourceSelectorRef = useRef<HTMLDivElement>(null);
 
   // Ref for EpisodeList to sync watched status
   const episodeListRef = useRef<EpisodeListHandle>(null);
@@ -184,6 +187,19 @@ export default function WatchPage() {
       }
     };
   }, []);
+
+  // Close source selector when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sourceSelectorRef.current && !sourceSelectorRef.current.contains(event.target as Node)) {
+        setShowSourceSelector(false);
+      }
+    }
+    if (showSourceSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSourceSelector]);
 
   const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
     setSeason(newSeason);
@@ -363,7 +379,7 @@ export default function WatchPage() {
 
   const sourceControls = availableSources.length > 0 ? (
     <>
-      <div className="relative flex-shrink-0">
+      <div ref={sourceSelectorRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowSourceSelector(!showSourceSelector)}
           className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1.5 text-sm"
@@ -374,7 +390,7 @@ export default function WatchPage() {
           </svg>
         </button>
         {showSourceSelector && (
-          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px] bg-black">
+          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-2xl z-[100] max-h-80 overflow-y-auto min-w-[220px] bg-gray-900">
             {availableSources.map((source, index) => (
               <button
                 key={source.source}
@@ -705,23 +721,7 @@ export default function WatchPage() {
               )}
             </div>
 
-            {/* Episode List - Below video for TV Shows */}
-            {isTVShow && seasons.length > 0 && (
-              <div className="w-full">
-                <h2 className="text-lg font-semibold text-white mb-3">Episodes</h2>
-                <EpisodeList
-                  ref={episodeListRef}
-                  mediaId={parseInt(id)}
-                  seasons={seasons}
-                  currentSeason={season}
-                  currentEpisode={episode}
-                  onSelectEpisode={handleSelectEpisode}
-                  title={title}
-                  posterPath={item.poster_path}
-                  onWatchedChange={handleWatchedChange}
-                />
-              </div>
-            )}
+
           </div>
         </div>
       </div>
