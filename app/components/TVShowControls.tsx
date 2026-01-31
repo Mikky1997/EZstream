@@ -203,7 +203,7 @@ export const TVShowControls = memo(function TVShowControls({
   const nextEpisodeInfo = getNextEpisodeInfo();
 
   return (
-    <div className="flex items-center gap-1.5 flex-nowrap flex-shrink-0">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {/* Trailer */}
       {trailerKey && (
         <a
