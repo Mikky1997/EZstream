@@ -52,9 +52,10 @@ export default function WatchPage() {
   });
 
   const error = queryError ? "Failed to load content. Please try again." : null;
-  const imdbId = item?.imdbId || null;
+  // imdbId is added by the API response
+  const imdbId = (item as Movie & { imdbId?: string })?.imdbId || null;
   const tmdbId = id;
-  const seasons = (type === "tv" && item && "seasons" in item) ? (item as TVShow).seasons || [] : [];
+  const seasons = (type === "tv" && item && "seasons" in item) ? (item as TVShow & { seasons?: Season[] }).seasons || [] : [];
 
   const [streamingSource, setStreamingSource] =
     useState<StreamingSource | null>(null);
