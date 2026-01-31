@@ -700,8 +700,6 @@ export default function WatchPage() {
                         title={title}
                         posterPath={item.poster_path}
                       />
-                  {/* Mark as Watched button */}
-                  {watchedButton}
                     </div>
                   )}
 
