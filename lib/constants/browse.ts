@@ -65,6 +65,33 @@ export const ANIME_CATEGORIES = [
   { id: "new", name: "New Releases", sortBy: "first_air_date.desc" },
 ] as const;
 
+// Anime type options (Series vs Movies)
+export const ANIME_TYPE_OPTIONS = [
+  { value: "tv", label: "Anime Series" },
+  { value: "movie", label: "Anime Movies" },
+] as const;
+
+// Anime-specific sort options (same as TV but works for both)
+export const ANIME_SORT_OPTIONS = [
+  { value: "popularity.desc", label: "Most Popular" },
+  { value: "vote_average.desc", label: "Highest Rated" },
+  { value: "first_air_date.desc", label: "Newest" },
+  { value: "first_air_date.asc", label: "Oldest" },
+] as const;
+
+// Anime genres (subset relevant to anime)
+export const ANIME_GENRES = [
+  { id: 28, name: "Action" },
+  { id: 12, name: "Adventure" },
+  { id: 35, name: "Comedy" },
+  { id: 18, name: "Drama" },
+  { id: 14, name: "Fantasy" },
+  { id: 27, name: "Horror" },
+  { id: 9648, name: "Mystery" },
+  { id: 10749, name: "Romance" },
+  { id: 878, name: "Sci-Fi" },
+] as const;
+
 // ============================================================================
 // Country/Language Options
 // ============================================================================

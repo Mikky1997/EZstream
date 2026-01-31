@@ -298,13 +298,13 @@ export default function Navbar() {
                             </p>
                             <div className="flex items-center gap-2 text-sm text-gray-400">
                               <span
-                                className={`px-1.5 py-0.5 rounded text-xs ${
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                   item.media_type === "movie"
-                                    ? "bg-blue-900 text-blue-300"
-                                    : "bg-purple-900 text-purple-300"
+                                    ? "bg-blue-600/90 text-white"
+                                    : "bg-purple-600/90 text-white"
                                 }`}
                               >
-                                {item.media_type === "movie" ? "Movie" : "TV"}
+                                {item.media_type === "movie" ? "MOVIE" : "TV"}
                               </span>
                               {item.vote_average && item.vote_average > 0 && (
                                 <span className="text-yellow-400">
@@ -541,13 +541,13 @@ export default function Navbar() {
                         {getTitle(item)}
                       </p>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-xs ${
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                           item.media_type === "movie"
-                            ? "bg-blue-900 text-blue-300"
-                            : "bg-purple-900 text-purple-300"
+                            ? "bg-blue-600/90 text-white"
+                            : "bg-purple-600/90 text-white"
                         }`}
                       >
-                        {item.media_type === "movie" ? "Movie" : "TV"}
+                        {item.media_type === "movie" ? "MOVIE" : "TV"}
                       </span>
                     </div>
                   </button>

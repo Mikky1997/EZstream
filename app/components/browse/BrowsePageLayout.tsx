@@ -11,7 +11,13 @@ import {
   EmptyState,
   ErrorState,
 } from "@/app/components/browse";
-import { COUNTRY_OPTIONS, DEFAULT_SORT } from "@/lib/constants/browse";
+import {
+  COUNTRY_OPTIONS,
+  DEFAULT_SORT,
+  ANIME_TYPE_OPTIONS,
+  ANIMATION_GENRE_ID,
+  JAPANESE_LANGUAGE,
+} from "@/lib/constants/browse";
 import type { MediaType, MediaItem, GenreOption, SortOption } from "@/types";
 
 // Pre-computed country dropdown options (constant, computed once)
@@ -20,8 +26,14 @@ const COUNTRY_DROPDOWN_OPTIONS = COUNTRY_OPTIONS.map((c) => ({
   label: c.flag ? `${c.flag} ${c.label}` : c.label,
 }));
 
+// Pre-computed anime type dropdown options
+const ANIME_TYPE_DROPDOWN_OPTIONS = ANIME_TYPE_OPTIONS.map((t) => ({
+  value: t.value,
+  label: t.label,
+}));
+
 interface BrowsePageLayoutProps {
-  /** Media type for this page */
+  /** Media type for this page (ignored in anime mode) */
   mediaType: MediaType;
   /** Available genres for this media type */
   genres: readonly GenreOption[];
@@ -37,6 +49,8 @@ interface BrowsePageLayoutProps {
   mediaLabel?: string;
   /** Whether to show country/language filter */
   showCountryFilter?: boolean;
+  /** Whether this is the anime page (changes behavior) */
+  animeMode?: boolean;
 }
 
 /**
@@ -63,12 +77,15 @@ export function BrowsePageLayout({
   searchFilterType = "all",
   mediaLabel = "items",
   showCountryFilter = true,
+  animeMode = false,
 }: BrowsePageLayoutProps) {
   // Filter state
   const [selectedGenre, setSelectedGenre] = useState("");
   const [sortBy, setSortBy] = useState(DEFAULT_SORT);
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
+  // Anime type state (tv or movie)
+  const [animeType, setAnimeType] = useState<"tv" | "movie">("tv");
 
   // Search state
   const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
@@ -80,6 +97,9 @@ export function BrowsePageLayout({
     ...genres.map((g) => ({ value: String(g.id), label: g.name })),
   ], [genres]);
 
+  // Determine actual media type and fixed filters for anime mode
+  const actualMediaType = animeMode ? animeType : mediaType;
+
   // Fetch data using TanStack Query
   const {
     items,
@@ -90,9 +110,14 @@ export function BrowsePageLayout({
     fetchNextPage,
     refetch,
   } = useBrowseMedia({
-    mediaType,
-    genre: selectedGenre ? parseInt(selectedGenre, 10) : null,
-    language: selectedLanguage,
+    mediaType: actualMediaType,
+    // In anime mode: use Animation genre if no genre selected, otherwise use selected genre
+    // (Japanese language filter ensures anime content)
+    genre: animeMode
+      ? (selectedGenre ? parseInt(selectedGenre, 10) : ANIMATION_GENRE_ID)
+      : (selectedGenre ? parseInt(selectedGenre, 10) : null),
+    // In anime mode: always Japanese; otherwise use selected language
+    language: animeMode ? JAPANESE_LANGUAGE : selectedLanguage,
     year: selectedYear,
     sortBy,
     enabled: !isSearching,
@@ -138,8 +163,18 @@ export function BrowsePageLayout({
         {/* Filters - hide when searching */}
         {!isSearching && (
           <div className="mb-6 flex flex-wrap items-center gap-3 md:gap-4">
-            {/* Country/Language Filter */}
-            {showCountryFilter && (
+            {/* Anime Type Filter (replaces Country for anime mode) */}
+            {animeMode && (
+              <FilterDropdown
+                label="Type"
+                options={ANIME_TYPE_DROPDOWN_OPTIONS}
+                value={animeType}
+                onChange={(val) => setAnimeType(val as "tv" | "movie")}
+              />
+            )}
+
+            {/* Country/Language Filter (not shown in anime mode) */}
+            {!animeMode && showCountryFilter && (
               <FilterDropdown
                 label="Country"
                 options={COUNTRY_DROPDOWN_OPTIONS}
@@ -181,6 +216,19 @@ export function BrowsePageLayout({
               Found <span className="text-accent">{searchResults.length}</span>{" "}
               results
             </span>
+          ) : animeMode ? (
+            <>
+              Showing:{" "}
+              <span className="text-accent">
+                {animeType === "tv" ? "Anime Series" : "Anime Movies"}
+              </span>
+              {selectedGenreName && (
+                <span>
+                  {" "}
+                  in <span className="text-accent">{selectedGenreName}</span>
+                </span>
+              )}
+            </>
           ) : (
             <>
               Showing:{" "}
@@ -215,7 +263,7 @@ export function BrowsePageLayout({
         {!isLoading && !error && (
           <>
             {displayItems.length > 0 ? (
-              <MediaGrid items={displayItems} mediaType={mediaType} />
+              <MediaGrid items={displayItems} mediaType={actualMediaType} />
             ) : (
               <EmptyState
                 type={isSearching ? "search" : "filter"}

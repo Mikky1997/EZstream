@@ -94,10 +94,10 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
       </Link>
       {/* Media type badge - left */}
       <div className="absolute top-2 left-2 z-10">
-        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-          mediaType === "movie" ? "bg-blue-900 text-blue-300" : "bg-purple-900 text-purple-300"
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+          mediaType === "movie" ? "bg-blue-600/90 text-white" : "bg-purple-600/90 text-white"
         }`}>
-          {mediaType === "movie" ? "Movie" : "TV"}
+          {mediaType === "movie" ? "MOVIE" : "TV"}
         </span>
       </div>
       {/* Remove button - right */}
@@ -184,10 +184,10 @@ const WatchlistCard = memo(function WatchlistCard({
       </Link>
       {/* Media type badge - left */}
       <div className="absolute top-2 left-2 z-10">
-        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-          mediaType === "movie" ? "bg-blue-900 text-blue-300" : "bg-purple-900 text-purple-300"
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+          mediaType === "movie" ? "bg-blue-600/90 text-white" : "bg-purple-600/90 text-white"
         }`}>
-          {mediaType === "movie" ? "Movie" : "TV"}
+          {mediaType === "movie" ? "MOVIE" : "TV"}
         </span>
       </div>
       {/* Remove button - right */}
