@@ -210,7 +210,7 @@ export const TVShowControls = memo(function TVShowControls({
           href={`https://www.youtube.com/watch?v=${trailerKey}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+          className="flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -226,7 +226,7 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={seasonRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
-          className="flex items-center gap-1.5 bg-gray-800 text-white pl-2 pr-8 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
+          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
             backgroundPosition: 'right 8px center',
@@ -290,7 +290,7 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={episodeRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowEpisodeDropdown(!showEpisodeDropdown)}
-          className="flex items-center gap-1.5 bg-gray-800 text-white pl-2 pr-8 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
+          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
             backgroundPosition: 'right 6px center',
