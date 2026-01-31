@@ -23,7 +23,7 @@ async function isValidToken(token: string): Promise<boolean> {
   try {
     const secret = getJwtSecret();
     if (!secret) return false;
-    
+
     const { payload } = await jwtVerify(token, secret);
     // Just check if token is valid and has sessionId
     return !!payload.sessionId;
@@ -33,17 +33,17 @@ async function isValidToken(token: string): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Check if it's a public route (login page and auth endpoints only)
-  if (publicRoutes.some(route => pathname === route)) {
+  if (publicRoutes.some((route) => pathname === route)) {
     return NextResponse.next();
   }
-  
+
   // Get session cookie
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
-  
+
   // If no session cookie, redirect to login (for pages) or return 401 (for API)
   if (!sessionCookie?.value) {
     if (pathname.startsWith('/api/')) {
@@ -52,20 +52,20 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
-  
+
   // Validate the JWT token
   const isValid = await isValidToken(sessionCookie.value);
-  
+
   if (!isValid) {
     // Clear the invalid cookie
     const response = pathname.startsWith('/api/')
       ? NextResponse.json({ error: 'Session expired' }, { status: 401 })
       : NextResponse.redirect(new URL('/login', request.url));
-    
+
     response.cookies.delete(SESSION_COOKIE_NAME);
     return response;
   }
-  
+
   return NextResponse.next();
 }
 
