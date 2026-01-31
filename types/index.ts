@@ -205,3 +205,67 @@ export interface PersonSearchResult {
   total_pages: number;
   total_results: number;
 }
+
+// ============================================================================
+// Browse Page Types
+// ============================================================================
+
+/** Generic filter option for dropdowns and pill selectors */
+export interface FilterOption<T = string> {
+  value: T;
+  label: string;
+  flag?: string;
+}
+
+/** Genre option with numeric ID */
+export interface GenreOption {
+  id: number;
+  name: string;
+}
+
+/** Sort option for browse pages */
+export interface SortOption {
+  value: string;
+  label: string;
+}
+
+/** Anime category option */
+export interface AnimeCategoryOption {
+  id: string;
+  name: string;
+  sortBy: string;
+}
+
+/** Media type discriminator */
+export type MediaType = "movie" | "tv";
+
+/** Combined media item type */
+export type MediaItem = Movie | TVShow;
+
+/** Options for fetching browse data */
+export interface BrowseOptions {
+  mediaType: MediaType;
+  genre?: number | null;
+  language?: string;
+  year?: string;
+  sortBy?: string;
+}
+
+/** Response from browse API */
+export interface BrowseResponse {
+  page: number;
+  results: MediaItem[];
+  total_pages: number;
+  total_results: number;
+}
+
+/** Error class for browse API failures */
+export class BrowseError extends Error {
+  constructor(
+    public status: number,
+    message?: string
+  ) {
+    super(message || `Browse API error: ${status}`);
+    this.name = "BrowseError";
+  }
+}
