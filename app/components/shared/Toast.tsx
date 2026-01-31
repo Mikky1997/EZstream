@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useEffect, useState } from 'react';
+import { useToast } from '@/app/contexts/ToastContext';
 import type { Toast as ToastType, ToastType as ToastVariant } from '@/app/contexts/ToastContext';
 
 // ============================================================================
@@ -130,8 +131,6 @@ export const ToastContainer = memo(function ToastContainer({
 // ============================================================================
 // Global Toast Display Component
 // ============================================================================
-
-import { useToast } from '@/app/contexts/ToastContext';
 
 /**
  * Global toast display component - add to layout

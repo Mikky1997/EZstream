@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, Suspense } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import SearchBar from "@/app/components/SearchBar";
 import { useBrowseMedia } from "@/app/hooks/useBrowseMedia";

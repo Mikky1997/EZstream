@@ -14,8 +14,6 @@ import type {
   Movie,
   TVShow,
   StreamingSource,
-  Genre,
-  CastMember,
 } from "@/types";
 import { isAnimeContent } from "@/types";
 import Image from "next/image";
@@ -64,7 +62,6 @@ export default function WatchPage() {
   const [availableSources, setAvailableSources] = useState<EmbedUrl[]>([]);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [showSourceSelector, setShowSourceSelector] = useState(false);
-  const [sourceError, setSourceError] = useState(false);
 
   // Season/episode for TV shows
   const [season, setSeason] = useState(1);
@@ -78,7 +75,6 @@ export default function WatchPage() {
   const [markingWatched, setMarkingWatched] = useState(false);
 
   // For saving watch progress
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const lastSavedProgress = useRef<number>(0);
   const hasSavedToHistory = useRef<string>("");
   
@@ -308,18 +304,10 @@ export default function WatchPage() {
       setCurrentSourceIndex(index);
       setStreamingSource({ type: "vidsrc", url: availableSources[index].url });
       setShowSourceSelector(false);
-      setSourceError(false);
     }
   };
 
-  const tryNextSource = () => {
-    const nextIndex = currentSourceIndex + 1;
-    if (nextIndex < availableSources.length) {
-      switchSource(nextIndex);
-    } else {
-      setSourceError(true);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -359,35 +347,8 @@ export default function WatchPage() {
 
   const title = "title" in item ? item.title : item.name;
   const overview = item.overview;
-  const backdropPath = item.backdrop_path
-    ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
-    : null;
   const currentSource = availableSources[currentSourceIndex];
   const isTVShow = type === "tv";
-
-  const watchedButton = user ? (
-    <button
-      onClick={toggleWatched}
-      disabled={markingWatched}
-      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all flex-shrink-0 ${
-        isMarkedWatched
-          ? "bg-green-600 text-white hover:bg-green-700"
-          : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
-      } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-      title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
-    >
-      {isMarkedWatched ? (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-      )}
-    </button>
-  ) : null;
 
   const sourceControls = availableSources.length > 0 ? (
     <div ref={sourceSelectorRef} className="relative flex-shrink-0">
@@ -708,17 +669,7 @@ export default function WatchPage() {
                 )}
               </div>
 
-              {/* Source Error */}
-              {sourceError && (
-                <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-4">
-                  <h3 className="text-red-200 font-medium mb-2">
-                    Content Not Available
-                  </h3>
-                  <p className="text-red-100 text-sm">
-                    All sources tried. This content may not be available yet.
-                  </p>
-                </div>
-              )}
+        
             </div>
 
 

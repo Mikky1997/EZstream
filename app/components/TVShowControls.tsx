@@ -187,9 +187,6 @@ export const TVShowControls = memo(function TVShowControls({
     }
   };
 
-  // Check if all episodes in current season are watched
-  const isSeasonFullyWatched = episodeOptions.length > 0 && episodeOptions.every(ep => ep.watched);
-
   // Get next episode info
   const getNextEpisodeInfo = () => {
     if (currentEpisode < episodeCount) {
