@@ -42,9 +42,12 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 
 ![EZstream Homepage](tz1.png)
 ***
-![EZstream MOBILE TV SHOWS](tz3.png)
+***
+![EZstream MOBILE TV SHOWS](tz2.png)
+***
 ***
 ![EZstream MOVIES HIGHEST RATED](tz4.png)
+***
 ***
 ## Tech Stack
 
@@ -209,5 +212,6 @@ This project is for educational purposes only. All streaming content is provided
 - [OMDb](https://www.omdbapi.com/) for IMDB ratings, Rotten Tomatoes, and Metacritic scores
 - [Next.js](https://nextjs.org/) for the amazing React framework
 - [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
+
 
 
