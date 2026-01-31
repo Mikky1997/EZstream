@@ -128,6 +128,10 @@ async function fetchTMDB<T>(
   params: Record<string, string | number | boolean> = {},
 ): Promise<T> {
   const url = buildUrl(endpoint, params);
+  
+  // Log the request for debugging (without API key)
+  const debugUrl = url.replace(/api_key=[^&]+/, "api_key=***");
+  console.log("TMDB request:", debugUrl);
 
   const response = await fetch(url, {
     headers: {
@@ -138,6 +142,7 @@ async function fetchTMDB<T>(
   });
 
   if (!response.ok) {
+    console.error("TMDB API error:", response.status, response.statusText);
     throw new Error(
       `TMDB API error: ${response.status} ${response.statusText}`,
     );

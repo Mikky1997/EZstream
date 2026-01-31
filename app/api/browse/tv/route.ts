@@ -27,6 +27,8 @@ export async function GET(request: Request) {
     : defaultMinVotes;
 
   try {
+    console.log("Browse TV request:", { page, genre, sortBy, year, language, minVotes });
+    
     const data = await discoverTVWithFilters({
       page,
       genre: genre ? safeParseInt(genre, undefined, 1, 100000) : undefined,
@@ -35,6 +37,8 @@ export async function GET(request: Request) {
       language: language || undefined,
       minVotes,
     });
+    
+    console.log("Browse TV response:", { totalResults: data.total_results, resultsCount: data.results?.length });
 
     // Filter out blocked adult content (hentai that slips through TMDB's filter)
     const filteredResults = filterBlockedContent(data.results || []);
