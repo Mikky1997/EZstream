@@ -31,8 +31,11 @@ const nextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
-  // Disable Turbopack - use webpack for Sentry compatibility
-  turbopack: false,
+  // Webpack configuration (required for Sentry compatibility)
+  webpack: (config, { isServer }) => {
+    // Return unmodified config - Sentry will add its own modifications
+    return config;
+  },
 
   // Optimize production builds
   compiler: {
