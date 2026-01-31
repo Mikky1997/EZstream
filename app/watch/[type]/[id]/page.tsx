@@ -222,9 +222,22 @@ export default function WatchPage() {
         }),
       }).then(() => {
         setIsMarkedWatched(true);
+        
+        // Check if this is the last episode of the last season
+        const lastSeason = seasons.length > 0 ? Math.max(...seasons.map(s => s.season_number)) : 1;
+        const currentSeasonData = seasons.find(s => s.season_number === season);
+        const isLastEpisode = currentSeasonData && episode === currentSeasonData.episode_count;
+        const isLastSeason = season === lastSeason;
+        
+        // Only remove from Continue Watching if this is the final episode
+        if (isLastEpisode && isLastSeason) {
+          fetch(`/api/user/history?mediaType=tv&mediaId=${id}`, {
+            method: "DELETE"
+          }).catch(console.error);
+        }
       }).catch(console.error);
     }
-  }, [type, user, streamingSource, season, episode, item, id]);
+  }, [type, user, streamingSource, season, episode, item, id, seasons]);
 
   // Mark content as fully watched (removes from Continue Watching)
   const toggleWatched = async () => {
@@ -254,6 +267,18 @@ export default function WatchPage() {
             }),
           });
           setIsMarkedWatched(true);
+          
+          // Check if this is the last episode of the last season - remove from Continue Watching
+          const lastSeason = seasons.length > 0 ? Math.max(...seasons.map(s => s.season_number)) : 1;
+          const currentSeasonData = seasons.find(s => s.season_number === season);
+          const isLastEpisode = currentSeasonData && episode === currentSeasonData.episode_count;
+          const isLastSeason = season === lastSeason;
+          
+          if (isLastEpisode && isLastSeason) {
+            await fetch(`/api/user/history?mediaType=tv&mediaId=${id}`, {
+              method: "DELETE"
+            });
+          }
         }
       } else {
         // For movies, use the history API directly
