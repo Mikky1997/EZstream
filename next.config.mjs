@@ -31,7 +31,10 @@ const nextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
-
+  // Next.js 16 uses Turbopack by default; Sentry adds webpack config.
+  // Empty turbopack object satisfies "webpack config but no turbopack config" check.
+  // Production build uses webpack via: npm run build (next build --webpack).
+  turbopack: {},
 
   // Optimize production builds
   compiler: {

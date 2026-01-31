@@ -1,7 +1,7 @@
 # EZstream - Agent Guidelines
 
-> **Last Updated:** January 2025  
-> **Stack:** Next.js 14, React, TypeScript, Tailwind CSS, SQLite (better-sqlite3)
+> **Last Updated:** January 2025 
+> **Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS, SQLite (better-sqlite3)
 
 ---
 

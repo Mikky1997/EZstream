@@ -233,6 +233,19 @@ After pulling the latest code, you need to set up your users:
 
 ## Troubleshooting
 
+**`npm ci` fails (lock file out of sync with package.json):**
+
+Restore the repo’s lock file and install:
+
+```bash
+cd /var/www/mikkystream
+git fetch origin
+git checkout origin/main -- package-lock.json
+npm ci
+npm run build
+pm2 restart mikkystream --update-env
+```
+
 **App not starting:**
 ```bash
 pm2 logs mikkystream --lines 50
