@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useToast } from '@/app/contexts/ToastContext';
 
 interface Season {
   season_number: number;
@@ -38,6 +39,7 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
   onWatchedChange,
 }, ref) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [selectedSeason, setSelectedSeason] = useState(currentSeason);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
@@ -51,8 +53,9 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
       }
     } catch (error) {
       console.error('Failed to fetch watched episodes:', error);
+      showToast('Failed to load watched episodes', 'error');
     }
-  }, [mediaId]);
+  }, [mediaId, showToast]);
 
   // Fetch watched episodes
   useEffect(() => {
@@ -83,11 +86,15 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
           [`${season}-${episode}`]: true,
         }));
         onWatchedChange?.(season, episode, true);
+        showToast(`Episode ${episode} marked as watched`, 'success');
+      } else {
+        showToast('Failed to mark episode as watched', 'error');
       }
     } catch (error) {
       console.error('Failed to mark episode:', error);
+      showToast('Failed to mark episode as watched', 'error');
     }
-  }, [user, mediaId, title, posterPath, onWatchedChange]);
+  }, [user, mediaId, title, posterPath, onWatchedChange, showToast]);
 
   const unmarkAsWatched = useCallback(async (season: number, episode: number) => {
     if (!user) return;
@@ -103,11 +110,14 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
           [`${season}-${episode}`]: false,
         }));
         onWatchedChange?.(season, episode, false);
+      } else {
+        showToast('Failed to unmark episode', 'error');
       }
     } catch (error) {
       console.error('Failed to unmark episode:', error);
+      showToast('Failed to unmark episode', 'error');
     }
-  }, [user, mediaId, onWatchedChange]);
+  }, [user, mediaId, onWatchedChange, showToast]);
 
   const isWatchedFn = useCallback((season: number, episode: number) => {
     return watchedEpisodes[`${season}-${episode}`] || false;
@@ -145,6 +155,8 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
       {/* Season Selector */}
       <div className="p-3 border-b border-gray-700 bg-gray-800/50 flex-shrink-0">
         <select
+          id="season-selector"
+          aria-label="Select season"
           value={selectedSeason}
           onChange={(e) => setSelectedSeason(parseInt(e.target.value))}
           className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
@@ -221,6 +233,7 @@ const EpisodeList = forwardRef<EpisodeListHandle, EpisodeListProps>(function Epi
                     disabled={loading}
                     className="p-1.5 rounded hover:bg-gray-600 text-gray-400 hover:text-green-400 transition-colors"
                     title="Mark as watched"
+                    aria-label={`Mark episode ${ep} as watched`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

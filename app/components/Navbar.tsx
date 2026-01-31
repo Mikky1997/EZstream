@@ -326,6 +326,7 @@ export default function Navbar() {
                   onClick={() => setShowNavSearch(true)}
                   className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                   title="Search"
+                  aria-label="Open search"
                 >
                   <svg
                     className="w-5 h-5"
@@ -406,6 +407,7 @@ export default function Navbar() {
               onClick={() => setShowNavSearch(!showNavSearch)}
               className="p-2 text-gray-300 hover:text-white"
               title="Search"
+              aria-label="Toggle search"
             >
               <svg
                 className="w-6 h-6"
@@ -424,6 +426,7 @@ export default function Navbar() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-gray-300 hover:text-white"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <svg
                 className="w-6 h-6"

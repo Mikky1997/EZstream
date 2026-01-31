@@ -40,10 +40,15 @@ export const FilterDropdown = memo(function FilterDropdown({
   onChange,
   className = "",
 }: FilterDropdownProps) {
+  // Generate a stable ID from the label
+  const selectId = `filter-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
   return (
     <div className="flex items-center gap-2">
-      <label className="text-gray-400 text-sm">{label}:</label>
+      <label htmlFor={selectId} className="text-gray-400 text-sm">{label}:</label>
       <select
+        id={selectId}
+        aria-label={`Select ${label.toLowerCase()}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none ${className}`}

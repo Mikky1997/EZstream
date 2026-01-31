@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
 interface WatchlistItem {
@@ -56,7 +56,7 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
     return watchlist.some(item => item.media_type === mediaType && item.media_id === mediaId);
   }, [watchlist]);
 
-  const addToWatchlist = async (
+  const addToWatchlist = useCallback(async (
     mediaType: 'movie' | 'tv',
     mediaId: number,
     title: string,
@@ -90,9 +90,9 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
       console.error('Failed to add to watchlist:', error);
     }
     return false;
-  };
+  }, [user]);
 
-  const removeFromWatchlist = async (mediaType: 'movie' | 'tv', mediaId: number): Promise<boolean> => {
+  const removeFromWatchlist = useCallback(async (mediaType: 'movie' | 'tv', mediaId: number): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -109,17 +109,19 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
       console.error('Failed to remove from watchlist:', error);
     }
     return false;
-  };
+  }, [user]);
+
+  const contextValue = useMemo(() => ({
+    watchlist,
+    loading,
+    isInWatchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+    refreshWatchlist: fetchWatchlist,
+  }), [watchlist, loading, isInWatchlist, addToWatchlist, removeFromWatchlist, fetchWatchlist]);
 
   return (
-    <WatchlistContext.Provider value={{
-      watchlist,
-      loading,
-      isInWatchlist,
-      addToWatchlist,
-      removeFromWatchlist,
-      refreshWatchlist: fetchWatchlist,
-    }}>
+    <WatchlistContext.Provider value={contextValue}>
       {children}
     </WatchlistContext.Provider>
   );

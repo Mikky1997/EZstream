@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
 import { historyQueries } from '@/lib/db';
 import { safeParseInt, sanitizeString } from '@/lib/security';
+import {
+  requireAuth,
+  isAuthError,
+  handleError,
+} from '@/lib/api-helpers';
 
 // GET - Get watched episodes for a TV show
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const { searchParams } = new URL(request.url);
     const mediaId = searchParams.get('mediaId');
@@ -36,19 +38,16 @@ export async function GET(request: Request) {
     
     return NextResponse.json({ watched: watchedMap });
   } catch (error) {
-    console.error('Get episodes error:', error);
-    return NextResponse.json({ error: 'Failed to get episodes' }, { status: 500 });
+    return handleError(error, 'Get episodes error', 'Failed to get episodes');
   }
 }
 
 // POST - Mark episode as watched
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const body = await request.json();
     const { mediaId, season, episode, title, posterPath } = body;
@@ -79,19 +78,16 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Mark episode error:', error);
-    return NextResponse.json({ error: 'Failed to mark episode' }, { status: 500 });
+    return handleError(error, 'Mark episode error', 'Failed to mark episode');
   }
 }
 
 // DELETE - Unmark episode as watched
 export async function DELETE(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const { searchParams } = new URL(request.url);
     const mediaId = searchParams.get('mediaId');
@@ -119,7 +115,6 @@ export async function DELETE(request: Request) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Unmark episode error:', error);
-    return NextResponse.json({ error: 'Failed to unmark episode' }, { status: 500 });
+    return handleError(error, 'Unmark episode error', 'Failed to unmark episode');
   }
 }

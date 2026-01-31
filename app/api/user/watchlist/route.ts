@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
 import { watchlistQueries } from '@/lib/db';
 import { safeParseInt, sanitizeString } from '@/lib/security';
+import {
+  requireAuth,
+  isAuthError,
+  validateMediaType,
+  handleError,
+} from '@/lib/api-helpers';
 
 // GET - Get user's watchlist
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const { searchParams } = new URL(request.url);
     const limit = safeParseInt(searchParams.get('limit'), 50, 1, 100);
@@ -20,7 +23,7 @@ export async function GET(request: Request) {
     const mediaId = searchParams.get('mediaId');
     
     if (mediaType && mediaId) {
-      if (mediaType !== 'movie' && mediaType !== 'tv') {
+      if (!validateMediaType(mediaType)) {
         return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
       }
       const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
@@ -35,19 +38,16 @@ export async function GET(request: Request) {
     
     return NextResponse.json({ watchlist });
   } catch (error) {
-    console.error('Get watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to get watchlist' }, { status: 500 });
+    return handleError(error, 'Get watchlist error', 'Failed to get watchlist');
   }
 }
 
 // POST - Add to watchlist
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const body = await request.json();
     const { mediaType, mediaId, title, posterPath } = body;
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
     
     // Validate mediaType
-    if (mediaType !== 'movie' && mediaType !== 'tv') {
+    if (!validateMediaType(mediaType)) {
       return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
     }
     
@@ -74,19 +74,16 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Add to watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to add to watchlist' }, { status: 500 });
+    return handleError(error, 'Add to watchlist error', 'Failed to add to watchlist');
   }
 }
 
 // DELETE - Remove from watchlist
 export async function DELETE(request: Request) {
   try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
     
     const { searchParams } = new URL(request.url);
     const mediaType = searchParams.get('mediaType');
@@ -97,7 +94,7 @@ export async function DELETE(request: Request) {
     }
     
     // Validate mediaType
-    if (mediaType !== 'movie' && mediaType !== 'tv') {
+    if (!validateMediaType(mediaType)) {
       return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
     }
     
@@ -110,7 +107,6 @@ export async function DELETE(request: Request) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Remove from watchlist error:', error);
-    return NextResponse.json({ error: 'Failed to remove from watchlist' }, { status: 500 });
+    return handleError(error, 'Remove from watchlist error', 'Failed to remove from watchlist');
   }
 }

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
+import { useToast } from '@/app/contexts/ToastContext';
 import type { Movie, TVShow } from '@/types';
 
 interface MovieCardProps {
@@ -18,8 +19,10 @@ const shimmerPlaceholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTg1IiBoZW
 const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
   const { user } = useAuth();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
+  const { showToast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   
   const title = 'title' in item ? item.title : item.name;
   const releaseDate = 'release_date' in item ? item.release_date : item.first_air_date;
@@ -34,14 +37,31 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!user) return;
+    if (!user || isPending) return;
     
-    if (inWatchlist) {
-      await removeFromWatchlist(mediaType, item.id);
-    } else {
-      await addToWatchlist(mediaType, item.id, title, item.poster_path);
+    setIsPending(true);
+    try {
+      if (inWatchlist) {
+        const success = await removeFromWatchlist(mediaType, item.id);
+        if (success) {
+          showToast('Removed from watchlist', 'success');
+        } else {
+          showToast('Failed to remove from watchlist', 'error');
+        }
+      } else {
+        const success = await addToWatchlist(mediaType, item.id, title, item.poster_path);
+        if (success) {
+          showToast('Added to watchlist', 'success');
+        } else {
+          showToast('Failed to add to watchlist', 'error');
+        }
+      }
+    } catch {
+      showToast('Failed to update watchlist', 'error');
+    } finally {
+      setIsPending(false);
     }
-  }, [user, inWatchlist, mediaType, item.id, title, item.poster_path, removeFromWatchlist, addToWatchlist]);
+  }, [user, isPending, inWatchlist, mediaType, item.id, title, item.poster_path, removeFromWatchlist, addToWatchlist, showToast]);
 
   return (
     <div className="movie-card group relative">
@@ -131,11 +151,12 @@ const MovieCard = memo(function MovieCard({ item, mediaType }: MovieCardProps) {
       {user && (
         <button
           onClick={handleWatchlistClick}
+          disabled={isPending}
           className={`card-action-btn absolute top-1 right-1 md:top-2 md:right-2 w-9 h-9 md:w-8 md:h-8 rounded-full z-10 flex items-center justify-center touch-manipulation ${
             inWatchlist 
               ? 'bg-blue-600 active:bg-red-600' 
               : 'bg-black/80 active:bg-blue-600'
-          }`}
+          } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
           title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
           aria-label={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
         >

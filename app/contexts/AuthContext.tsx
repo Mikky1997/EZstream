@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface User {
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, user, loading, router]);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -99,21 +99,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return { success: false, error: 'An error occurred' };
     }
-  };
+  }, [checkAuth]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
       setUser(null);
       router.push('/login');
     }
-  };
+  }, [router]);
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = useMemo(() => !!user, [user]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    logout,
+    checkAuth,
+  }), [user, loading, isAuthenticated, login, logout, checkAuth]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, logout, checkAuth }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

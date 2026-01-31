@@ -5,6 +5,8 @@ import BackToTop from "./components/BackToTop";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WatchlistProvider } from "./contexts/WatchlistContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ToastProvider } from "./contexts/ToastContext";
+import { ToastDisplay } from "./components/shared/Toast";
 import ErrorBoundary from "./components/ErrorBoundary";
 import QueryProvider from "./providers/QueryProvider";
 
@@ -94,9 +96,12 @@ export default function RootLayout({
             <ThemeProvider>
               <AuthProvider>
                 <WatchlistProvider>
-                  <Navbar />
-                  {children}
-                  <BackToTop />
+                  <ToastProvider>
+                    <Navbar />
+                    {children}
+                    <BackToTop />
+                    <ToastDisplay />
+                  </ToastProvider>
                 </WatchlistProvider>
               </AuthProvider>
             </ThemeProvider>

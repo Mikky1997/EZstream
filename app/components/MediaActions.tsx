@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
+import { useToast } from '@/app/contexts/ToastContext';
 
 interface MediaActionsProps {
   mediaType: 'movie' | 'tv';
@@ -19,6 +20,7 @@ export default function MediaActions({
 }: MediaActionsProps) {
   const { user } = useAuth();
   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistContext();
+  const { showToast } = useToast();
   const [isPending, setIsPending] = useState(false);
 
   const inWatchlist = isInWatchlist(mediaType, mediaId);
@@ -28,10 +30,22 @@ export default function MediaActions({
     setIsPending(true);
     try {
       if (inWatchlist) {
-        await removeFromWatchlist(mediaType, mediaId);
+        const success = await removeFromWatchlist(mediaType, mediaId);
+        if (success) {
+          showToast('Removed from watchlist', 'success');
+        } else {
+          showToast('Failed to remove from watchlist', 'error');
+        }
       } else {
-        await addToWatchlist(mediaType, mediaId, title, posterPath);
+        const success = await addToWatchlist(mediaType, mediaId, title, posterPath);
+        if (success) {
+          showToast('Added to watchlist', 'success');
+        } else {
+          showToast('Failed to add to watchlist', 'error');
+        }
       }
+    } catch {
+      showToast('Failed to update watchlist', 'error');
     } finally {
       setIsPending(false);
     }
@@ -45,9 +59,12 @@ export default function MediaActions({
     posterPath,
     addToWatchlist,
     removeFromWatchlist,
+    showToast,
   ]);
 
   if (!user) return null;
+
+  const buttonLabel = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
 
   return (
     <button
@@ -58,7 +75,8 @@ export default function MediaActions({
           ? 'bg-red-600 text-white hover:bg-red-700'
           : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
       } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-      title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+      title={buttonLabel}
+      aria-label={buttonLabel}
     >
       {inWatchlist ? (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
