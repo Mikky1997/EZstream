@@ -393,7 +393,7 @@ export default function WatchPage() {
           {availableSources.map((source, index) => (
             <button
               key={source.source}
-              onClick={() => switchSource(index)}
+              onMouseDown={() => switchSource(index)}
               className={`w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
                 index === currentSourceIndex 
                   ? "source-active" 

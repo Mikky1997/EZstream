@@ -217,7 +217,7 @@ export const TVShowControls = memo(function TVShowControls({
           <span className="truncate">{currentSeasonData?.name || `S${currentSeason}`}</span>
         </button>
         {showSeasonDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[100] min-w-[180px] max-h-60 overflow-y-auto">
             {filteredSeasons.map((season) => {
               const seasonEpisodes = Array.from({ length: season.episode_count }, (_, i) => i + 1);
               const allWatched = seasonEpisodes.every(ep => watchedEpisodes[`${season.season_number}-${ep}`]);
@@ -225,7 +225,7 @@ export const TVShowControls = memo(function TVShowControls({
                 <div
                   key={season.season_number}
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                  onClick={() => { onSeasonChange(season.season_number); setShowSeasonDropdown(false); }}
+                  onMouseDown={() => { onSeasonChange(season.season_number); setShowSeasonDropdown(false); }}
                 >
                   {user && (
                     <button
@@ -249,23 +249,23 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={episodeRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowEpisodeDropdown(!showEpisodeDropdown)}
-          className="flex items-center gap-1.5 bg-gray-800 text-white pl-3 pr-9 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[100px]"
+          className="flex items-center gap-1.5 bg-gray-800 text-white pl-2 pr-8 py-1.5 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
-            backgroundPosition: 'right 8px center',
+            backgroundPosition: 'right 6px center',
             backgroundSize: '14px 14px',
             backgroundRepeat: 'no-repeat',
           }}
         >
-          <span>E{currentEpisode}</span>
+          <span className="text-sm">E{currentEpisode}</span>
         </button>
         {showEpisodeDropdown && (
-          <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[100] min-w-[160px] max-h-60 overflow-y-auto">
             {episodeOptions.map((ep) => (
               <div
                 key={ep.number}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                onClick={() => { onEpisodeChange(ep.number); setShowEpisodeDropdown(false); }}
+                onMouseDown={() => { onEpisodeChange(ep.number); setShowEpisodeDropdown(false); }}
               >
                 {user && (
                   <button
