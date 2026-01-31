@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 // Routes that don't require authentication
-const publicRoutes = ['/login', '/api/auth/login', '/api/auth/logout'];
+const publicRoutes = ['/login', '/api/auth/login', '/api/auth/logout', '/api/sentry-test'];
 
 // Session cookie name
 const SESSION_COOKIE_NAME = 'mikkystream_session';
