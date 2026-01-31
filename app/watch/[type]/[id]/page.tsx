@@ -189,30 +189,50 @@ export default function WatchPage() {
   };
 
   // Mark content as fully watched (removes from Continue Watching)
-  const markAsWatched = async () => {
+  const toggleWatched = async () => {
     if (!user || !item || markingWatched) return;
 
     setMarkingWatched(true);
     const itemTitle = "title" in item ? item.title : item.name;
 
     try {
-      await fetch("/api/user/history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mediaType: type,
-          mediaId: parseInt(id),
-          title: itemTitle,
-          posterPath: item.poster_path,
-          progressSeconds: type === "movie" ? 7200 : 2400, // Full duration
-          durationSeconds: type === "movie" ? 7200 : 2400,
-          season: type === "tv" ? season : undefined,
-          episode: type === "tv" ? episode : undefined,
-        }),
-      });
-      setIsMarkedWatched(true);
+      if (isMarkedWatched) {
+        // Unmark as watched - set progress to 0
+        await fetch("/api/user/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaType: type,
+            mediaId: parseInt(id),
+            title: itemTitle,
+            posterPath: item.poster_path,
+            progressSeconds: 0,
+            durationSeconds: type === "movie" ? 7200 : 2400,
+            season: type === "tv" ? season : undefined,
+            episode: type === "tv" ? episode : undefined,
+          }),
+        });
+        setIsMarkedWatched(false);
+      } else {
+        // Mark as watched - set progress to full duration
+        await fetch("/api/user/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaType: type,
+            mediaId: parseInt(id),
+            title: itemTitle,
+            posterPath: item.poster_path,
+            progressSeconds: type === "movie" ? 7200 : 2400,
+            durationSeconds: type === "movie" ? 7200 : 2400,
+            season: type === "tv" ? season : undefined,
+            episode: type === "tv" ? episode : undefined,
+          }),
+        });
+        setIsMarkedWatched(true);
+      }
     } catch (error) {
-      console.error("Failed to mark as watched:", error);
+      console.error("Failed to toggle watched status:", error);
     } finally {
       setMarkingWatched(false);
     }
@@ -402,14 +422,14 @@ export default function WatchPage() {
                     />
                     {user && (
                       <button
-                        onClick={markAsWatched}
-                        disabled={markingWatched || isMarkedWatched}
+                        onClick={toggleWatched}
+                        disabled={markingWatched}
                         className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                           isMarkedWatched
-                            ? "bg-green-600 text-white cursor-default"
+                            ? "bg-green-600 text-white hover:bg-green-700"
                             : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
                         } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                        title={isMarkedWatched ? "Marked as watched" : "Mark as watched"}
+                        title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
                       >
                         {isMarkedWatched ? (
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -566,12 +586,6 @@ export default function WatchPage() {
                   </div>
                 )}
 
-                {overview && (
-                  <p className="text-gray-400 text-sm line-clamp-2 mb-3">
-                    {overview}
-                  </p>
-                )}
-
                 {/* Action buttons row - for movies only (TV shows have buttons above episode list) */}
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   {/* Left side: Trailer, Watchlist, Mark as Watched - Movies only */}
@@ -600,14 +614,14 @@ export default function WatchPage() {
                       {/* Mark as Watched button */}
                       {user && (
                         <button
-                          onClick={markAsWatched}
-                          disabled={markingWatched || isMarkedWatched}
+                          onClick={toggleWatched}
+                          disabled={markingWatched}
                           className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                             isMarkedWatched
-                              ? "bg-green-600 text-white cursor-default"
+                              ? "bg-green-600 text-white hover:bg-green-700"
                               : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
                           } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
-                          title={isMarkedWatched ? "Marked as watched" : "Mark as watched"}
+                          title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
                         >
                           {isMarkedWatched ? (
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -638,19 +652,19 @@ export default function WatchPage() {
                           </svg>
                         </button>
                         {showSourceSelector && (
-                          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: '#1f2937' }}>
+                          <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto min-w-[200px]" style={{ backgroundColor: '#000000' }}>
                             {availableSources.map((source, index) => (
                               <button
                                 key={source.source}
                                 onClick={() => switchSource(index)}
-                                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-700 last:border-b-0 text-sm"
+                                className="w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm"
                                 style={{
                                   backgroundColor: index === currentSourceIndex ? '#7f1d1d' : 'transparent',
                                   color: index === currentSourceIndex ? '#fecaca' : 'white',
                                 }}
                                 onMouseEnter={(e) => {
                                   if (index !== currentSourceIndex) {
-                                    e.currentTarget.style.backgroundColor = '#374151';
+                                    e.currentTarget.style.backgroundColor = '#1f2937';
                                   }
                                 }}
                                 onMouseLeave={(e) => {
@@ -761,6 +775,13 @@ export default function WatchPage() {
                 )}
               </div>
 
+              {/* Description */}
+              {overview && (
+                <p className="text-gray-400 text-sm mb-4">
+                  {overview}
+                </p>
+              )}
+
               {/* Source Error */}
               {sourceError && (
                 <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 mb-4">
@@ -772,18 +793,6 @@ export default function WatchPage() {
                   </p>
                 </div>
               )}
-
-              {/* Tips */}
-              <div className="bg-gray-900/80 rounded-lg p-4 text-sm">
-                <h3 className="font-semibold text-white mb-2">Tips</h3>
-                <ul className="text-gray-400 space-y-1">
-                  <li>• If source doesn&apos;t work, try the next one</li>
-                  <li>• Most players have audio/subtitle settings built-in</li>
-                  {isTVShow && user && (
-                    <li>• Click the checkmark to mark episodes as watched</li>
-                  )}
-                </ul>
-              </div>
             </div>
           </div>
         </div>
