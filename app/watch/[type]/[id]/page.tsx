@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
 import MediaActions from "@/app/components/MediaActions";
@@ -67,9 +67,14 @@ export default function WatchPage() {
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [showSourceSelector, setShowSourceSelector] = useState(false);
 
+  // Get season/episode from URL query params or default to 1
+  const searchParams = useSearchParams();
+  const initialSeason = parseInt(searchParams.get("s") || "1", 10);
+  const initialEpisode = parseInt(searchParams.get("e") || "1", 10);
+  
   // Season/episode for TV shows
-  const [season, setSeason] = useState(1);
-  const [episode, setEpisode] = useState(1);
+  const [season, setSeason] = useState(initialSeason);
+  const [episode, setEpisode] = useState(initialEpisode);
 
 
 
@@ -551,7 +556,10 @@ export default function WatchPage() {
                         currentSeason={season}
                         currentEpisode={episode}
                         trailerKey={item.trailerKey}
-                        onSeasonChange={setSeason}
+                        onSeasonChange={(newSeason) => {
+                          setSeason(newSeason);
+                          setEpisode(1);
+                        }}
                         onEpisodeChange={setEpisode}
                         onNextEpisode={() => {
                           const currentSeasonData = seasons.find(s => s.season_number === season);
