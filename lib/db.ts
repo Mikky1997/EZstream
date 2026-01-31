@@ -170,7 +170,7 @@ export const historyQueries = {
       duration_seconds = excluded.duration_seconds,
       last_watched_at = CURRENT_TIMESTAMP
   `),
-  getForUser: db.prepare<[number, number, number], WatchHistoryItem>(`
+  getForUser: db.prepare<[number, number], WatchHistoryItem>(`
     SELECT wh.* FROM watch_history wh
     INNER JOIN (
       SELECT media_type, media_id, MAX(last_watched_at) as max_watched
@@ -181,7 +181,6 @@ export const historyQueries = {
             AND wh.media_id = latest.media_id 
             AND wh.last_watched_at = latest.max_watched
     WHERE wh.user_id = ?
-      AND (wh.duration_seconds = 0 OR wh.progress_seconds < wh.duration_seconds * 0.9)
     ORDER BY wh.last_watched_at DESC 
     LIMIT ?
   `),
