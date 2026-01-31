@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import VideoPlayer from "@/app/components/VideoPlayer";
@@ -83,6 +84,8 @@ export default function WatchPage() {
   
   // Ref for source selector dropdown
   const sourceSelectorRef = useRef<HTMLDivElement>(null);
+  const sourcePanelRef = useRef<HTMLDivElement>(null);
+  const [sourceDropdownRect, setSourceDropdownRect] = useState<DOMRect | null>(null);
 
   // Ref for EpisodeList to sync watched status
   const episodeListRef = useRef<EpisodeListHandle>(null);
@@ -188,12 +191,21 @@ export default function WatchPage() {
     };
   }, []);
 
-  // Close source selector when clicking outside
+  // Update source dropdown position when opened (for portal)
+  useEffect(() => {
+    if (showSourceSelector && sourceSelectorRef.current) {
+      setSourceDropdownRect(sourceSelectorRef.current.getBoundingClientRect());
+    } else {
+      setSourceDropdownRect(null);
+    }
+  }, [showSourceSelector]);
+
+  // Close source selector when clicking outside (include portaled panel)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (sourceSelectorRef.current && !sourceSelectorRef.current.contains(event.target as Node)) {
-        setShowSourceSelector(false);
-      }
+      const target = event.target as Node;
+      const inSource = sourceSelectorRef.current?.contains(target) || sourcePanelRef.current?.contains(target);
+      if (!inSource) setShowSourceSelector(false);
     }
     if (showSourceSelector) {
       document.addEventListener('mousedown', handleClickOutside);
@@ -388,23 +400,35 @@ export default function WatchPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {showSourceSelector && (
-        <div className="absolute top-full right-0 mt-2 border border-gray-700 rounded-lg shadow-2xl z-[100] max-h-80 overflow-y-auto min-w-[220px] bg-gray-900">
-          {availableSources.map((source, index) => (
-            <button
-              key={source.source}
-              onMouseDown={() => switchSource(index)}
-              className={`w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
-                index === currentSourceIndex 
-                  ? "source-active" 
-                  : "text-white hover:bg-gray-700"
-              }`}
-            >
-              {source.name}
-            </button>
-          ))}
-        </div>
-      )}
+      {showSourceSelector &&
+        sourceDropdownRect &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={sourcePanelRef}
+            className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto min-w-[220px] bg-gray-900"
+            style={{
+              top: sourceDropdownRect.bottom + 8,
+              right: typeof window !== "undefined" ? window.innerWidth - sourceDropdownRect.right : undefined,
+              left: undefined,
+            }}
+          >
+            {availableSources.map((source, index) => (
+              <button
+                key={source.source}
+                onMouseDown={() => switchSource(index)}
+                className={`w-full text-left px-4 py-2.5 transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
+                  index === currentSourceIndex
+                    ? "source-active"
+                    : "text-white hover:bg-gray-700"
+                }`}
+              >
+                {source.name}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   ) : null;
 
