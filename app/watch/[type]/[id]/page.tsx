@@ -281,9 +281,9 @@ export default function WatchPage() {
           }
         }
       } else {
-        // For movies, use the history API directly
+        // For movies, use the history API
         if (isMarkedWatched) {
-          // Unmark as watched - set progress to 0
+          // Unmark as watched - reset progress
           await fetch("/api/user/history", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -298,18 +298,9 @@ export default function WatchPage() {
           });
           setIsMarkedWatched(false);
         } else {
-          // Mark as watched - set progress to full duration
-          await fetch("/api/user/history", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mediaType: type,
-              mediaId: parseInt(id),
-              title: itemTitle,
-              posterPath: item.poster_path,
-              progressSeconds: 7200,
-              durationSeconds: 7200,
-            }),
+          // Mark as watched - remove from Continue Watching
+          await fetch(`/api/user/history?mediaType=movie&mediaId=${id}`, {
+            method: "DELETE"
           });
           setIsMarkedWatched(true);
         }
@@ -573,7 +564,7 @@ export default function WatchPage() {
                       />
                     )
                   ) : (
-                    /* Movie Controls: Trailer, Watchlist */
+                    /* Movie Controls: Trailer, Watchlist, Mark Watched */
                     <div className="flex items-center gap-1.5 flex-nowrap flex-shrink-0">
                       {item.trailerKey && (
                         <a
@@ -593,6 +584,30 @@ export default function WatchPage() {
                         title={title}
                         posterPath={item.poster_path}
                       />
+                      {/* Mark as Watched for movies */}
+                      {user && (
+                        <button
+                          onClick={toggleWatched}
+                          disabled={markingWatched}
+                          className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all flex-shrink-0 ${
+                            isMarkedWatched
+                              ? "bg-green-600 text-white hover:bg-green-700"
+                              : "bg-gray-700 text-gray-200 hover:bg-green-600 hover:text-white"
+                          } ${markingWatched ? "opacity-50 cursor-not-allowed" : ""}`}
+                          title={isMarkedWatched ? "Click to unmark as watched" : "Mark as watched"}
+                        >
+                          {isMarkedWatched ? (
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
                     </div>
                   )}
 
