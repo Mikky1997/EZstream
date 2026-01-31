@@ -2,6 +2,9 @@
 
 import { memo } from "react";
 
+// Custom dropdown arrow SVG as data URI
+const DROPDOWN_ARROW = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E`;
+
 interface FilterDropdownOption {
   value: string;
   label: string;
@@ -55,7 +58,12 @@ export const FilterDropdown = memo(function FilterDropdown({
         aria-label={label ? `Select ${label.toLowerCase()}` : undefined}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`bg-gray-800 text-white pl-4 pr-10 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none ${className}`}
+        className={`bg-gray-800 text-white pl-4 pr-12 py-2 rounded-lg border border-gray-700 focus:border-blue-500 outline-none appearance-none cursor-pointer bg-no-repeat ${className}`}
+        style={{
+          backgroundImage: `url("${DROPDOWN_ARROW}")`,
+          backgroundPosition: 'right 12px center',
+          backgroundSize: '16px 16px',
+        }}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
