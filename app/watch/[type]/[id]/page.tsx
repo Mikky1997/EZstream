@@ -207,7 +207,7 @@ export default function WatchPage() {
 
   // Auto-mark TV episode as watched when streaming starts
   useEffect(() => {
-    if (type === "tv" && user && streamingSource && item) {
+    if (type === "tv" && user && streamingSource && item && "name" in item) {
       const title = item.name;
       // Mark episode as watched via API
       fetch("/api/user/episodes", {
