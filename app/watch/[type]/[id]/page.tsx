@@ -569,13 +569,6 @@ export default function WatchPage() {
                   </div>
                 )}
 
-                {/* Description - moved up to be right after genres */}
-                {overview && (
-                  <p className="text-gray-400 text-sm mb-4">
-                    {overview}
-                  </p>
-                )}
-
                 {/* Action buttons row */}
                 <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
                   {/* Left side: Controls */}
@@ -644,6 +637,13 @@ export default function WatchPage() {
                 >
                   <VideoPlayer source={streamingSource} title={title} />
                 </div>
+              )}
+
+              {/* Description - under the player */}
+              {overview && (
+                <p className="text-gray-400 text-sm mb-4">
+                  {overview}
+                </p>
               )}
 
               {/* Credits - Netflix style simple links under the player */}

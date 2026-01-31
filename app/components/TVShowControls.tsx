@@ -234,7 +234,7 @@ export const TVShowControls = memo(function TVShowControls({
             backgroundRepeat: 'no-repeat',
           }}
         >
-          <span className="truncate">{currentSeasonData?.name || `S${currentSeason}`}</span>
+          <span className="text-sm">S{currentSeason}</span>
         </button>
         {showSeasonDropdown &&
           seasonDropdownRect &&
@@ -277,7 +277,7 @@ export const TVShowControls = memo(function TVShowControls({
                         )}
                       </button>
                     )}
-                    <span className="text-sm text-white flex-1 min-w-0 truncate">{season.name || `Season ${season.season_number}`}</span>
+                    <span className="text-sm text-white flex-1 min-w-0">S{season.season_number}</span>
                   </div>
                 );
               })}
