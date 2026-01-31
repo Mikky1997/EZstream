@@ -45,3 +45,6 @@ Thumbs.db
 
 # User seed script (contains sensitive user data)
 scripts/seed-users.ts
+
+# Local documentation (not for repo)
+REFACTORING_SUMMARY.md
