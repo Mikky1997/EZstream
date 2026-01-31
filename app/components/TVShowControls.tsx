@@ -203,7 +203,7 @@ export const TVShowControls = memo(function TVShowControls({
   const nextEpisodeInfo = getNextEpisodeInfo();
 
   return (
-    <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto">
+    <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto">
       {/* Trailer */}
       {trailerKey && (
         <a

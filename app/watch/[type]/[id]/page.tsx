@@ -393,10 +393,10 @@ export default function WatchPage() {
     <div ref={sourceSelectorRef} className="relative flex-shrink-0">
       <button
         onClick={() => setShowSourceSelector(!showSourceSelector)}
-        className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1.5 text-sm"
+        className="px-1.5 sm:px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm"
       >
-        <span className="max-w-[80px] truncate">{currentSource?.name}</span>
-        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="max-w-[50px] sm:max-w-[80px] truncate">{currentSource?.name}</span>
+        <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -560,7 +560,7 @@ export default function WatchPage() {
                 )}
 
                 {/* Action buttons row */}
-                <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
+                <div className="flex items-center justify-between gap-1 sm:gap-2 mb-4 flex-nowrap overflow-x-auto">
                   {/* Left side: Controls */}
                   {isTVShow ? (
                     /* TV Show Controls: Trailer, Watchlist, Season, Episode, Mark Watched, Next */
@@ -591,7 +591,7 @@ export default function WatchPage() {
                     )
                   ) : (
                     /* Movie Controls: Trailer, Watchlist */
-                    <div className="flex items-center gap-1.5 flex-nowrap">
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap">
                       {item.trailerKey && (
                         <a
                           href={`https://www.youtube.com/watch?v=${item.trailerKey}`}
@@ -615,7 +615,7 @@ export default function WatchPage() {
                   )}
 
                   {/* Right side: Source selector and next source */}
-                  <div className="flex items-center gap-1.5 flex-nowrap">{sourceControls}</div>
+                  <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap">{sourceControls}</div>
                 </div>
               </div>
 
