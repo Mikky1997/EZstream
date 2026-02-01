@@ -36,7 +36,8 @@ yarn-error.log*
 
 # Local / sensitive (do not push)
 cookies.txt
-tz*.png
+# Root-level screenshots (use docs/screenshots/ for README)
+/tz*.png
 
 # OS files
 .DS_Store

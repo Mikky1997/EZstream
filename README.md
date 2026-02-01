@@ -40,13 +40,13 @@ A modern, high-performance streaming platform built with Next.js 14, featuring m
 
 ## Screenshots
 
-![EZstream Homepage](tz1.png)
+![EZstream Homepage](docs/screenshots/tz1.png)
 ***
 ***
-![EZstream MOBILE TV SHOWS](tz2.png)
+![EZstream MOBILE TV SHOWS](docs/screenshots/tz2.png)
 ***
 ***
-![EZstream MOVIES HIGHEST RATED](tz4.png)
+![EZstream MOVIES HIGHEST RATED](docs/screenshots/tz4.png)
 ***
 ***
 ## Tech Stack
