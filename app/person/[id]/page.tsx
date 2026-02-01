@@ -46,6 +46,15 @@ export default function PersonPage() {
     loadPerson();
   }, [id]);
 
+  useEffect(() => {
+    if (person?.name) {
+      document.title = `EZ - ${person.name}`;
+      return () => {
+        document.title = "EZstream";
+      };
+    }
+  }, [person?.name]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">

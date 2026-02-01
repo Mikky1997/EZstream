@@ -61,6 +61,17 @@ export default function WatchPage() {
   const error = queryError ? "Failed to load content. Please try again." : null;
   // imdbId is added by the API response
   const imdbId = (item as Movie & { imdbId?: string })?.imdbId || null;
+
+  // Tab title so user knows what they're watching
+  useEffect(() => {
+    if (item) {
+      const name = "title" in item ? item.title : item.name;
+      document.title = `EZ - ${name}`;
+      return () => {
+        document.title = "EZstream";
+      };
+    }
+  }, [item]);
   const tmdbId = id;
   const seasons = useMemo(() => {
     return (type === "tv" && item && "seasons" in item) 

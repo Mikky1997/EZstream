@@ -23,7 +23,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://mikky.vip",
   ),
-  title: "EZstream - Movie Streaming Platform",
+  title: {
+    default: "EZstream",
+    template: "%s",
+  },
   description: "Stream movies, TV series, and anime",
   keywords: ["movies", "tv shows", "anime", "streaming", "watch online"],
   authors: [{ name: "EZstream" }],
@@ -48,14 +51,14 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "EZstream - Movie Streaming Platform",
+    title: "EZstream",
     description: "Stream movies, TV series, and anime",
     type: "website",
     siteName: "EZstream",
   },
   twitter: {
     card: "summary",
-    title: "EZstream - Movie Streaming Platform",
+    title: "EZstream",
     description: "Stream movies, TV series, and anime",
   },
   robots: {
