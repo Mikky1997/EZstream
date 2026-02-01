@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPersonDetails, getPersonCredits, getIMDbId } from "@/lib/tmdb";
 import { getOMDbData } from "@/lib/omdb";
 import { safeParseInt } from "@/lib/security";
+import { PERSON_CACHE_SECONDS } from "@/lib/constants";
 import type { CastCredit, CrewCredit } from "@/types";
 
 // Cache person details for 1 day (doesn't change often)
-export const revalidate = 86400;
+export const revalidate = PERSON_CACHE_SECONDS;
 
 export async function GET(
   request: NextRequest,
@@ -87,7 +88,8 @@ export async function GET(
             };
           }
         } catch {
-          // Ignore errors
+          // Silently fall back to no IMDB data on error
+          // This ensures partial OMDb/TMDB failures don't break the response
         }
         return { ...credit, imdbRating: null, imdbVotes: null };
       }),

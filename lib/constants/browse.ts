@@ -146,13 +146,13 @@ export const TV_YEAR_OPTIONS = generateYearOptions(1950);
 
 export const DEFAULT_SORT = "popularity.desc";
 export const RATING_SORT = "vote_average.desc";
-export const ANIMATION_GENRE_ID = 16;
-export const JAPANESE_LANGUAGE = "ja";
+
+// Re-export from app.ts for backwards compatibility with existing imports
+export { ANIMATION_GENRE_ID, JAPANESE_LANGUAGE, ITEMS_PER_PAGE } from './app';
 
 // ============================================================================
 // Pagination
 // ============================================================================
 
-export const ITEMS_PER_PAGE = 20;
 export const RATING_SORT_PAGES_TO_FETCH = 5; // Fetch 5 pages for rating sort
 export const RATING_SORT_TOP_N = 100; // Show top 100 results for rating sort

@@ -175,7 +175,8 @@ export async function enrichWithIMDBRating<T extends Record<string, unknown>>(
       }
     }
   } catch {
-    // Ignore errors, fall back to no IMDB data
+    // Silently fall back to no IMDB data on error
+    // This ensures partial OMDb/TMDB failures don't break the response
   }
 
   return {

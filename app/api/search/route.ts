@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchMovies, filterBlockedContent } from '@/lib/tmdb';
 import { safeParseInt, sanitizeString } from '@/lib/security';
+import {
+  SEARCH_CACHE_SECONDS,
+  SEARCH_SWR_SECONDS,
+  MAX_SEARCH_QUERY_LENGTH,
+  SEARCH_MIN_RESULTS_THRESHOLD,
+  SEARCH_MAX_RESULTS,
+  SEARCH_ADDITIONAL_PAGES,
+  MIN_PAGE,
+  MAX_PAGE,
+} from '@/lib/constants';
 
 // Cache search results for 2 minutes
-export const revalidate = 120;
+export const revalidate = SEARCH_CACHE_SECONDS;
+
+/** Cache-Control header for search responses */
+const SEARCH_CACHE_HEADER = `public, s-maxage=${SEARCH_CACHE_SECONDS}, stale-while-revalidate=${SEARCH_SWR_SECONDS}`;
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -18,55 +31,49 @@ export async function GET(request: NextRequest) {
   }
 
   // Validate and sanitize inputs
-  const sanitizedQuery = sanitizeString(query, 200);
-  const validatedPage = safeParseInt(page, 1, 1, 1000);
+  const sanitizedQuery = sanitizeString(query, MAX_SEARCH_QUERY_LENGTH);
+  const validatedPage = safeParseInt(page, 1, MIN_PAGE, MAX_PAGE);
 
   try {
     // TMDB search is already fuzzy - it uses partial matching
     // But we can improve by searching multiple pages and combining results
     const results = await searchMovies(sanitizedQuery, validatedPage);
-    
-    // If first page has few results, try to get more
-    if (results.results.length < 10 && results.total_pages > 1) {
-      const additionalPages = await Promise.all([
-        searchMovies(sanitizedQuery, 2),
-        searchMovies(sanitizedQuery, 3),
-      ]);
-      
+
+    // If first page has few results, try to get more from additional pages
+    if (results.results.length < SEARCH_MIN_RESULTS_THRESHOLD && results.total_pages > 1) {
+      const additionalPages = await Promise.all(
+        SEARCH_ADDITIONAL_PAGES.map((pageNum) => searchMovies(sanitizedQuery, pageNum))
+      );
+
       // Combine results and remove duplicates
       const allResults = [
         ...results.results,
-        ...additionalPages[0].results,
-        ...additionalPages[1].results,
+        ...additionalPages.flatMap((page) => page.results),
       ];
-      
+
       const uniqueResults = allResults.filter((item, index, self) =>
         index === self.findIndex((t) => t.id === item.id)
       );
-      
+
       // Filter out blocked adult content
       const filteredResults = filterBlockedContent(uniqueResults);
-      
+
       return NextResponse.json({
         ...results,
-        results: filteredResults.slice(0, 40), // Limit to 40 results
+        results: filteredResults.slice(0, SEARCH_MAX_RESULTS),
       }, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
-        },
+        headers: { 'Cache-Control': SEARCH_CACHE_HEADER },
       });
     }
-    
+
     // Filter out blocked adult content
     const filteredResults = filterBlockedContent(results.results || []);
-    
+
     return NextResponse.json({
       ...results,
       results: filteredResults,
     }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
-      },
+      headers: { 'Cache-Control': SEARCH_CACHE_HEADER },
     });
   } catch (error) {
     console.error('Search API error:', error);
