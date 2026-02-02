@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/app/contexts/AuthContext";
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 interface SearchResult {
   id: number;
@@ -22,7 +22,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showNavSearch, setShowNavSearch] = useState(false);
-  const [navSearchQuery, setNavSearchQuery] = useState("");
+  const [navSearchQuery, setNavSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const navSearchRef = useRef<HTMLInputElement>(null);
@@ -33,7 +33,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout();
     setUserMenuOpen(false);
-    router.push("/login");
+    router.push('/login');
   };
 
   // Focus search input when opened - use timeout to ensure DOM is ready
@@ -62,21 +62,16 @@ export default function Navbar() {
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(
-          `/api/search?q=${encodeURIComponent(navSearchQuery)}`,
-        );
+        const response = await fetch(`/api/search?q=${encodeURIComponent(navSearchQuery)}`);
         if (response.ok) {
           const data = await response.json();
           const filtered = (data.results || [])
-            .filter(
-              (item: SearchResult) =>
-                item.media_type === "movie" || item.media_type === "tv",
-            )
+            .filter((item: SearchResult) => item.media_type === 'movie' || item.media_type === 'tv')
             .slice(0, 8);
           setSearchResults(filtered);
         }
       } catch (err) {
-        console.error("Search error:", err);
+        console.error('Search error:', err);
       } finally {
         setIsSearching(false);
       }
@@ -95,8 +90,7 @@ export default function Navbar() {
       const target = event.target as Node;
       const isOutsideDesktop =
         searchWrapperRef.current && !searchWrapperRef.current.contains(target);
-      const isOutsideMobile =
-        mobileSearchRef.current && !mobileSearchRef.current.contains(target);
+      const isOutsideMobile = mobileSearchRef.current && !mobileSearchRef.current.contains(target);
 
       // Only close if clicking outside BOTH refs (or if ref doesn't exist)
       const shouldClose =
@@ -105,36 +99,36 @@ export default function Navbar() {
 
       if (shouldClose && showNavSearch) {
         setShowNavSearch(false);
-        setNavSearchQuery("");
+        setNavSearchQuery('');
         setSearchResults([]);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showNavSearch]);
 
   // Close search on escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         setShowNavSearch(false);
-        setNavSearchQuery("");
+        setNavSearchQuery('');
         setSearchResults([]);
       }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
   // Handle selecting a result from dropdown
   const handleSelectResult = (result: SearchResult) => {
     router.push(`/watch/${result.media_type}/${result.id}`);
     setShowNavSearch(false);
-    setNavSearchQuery("");
+    setNavSearchQuery('');
     setSearchResults([]);
   };
 
@@ -145,10 +139,10 @@ export default function Navbar() {
     }
   };
 
-  const getTitle = (item: SearchResult) => item.title || item.name || "Unknown";
+  const getTitle = (item: SearchResult) => item.title || item.name || 'Unknown';
 
   // Don't show navbar on login page
-  if (pathname === "/login") {
+  if (pathname === '/login') {
     return null;
   }
 
@@ -176,9 +170,9 @@ export default function Navbar() {
             <Link
               href="/browse/movies"
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
-                pathname.startsWith("/browse/movies")
-                  ? "bg-accent text-white"
-                  : "text-gray-300 hover:text-white hover:bg-accent/20"
+                pathname.startsWith('/browse/movies')
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
               Movies
@@ -186,9 +180,9 @@ export default function Navbar() {
             <Link
               href="/browse/tv"
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
-                pathname.startsWith("/browse/tv")
-                  ? "bg-accent text-white"
-                  : "text-gray-300 hover:text-white hover:bg-accent/20"
+                pathname.startsWith('/browse/tv')
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
               TV Shows
@@ -196,9 +190,9 @@ export default function Navbar() {
             <Link
               href="/browse/anime"
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
-                pathname.startsWith("/browse/anime")
-                  ? "bg-accent text-white"
-                  : "text-gray-300 hover:text-white hover:bg-accent/20"
+                pathname.startsWith('/browse/anime')
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
               Anime
@@ -215,9 +209,9 @@ export default function Navbar() {
                     ref={navSearchRef}
                     type="text"
                     value={navSearchQuery}
-                    onChange={(e) => setNavSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
+                    onChange={e => setNavSearchQuery(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
                         handleEnterKey();
                       }
                     }}
@@ -229,17 +223,12 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setShowNavSearch(false);
-                      setNavSearchQuery("");
+                      setNavSearchQuery('');
                       setSearchResults([]);
                     }}
                     className="ml-2 p-2 text-gray-400 hover:text-white"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -271,7 +260,7 @@ export default function Navbar() {
                             </p>
                           </div>
                         )}
-                      {searchResults.map((item) => (
+                      {searchResults.map(item => (
                         <button
                           key={`${item.media_type}-${item.id}`}
                           onClick={() => handleSelectResult(item)}
@@ -293,18 +282,16 @@ export default function Navbar() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium truncate">
-                              {getTitle(item)}
-                            </p>
+                            <p className="text-white font-medium truncate">{getTitle(item)}</p>
                             <div className="flex items-center gap-2 text-sm text-gray-400">
                               <span
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  item.media_type === "movie"
-                                    ? "bg-blue-600/90 text-white"
-                                    : "bg-purple-600/90 text-white"
+                                  item.media_type === 'movie'
+                                    ? 'bg-blue-600/90 text-white'
+                                    : 'bg-purple-600/90 text-white'
                                 }`}
                               >
-                                {item.media_type === "movie" ? "MOVIE" : "TV"}
+                                {item.media_type === 'movie' ? 'MOVIE' : 'TV'}
                               </span>
                               {item.vote_average && item.vote_average > 0 && (
                                 <span className="text-yellow-400">
@@ -325,12 +312,7 @@ export default function Navbar() {
                   title="Search"
                   aria-label="Open search"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -352,12 +334,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
                 >
                   <span>{user.displayName}</span>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -370,14 +347,12 @@ export default function Navbar() {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
                     <div className="px-4 py-3 border-b border-gray-700">
-                      <p className="text-white font-medium">
-                        {user.displayName}
-                      </p>
+                      <p className="text-white font-medium">{user.displayName}</p>
                       <p className="text-gray-400 text-sm">@{user.username}</p>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-700 transition-colors rounded-b-lg"
+                      className="w-full text-left px-4 py-3 text-red-400 dropdown-item-hover transition-colors rounded-b-lg"
                     >
                       Sign Out
                     </button>
@@ -402,12 +377,7 @@ export default function Navbar() {
               title="Search"
               aria-label="Toggle search"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -419,14 +389,9 @@ export default function Navbar() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-gray-300 hover:text-white"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
                   <path
                     strokeLinecap="round"
@@ -458,9 +423,9 @@ export default function Navbar() {
                 ref={navSearchRef}
                 type="text"
                 value={navSearchQuery}
-                onChange={(e) => setNavSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                onChange={e => setNavSearchQuery(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
                     handleEnterKey();
                   }
                 }}
@@ -472,17 +437,12 @@ export default function Navbar() {
                 type="button"
                 onClick={() => {
                   setShowNavSearch(false);
-                  setNavSearchQuery("");
+                  setNavSearchQuery('');
                   setSearchResults([]);
                 }}
                 className="p-2 text-gray-400"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -510,12 +470,10 @@ export default function Navbar() {
                   navSearchQuery.trim().length >= 2 &&
                   searchResults.length === 0 && (
                     <div className="p-4 text-center text-gray-400">
-                      <p className="text-sm">
-                        No results found for &quot;{navSearchQuery}&quot;
-                      </p>
+                      <p className="text-sm">No results found for &quot;{navSearchQuery}&quot;</p>
                     </div>
                   )}
-                {searchResults.map((item) => (
+                {searchResults.map(item => (
                   <button
                     key={`${item.media_type}-${item.id}`}
                     onClick={() => handleSelectResult(item)}
@@ -537,17 +495,15 @@ export default function Navbar() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium truncate">
-                        {getTitle(item)}
-                      </p>
+                      <p className="text-white font-medium truncate">{getTitle(item)}</p>
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          item.media_type === "movie"
-                            ? "bg-blue-600/90 text-white"
-                            : "bg-purple-600/90 text-white"
+                          item.media_type === 'movie'
+                            ? 'bg-blue-600/90 text-white'
+                            : 'bg-purple-600/90 text-white'
                         }`}
                       >
-                        {item.media_type === "movie" ? "MOVIE" : "TV"}
+                        {item.media_type === 'movie' ? 'MOVIE' : 'TV'}
                       </span>
                     </div>
                   </button>
@@ -565,9 +521,9 @@ export default function Navbar() {
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
-                  pathname.startsWith("/browse/movies")
-                    ? "bg-accent text-white"
-                    : "text-gray-300 hover:text-white hover:bg-accent/20"
+                  pathname.startsWith('/browse/movies')
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
                 Movies
@@ -576,9 +532,9 @@ export default function Navbar() {
                 href="/browse/tv"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
-                  pathname.startsWith("/browse/tv")
-                    ? "bg-accent text-white"
-                    : "text-gray-300 hover:text-white hover:bg-accent/20"
+                  pathname.startsWith('/browse/tv')
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
                 TV Shows
@@ -587,9 +543,9 @@ export default function Navbar() {
                 href="/browse/anime"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
-                  pathname.startsWith("/browse/anime")
-                    ? "bg-accent text-white"
-                    : "text-gray-300 hover:text-white hover:bg-accent/20"
+                  pathname.startsWith('/browse/anime')
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
                 Anime
@@ -600,19 +556,15 @@ export default function Navbar() {
                 {user ? (
                   <>
                     <div className="px-4 py-3">
-                      <p className="text-white font-medium">
-                        {user.displayName}
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        @{user.username}
-                      </p>
+                      <p className="text-white font-medium">{user.displayName}</p>
+                      <p className="text-gray-400 text-sm">@{user.username}</p>
                     </div>
                     <button
                       onClick={() => {
                         handleLogout();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800 transition-colors rounded-lg"
+                      className="w-full text-left px-4 py-3 text-red-400 dropdown-item-hover transition-colors rounded-lg"
                     >
                       Sign Out
                     </button>
@@ -621,7 +573,7 @@ export default function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-3 text-blue-400 hover:bg-gray-800 transition-colors rounded-lg"
+                    className="block px-4 py-3 text-accent dropdown-item-hover transition-colors rounded-lg"
                   >
                     Sign In
                   </Link>
@@ -634,10 +586,7 @@ export default function Navbar() {
 
       {/* Click outside to close user menu */}
       {userMenuOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setUserMenuOpen(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
       )}
     </nav>
   );

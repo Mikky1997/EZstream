@@ -326,7 +326,12 @@ export default function WatchPage() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
           {showSourceSelector &&
@@ -350,7 +355,9 @@ export default function WatchPage() {
                     key={source.source}
                     onMouseDown={() => switchSource(index)}
                     className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
-                      index === currentSourceIndex ? 'source-active' : 'text-white hover:bg-gray-700'
+                      index === currentSourceIndex
+                        ? 'source-active'
+                        : 'text-white dropdown-item-hover'
                     }`}
                   >
                     {source.name}
@@ -365,7 +372,9 @@ export default function WatchPage() {
           <button
             onClick={nextSource}
             className="hidden sm:flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
-            title={`Next: ${availableSources[(currentSourceIndex + 1) % availableSources.length]?.name}`}
+            title={`Next: ${
+              availableSources[(currentSourceIndex + 1) % availableSources.length]?.name
+            }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

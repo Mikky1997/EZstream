@@ -149,7 +149,7 @@ export const TVShowControls = memo(function TVShowControls({
                   className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
                     season.season_number === currentSeason
                       ? 'source-active'
-                      : 'text-white hover:bg-gray-700'
+                      : 'text-white dropdown-item-hover'
                   }`}
                   onMouseDown={() => {
                     onSeasonChange(season.season_number);
@@ -194,9 +194,7 @@ export const TVShowControls = memo(function TVShowControls({
                 <div
                   key={epNum}
                   className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
-                    epNum === currentEpisode
-                      ? 'source-active'
-                      : 'text-white hover:bg-gray-700'
+                    epNum === currentEpisode ? 'source-active' : 'text-white dropdown-item-hover'
                   }`}
                   onMouseDown={() => {
                     onEpisodeChange(epNum);
