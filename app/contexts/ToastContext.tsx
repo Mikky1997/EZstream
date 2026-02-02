@@ -53,7 +53,7 @@ export function ToastProvider({
 
   const showToast = useCallback(
     (message: string, type: ToastType = 'info', duration?: number) => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       const toastDuration = duration ?? defaultDuration;
 
       setToasts(prev => {

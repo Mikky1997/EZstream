@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import { useToast } from '@/app/contexts/ToastContext';
 import type { Toast as ToastType, ToastType as ToastVariant } from '@/app/contexts/ToastContext';
 
@@ -73,7 +73,12 @@ const ToastItem = memo(function ToastItem({ toast, onDismiss }: ToastItemProps) 
         className="flex-shrink-0 p-1 rounded hover:bg-white/20 transition-colors touch-manipulation"
         aria-label="Dismiss notification"
       >
-        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -109,7 +114,8 @@ const positionClasses: Record<string, string> = {
   'bottom-right': 'bottom-2 left-2 right-2 sm:left-auto sm:right-4 sm:bottom-4',
   'bottom-left': 'bottom-2 left-2 right-2 sm:right-auto sm:left-4 sm:bottom-4',
   'top-center': 'top-2 left-2 right-2 sm:left-1/2 sm:right-auto sm:top-4 sm:-translate-x-1/2',
-  'bottom-center': 'bottom-2 left-2 right-2 sm:left-1/2 sm:right-auto sm:bottom-4 sm:-translate-x-1/2',
+  'bottom-center':
+    'bottom-2 left-2 right-2 sm:left-1/2 sm:right-auto sm:bottom-4 sm:-translate-x-1/2',
 };
 
 export const ToastContainer = memo(function ToastContainer({
