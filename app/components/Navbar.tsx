@@ -169,9 +169,9 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               href="/browse/movies"
-              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
                 pathname.startsWith('/browse/movies')
-                  ? 'bg-accent text-white'
+                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                   : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
@@ -179,9 +179,9 @@ export default function Navbar() {
             </Link>
             <Link
               href="/browse/tv"
-              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
                 pathname.startsWith('/browse/tv')
-                  ? 'bg-accent text-white'
+                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                   : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
@@ -189,9 +189,9 @@ export default function Navbar() {
             </Link>
             <Link
               href="/browse/anime"
-              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
                 pathname.startsWith('/browse/anime')
-                  ? 'bg-accent text-white'
+                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                   : 'text-gray-300 hover:text-white hover:bg-accent/20'
               }`}
             >
@@ -520,9 +520,9 @@ export default function Navbar() {
               <Link
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
                   pathname.startsWith('/browse/movies')
-                    ? 'bg-accent text-white'
+                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                     : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
@@ -531,9 +531,9 @@ export default function Navbar() {
               <Link
                 href="/browse/tv"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
                   pathname.startsWith('/browse/tv')
-                    ? 'bg-accent text-white'
+                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                     : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
@@ -542,9 +542,9 @@ export default function Navbar() {
               <Link
                 href="/browse/anime"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
                   pathname.startsWith('/browse/anime')
-                    ? 'bg-accent text-white'
+                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
                     : 'text-gray-300 hover:text-white hover:bg-accent/20'
                 }`}
               >
