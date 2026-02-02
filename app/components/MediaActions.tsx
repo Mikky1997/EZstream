@@ -65,9 +65,11 @@ export default function MediaActions({ mediaType, mediaId, title, posterPath }: 
     <button
       onClick={toggleWatchlist}
       disabled={isPending}
-      className={`flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0 ${
-        isPending ? 'opacity-50 cursor-not-allowed' : ''
-      }`}
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors flex-shrink-0 ${
+        inWatchlist
+          ? 'bg-red-600 hover:bg-red-700 text-white'
+          : 'bg-gray-700 text-gray-200 hover:bg-red-600 hover:text-white'
+      } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
       title={buttonLabel}
       aria-label={buttonLabel}
     >

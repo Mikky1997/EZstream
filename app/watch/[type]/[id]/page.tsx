@@ -317,7 +317,7 @@ export default function WatchPage() {
         <div ref={sourceSelectorRef} className="relative flex-shrink-0">
           <button
             onClick={() => setShowSourceSelector(!showSourceSelector)}
-            className="px-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1 h-9 text-xs sm:text-sm"
+            className="flex items-center justify-center gap-1.5 min-h-9 h-9 px-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 text-xs sm:text-sm flex-shrink-0"
           >
             <span className="max-w-[60px] sm:max-w-[80px] truncate">{currentSource?.name}</span>
             <svg
