@@ -121,7 +121,7 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={seasonRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
-          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
+          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-red-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
             backgroundPosition: 'right 8px center',
@@ -168,7 +168,7 @@ export const TVShowControls = memo(function TVShowControls({
       <div ref={episodeRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowEpisodeDropdown(!showEpisodeDropdown)}
-          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-blue-500 outline-none min-w-[60px]"
+          className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-red-500 outline-none min-w-[60px]"
           style={{
             backgroundImage: `url("${DROPDOWN_ARROW}")`,
             backgroundPosition: 'right 6px center',
@@ -215,7 +215,7 @@ export const TVShowControls = memo(function TVShowControls({
       {nextEpisodeInfo && (
         <button
           onClick={onNextEpisode}
-          className="flex items-center justify-center w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0"
+          className="flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
           title={`Next: S${nextEpisodeInfo.season} E${nextEpisodeInfo.episode}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

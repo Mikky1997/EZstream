@@ -305,54 +305,74 @@ export default function WatchPage() {
   const currentSource = availableSources[currentSourceIndex];
   const isTVShow = type === 'tv';
 
+  // Switch to next source (wraps around)
+  const nextSource = () => {
+    const nextIndex = (currentSourceIndex + 1) % availableSources.length;
+    switchSource(nextIndex);
+  };
+
   const sourceControls =
     availableSources.length > 0 ? (
-      <div ref={sourceSelectorRef} className="relative flex-shrink-0">
-        <button
-          onClick={() => setShowSourceSelector(!showSourceSelector)}
-          className="px-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1 h-9 text-xs sm:text-sm"
-        >
-          <span className="max-w-[60px] sm:max-w-[80px] truncate">{currentSource?.name}</span>
-          <svg
-            className="w-3.5 h-3.5 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <>
+        <div ref={sourceSelectorRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowSourceSelector(!showSourceSelector)}
+            className="px-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 flex items-center gap-1 h-9 text-xs sm:text-sm"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {showSourceSelector &&
-          sourceDropdownRect &&
-          typeof document !== 'undefined' &&
-          createPortal(
-            <div
-              ref={sourcePanelRef}
-              className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto w-max min-w-[100px] max-w-[180px] bg-gray-900"
-              style={{
-                top: sourceDropdownRect.bottom + 8,
-                right:
-                  typeof window !== 'undefined'
-                    ? window.innerWidth - sourceDropdownRect.right
-                    : undefined,
-                left: undefined,
-              }}
+            <span className="max-w-[60px] sm:max-w-[80px] truncate">{currentSource?.name}</span>
+            <svg
+              className="w-3.5 h-3.5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {availableSources.map((source, index) => (
-                <button
-                  key={source.source}
-                  onMouseDown={() => switchSource(index)}
-                  className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
-                    index === currentSourceIndex ? 'source-active' : 'text-white hover:bg-gray-700'
-                  }`}
-                >
-                  {source.name}
-                </button>
-              ))}
-            </div>,
-            document.body
-          )}
-      </div>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showSourceSelector &&
+            sourceDropdownRect &&
+            typeof document !== 'undefined' &&
+            createPortal(
+              <div
+                ref={sourcePanelRef}
+                className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto w-max min-w-[100px] max-w-[180px] bg-gray-900"
+                style={{
+                  top: sourceDropdownRect.bottom + 8,
+                  right:
+                    typeof window !== 'undefined'
+                      ? window.innerWidth - sourceDropdownRect.right
+                      : undefined,
+                  left: undefined,
+                }}
+              >
+                {availableSources.map((source, index) => (
+                  <button
+                    key={source.source}
+                    onMouseDown={() => switchSource(index)}
+                    className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
+                      index === currentSourceIndex ? 'source-active' : 'text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    {source.name}
+                  </button>
+                ))}
+              </div>,
+              document.body
+            )}
+        </div>
+        {/* Next Source button - hidden on mobile */}
+        {availableSources.length > 1 && (
+          <button
+            onClick={nextSource}
+            className="hidden sm:flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
+            title={`Next: ${availableSources[(currentSourceIndex + 1) % availableSources.length]?.name}`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+      </>
     ) : null;
 
   // Extract additional metadata

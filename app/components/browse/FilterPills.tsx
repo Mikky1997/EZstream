@@ -35,7 +35,7 @@ interface FilterPillsProps<T extends PillOption> {
  *   onSelect={setSelectedGenre}
  *   showAllOption
  *   allLabel="All"
- *   activeColorClass="bg-blue-600"
+ *   activeColorClass="bg-red-600"
  *   label="Genre"
  * />
  *
@@ -44,7 +44,7 @@ interface FilterPillsProps<T extends PillOption> {
  *   options={COUNTRY_OPTIONS}
  *   selected={selectedLanguage}
  *   onSelect={setSelectedLanguage}
- *   activeColorClass="bg-blue-600"
+ *   activeColorClass="bg-red-600"
  *   label="Country / Language"
  * />
  * ```
@@ -55,7 +55,7 @@ function FilterPillsComponent<T extends PillOption>({
   onSelect,
   allLabel = "All",
   showAllOption = false,
-  activeColorClass = "bg-blue-600",
+  activeColorClass = "bg-red-600",
   label,
 }: FilterPillsProps<T>) {
   // Type guard for genre options
