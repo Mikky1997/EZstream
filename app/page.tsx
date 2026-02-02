@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import SearchBar from "@/app/components/SearchBar";
-import MovieCard from "@/app/components/MovieCard";
-import { useAuth } from "@/app/contexts/AuthContext";
-import { useWatchlistContext } from "@/app/contexts/WatchlistContext";
-import { useWatchHistory } from "@/app/hooks/useUserLists";
-import type { Movie, TVShow, Person } from "@/types";
-import PersonCard from "@/app/components/PersonCard";
+import { useState, useEffect, useCallback, useRef, memo, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import SearchBar from '@/app/components/SearchBar';
+import MovieCard from '@/app/components/MovieCard';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useWatchlistContext } from '@/app/contexts/WatchlistContext';
+import { useWatchHistory } from '@/app/hooks/useUserLists';
+import type { Movie, TVShow, Person } from '@/types';
+import PersonCard from '@/app/components/PersonCard';
 
 // Memoized helper component for Recently Watched cards
 const ContinueWatchingCard = memo(function ContinueWatchingCard({
@@ -27,13 +27,11 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
     season?: number | null;
     episode?: number | null;
   };
-  mediaType: "movie" | "tv";
+  mediaType: 'movie' | 'tv';
   onRemove?: () => void;
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-    : null;
+  const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : null;
 
   const progress =
     item.progress_seconds && item.duration_seconds
@@ -43,7 +41,11 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
   return (
     <div className="movie-card group relative">
       <Link
-        href={`/watch/${mediaType}/${item.media_id}${mediaType === "tv" && item.season && item.episode ? `?s=${item.season}&e=${item.episode}` : ""}`}
+        href={`/watch/${mediaType}/${item.media_id}${
+          mediaType === 'tv' && item.season && item.episode
+            ? `?s=${item.season}&e=${item.episode}`
+            : ''
+        }`}
         prefetch={false}
       >
         <div className="card-scale cursor-pointer">
@@ -59,7 +61,9 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                  className={`object-cover transition-opacity duration-200 ${
+                    isLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                   sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
@@ -79,31 +83,31 @@ const ContinueWatchingCard = memo(function ContinueWatchingCard({
               />
             </div>
             {/* Episode info for TV */}
-            {mediaType === "tv" && item.season && item.episode && (
+            {mediaType === 'tv' && item.season && item.episode && (
               <div className="absolute top-9 left-2 bg-black/80 px-1.5 py-0.5 rounded text-xs text-gray-300 font-medium">
                 S{item.season} E{item.episode}
               </div>
             )}
             <div className="absolute bottom-2 left-2 right-2">
-              <h3 className="text-white text-sm font-medium line-clamp-1">
-                {item.title}
-              </h3>
+              <h3 className="text-white text-sm font-medium line-clamp-1">{item.title}</h3>
             </div>
           </div>
         </div>
       </Link>
       {/* Media type badge - left */}
       <div className="absolute top-2 left-2 z-10">
-        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-          mediaType === "movie" ? "bg-blue-600/90 text-white" : "bg-purple-600/90 text-white"
-        }`}>
-          {mediaType === "movie" ? "MOVIE" : "TV"}
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+            mediaType === 'movie' ? 'bg-blue-600/90 text-white' : 'bg-purple-600/90 text-white'
+          }`}
+        >
+          {mediaType === 'movie' ? 'MOVIE' : 'TV'}
         </span>
       </div>
       {/* Remove button - right */}
       {onRemove && (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             e.stopPropagation();
             onRemove();
@@ -137,13 +141,11 @@ const WatchlistCard = memo(function WatchlistCard({
   onRemove,
 }: {
   item: { media_id: number; title: string; poster_path: string | null };
-  mediaType: "movie" | "tv";
+  mediaType: 'movie' | 'tv';
   onRemove?: () => void;
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const posterPath = item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-    : null;
+  const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : null;
 
   return (
     <div className="movie-card group relative">
@@ -161,7 +163,9 @@ const WatchlistCard = memo(function WatchlistCard({
                   src={posterPath}
                   alt={item.title}
                   fill
-                  className={`object-cover transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                  className={`object-cover transition-opacity duration-200 ${
+                    isLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                   sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 185px"
                   loading="lazy"
                   onLoad={() => setIsLoaded(true)}
@@ -175,25 +179,25 @@ const WatchlistCard = memo(function WatchlistCard({
             )}
             <div className="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-2 left-2 right-2">
-              <h3 className="text-white text-sm font-medium line-clamp-1">
-                {item.title}
-              </h3>
+              <h3 className="text-white text-sm font-medium line-clamp-1">{item.title}</h3>
             </div>
           </div>
         </div>
       </Link>
       {/* Media type badge - left */}
       <div className="absolute top-2 left-2 z-10">
-        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-          mediaType === "movie" ? "bg-blue-600/90 text-white" : "bg-purple-600/90 text-white"
-        }`}>
-          {mediaType === "movie" ? "MOVIE" : "TV"}
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+            mediaType === 'movie' ? 'bg-blue-600/90 text-white' : 'bg-purple-600/90 text-white'
+          }`}
+        >
+          {mediaType === 'movie' ? 'MOVIE' : 'TV'}
         </span>
       </div>
       {/* Remove button - right */}
       {onRemove && (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             e.stopPropagation();
             onRemove();
@@ -223,23 +227,17 @@ const WatchlistCard = memo(function WatchlistCard({
 // Inner component that uses useSearchParams (needs Suspense boundary)
 function HomeContent() {
   const { user, loading: authLoading } = useAuth();
-  const { history, removeFromHistory } = useWatchHistory();
-  const { watchlist, removeFromWatchlist } = useWatchlistContext();
+  const { history, loading: historyLoading, removeFromHistory } = useWatchHistory();
+  const { watchlist, loading: watchlistLoading, removeFromWatchlist } = useWatchlistContext();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get("q") || "";
+  const initialQuery = searchParams.get('q') || '';
 
-  const [searchResults, setSearchResults] = useState<
-    (Movie | TVShow | Person)[]
-  >([]);
-  const [liveResults, setLiveResults] = useState<(Movie | TVShow | Person)[]>(
-    [],
-  );
+  const [searchResults, setSearchResults] = useState<(Movie | TVShow | Person)[]>([]);
+  const [liveResults, setLiveResults] = useState<(Movie | TVShow | Person)[]>([]);
 
   // Mixed feed - movies, TV shows, and anime
-  const [feed, setFeed] = useState<
-    Array<{ item: Movie | TVShow; type: "movie" | "tv" }>
-  >([]);
+  const [feed, setFeed] = useState<Array<{ item: Movie | TVShow; type: 'movie' | 'tv' }>>([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -256,17 +254,21 @@ function HomeContent() {
 
   // Memoized recently watched - filter items with > 60s progress
   const recentlyWatched = useMemo(
-    () => history.filter((item) => item.progress_seconds > 60),
-    [history],
+    () => history.filter(item => item.progress_seconds > 60),
+    [history]
   );
+
+  // Only show browse content when auth, feed, and (if user) history+watchlist are ready – avoids Discover flashing first then shifting
+  const initialBrowseReady =
+    !authLoading && !loadingBrowse && (!user || (!historyLoading && !watchlistLoading));
 
   // Helper: Check if content is anime (Animation genre + Japanese)
   const isAnime = useCallback((item: Movie | TVShow) => {
     const animationGenreId = 16;
     const hasAnimation =
       item.genre_ids?.includes(animationGenreId) ||
-      item.genres?.some((g) => g.id === animationGenreId);
-    const isJapanese = item.original_language === "ja";
+      item.genres?.some(g => g.id === animationGenreId);
+    const isJapanese = item.original_language === 'ja';
     return hasAnimation && isJapanese;
   }, []);
 
@@ -279,41 +281,25 @@ function HomeContent() {
       const randomPage2 = Math.floor(Math.random() * 3) + 1;
 
       // Load movies and TV shows (no anime)
-      const [
-        trendingMovies,
-        trendingTV,
-        popularMovies,
-        popularTV,
-        topRatedMovies,
-        topRatedTV,
-      ] = await Promise.all([
-        fetch(`/api/trending?type=movie&page=${randomPage1}`).then((r) =>
-          r.json(),
-        ),
-        fetch(`/api/trending?type=tv&page=${randomPage1}`).then((r) =>
-          r.json(),
-        ),
-        fetch(`/api/popular?type=movie&page=${randomPage2}`).then((r) =>
-          r.json(),
-        ),
-        fetch(`/api/popular?type=tv&page=${randomPage2}`).then((r) => r.json()),
-        fetch(`/api/browse/movies?sort_by=vote_average.desc&page=1`).then((r) =>
-          r.json(),
-        ),
-        fetch(`/api/browse/tv?sort_by=vote_average.desc&page=1`).then((r) =>
-          r.json(),
-        ),
-      ]);
+      const [trendingMovies, trendingTV, popularMovies, popularTV, topRatedMovies, topRatedTV] =
+        await Promise.all([
+          fetch(`/api/trending?type=movie&page=${randomPage1}`).then(r => r.json()),
+          fetch(`/api/trending?type=tv&page=${randomPage1}`).then(r => r.json()),
+          fetch(`/api/popular?type=movie&page=${randomPage2}`).then(r => r.json()),
+          fetch(`/api/popular?type=tv&page=${randomPage2}`).then(r => r.json()),
+          fetch(`/api/browse/movies?sort_by=vote_average.desc&page=1`).then(r => r.json()),
+          fetch(`/api/browse/tv?sort_by=vote_average.desc&page=1`).then(r => r.json()),
+        ]);
 
       // Combine all results and deduplicate
       const seen = new Set<string>();
       const allItems: Array<{
         item: Movie | TVShow;
-        type: "movie" | "tv";
+        type: 'movie' | 'tv';
         score: number;
       }> = [];
 
-      const addItems = (items: (Movie | TVShow)[], type: "movie" | "tv") => {
+      const addItems = (items: (Movie | TVShow)[], type: 'movie' | 'tv') => {
         for (const item of items || []) {
           const key = `${type}-${item.id}`;
           // Skip anime and duplicates
@@ -324,20 +310,19 @@ function HomeContent() {
           // This weights both factors for better sorting
           const popularityScore = Math.min((item.vote_count || 0) / 1000, 10); // Max 10 from popularity
           const ratingScore = item.vote_average || 0; // 0-10 from rating
-          const combinedScore =
-            popularityScore + ratingScore + Math.random() * 5; // Add randomness
+          const combinedScore = popularityScore + ratingScore + Math.random() * 5; // Add randomness
 
           allItems.push({ item, type, score: combinedScore });
         }
       };
 
       // Add from all sources
-      addItems(trendingMovies.results, "movie");
-      addItems(trendingTV.results, "tv");
-      addItems(popularMovies.results, "movie");
-      addItems(popularTV.results, "tv");
-      addItems(topRatedMovies.results, "movie");
-      addItems(topRatedTV.results, "tv");
+      addItems(trendingMovies.results, 'movie');
+      addItems(trendingTV.results, 'tv');
+      addItems(popularMovies.results, 'movie');
+      addItems(popularTV.results, 'tv');
+      addItems(topRatedMovies.results, 'movie');
+      addItems(topRatedTV.results, 'tv');
 
       // Sort by combined score (descending) with randomness built in
       allItems.sort((a, b) => b.score - a.score);
@@ -352,7 +337,7 @@ function HomeContent() {
       setFeed(topItems.map(({ item, type }) => ({ item, type })));
       setPage(2);
     } catch (err) {
-      console.error("Failed to load feed:", err);
+      console.error('Failed to load feed:', err);
     } finally {
       setLoadingBrowse(false);
     }
@@ -365,17 +350,17 @@ function HomeContent() {
     try {
       // Rotate through different sources for variety (no anime)
       const sources = [
-        { url: "/api/trending?type=movie", type: "movie" as const },
-        { url: "/api/trending?type=tv", type: "tv" as const },
-        { url: "/api/popular?type=movie", type: "movie" as const },
-        { url: "/api/popular?type=tv", type: "tv" as const },
+        { url: '/api/trending?type=movie', type: 'movie' as const },
+        { url: '/api/trending?type=tv', type: 'tv' as const },
+        { url: '/api/popular?type=movie', type: 'movie' as const },
+        { url: '/api/popular?type=tv', type: 'tv' as const },
         {
-          url: "/api/browse/movies?sort_by=vote_average.desc",
-          type: "movie" as const,
+          url: '/api/browse/movies?sort_by=vote_average.desc',
+          type: 'movie' as const,
         },
         {
-          url: "/api/browse/tv?sort_by=vote_average.desc",
-          type: "tv" as const,
+          url: '/api/browse/tv?sort_by=vote_average.desc',
+          type: 'tv' as const,
         },
       ];
 
@@ -387,7 +372,7 @@ function HomeContent() {
         const data = await response.json();
         // Filter out anime from results
         const filteredResults = (data.results || []).filter(
-          (item: Movie | TVShow) => !isAnime(item),
+          (item: Movie | TVShow) => !isAnime(item)
         );
         const newItems = filteredResults.map((item: Movie | TVShow) => ({
           item,
@@ -397,12 +382,12 @@ function HomeContent() {
         if (newItems.length === 0) {
           setHasMore(false);
         } else {
-          setFeed((prev) => [...prev, ...newItems]);
-          setPage((prev) => prev + 1);
+          setFeed(prev => [...prev, ...newItems]);
+          setPage(prev => prev + 1);
         }
       }
     } catch (err) {
-      console.error("Failed to load more:", err);
+      console.error('Failed to load more:', err);
     } finally {
       setLoadingMore(false);
     }
@@ -413,17 +398,17 @@ function HomeContent() {
     loadInitialFeed();
   }, [loadInitialFeed]);
 
-  // Infinite scroll observer with throttling
+  // Infinite scroll: preload when user is ~2 viewport heights from bottom so next items are ready
   useEffect(() => {
     if (hasSearched || loadingBrowse || authLoading) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (entries[0].isIntersecting && hasMore && !loadingMore) {
           loadMoreFeed();
         }
       },
-      { threshold: 0.1, rootMargin: "200px" },
+      { threshold: 0, rootMargin: '0px 0px 800px 0px' }
     );
 
     const currentRef = loadMoreRef.current;
@@ -436,47 +421,41 @@ function HomeContent() {
         observer.unobserve(currentRef);
       }
     };
-  }, [
-    hasMore,
-    loadingMore,
-    loadingBrowse,
-    authLoading,
-    hasSearched,
-    loadMoreFeed,
-  ]);
+  }, [hasMore, loadingMore, loadingBrowse, authLoading, hasSearched, loadMoreFeed]);
 
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      setSearchQuery("");
-      // Clear URL param
-      router.replace("/", { scroll: false });
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setHasSearched(true);
-    setLiveResults([]);
-    setSearchQuery(query);
-
-    try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(query)}`,
-      );
-      if (!response.ok) {
-        throw new Error("Search failed");
+  const handleSearch = useCallback(
+    async (query: string) => {
+      if (!query.trim()) {
+        setSearchResults([]);
+        setHasSearched(false);
+        setSearchQuery('');
+        // Clear URL param
+        router.replace('/', { scroll: false });
+        return;
       }
-      const data = await response.json();
-      setSearchResults(data.results || []);
-    } catch (err) {
-      setError("Failed to search. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+
+      setLoading(true);
+      setError(null);
+      setHasSearched(true);
+      setLiveResults([]);
+      setSearchQuery(query);
+
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          throw new Error('Search failed');
+        }
+        const data = await response.json();
+        setSearchResults(data.results || []);
+      } catch (err) {
+        setError('Failed to search. Please try again.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router]
+  );
 
   // Auto-search when page loads with ?q= parameter
   useEffect(() => {
@@ -494,9 +473,7 @@ function HomeContent() {
   }, []);
 
   const showResults =
-    (hasSearched && searchResults.length > 0) ||
-    liveResults.length > 0 ||
-    hasSearched;
+    (hasSearched && searchResults.length > 0) || liveResults.length > 0 || hasSearched;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
@@ -504,7 +481,7 @@ function HomeContent() {
         {/* Hero Section */}
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
-            {user ? `Welcome back, ${user.displayName}` : "Discover & Stream"}
+            {user ? `Welcome back, ${user.displayName}` : 'Discover & Stream'}
           </h1>
           <p className="text-gray-400">Movies, TV Shows & Anime</p>
         </div>
@@ -536,27 +513,20 @@ function HomeContent() {
         {/* Search Results */}
         {!hasSearched && liveResults.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">
-              Results ({liveResults.length})
-            </h2>
+            <h2 className="text-xl font-bold text-white mb-4">Results ({liveResults.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {liveResults
                 .slice(0, 18)
-                .map((item) =>
-                  item.media_type === "person" ? (
-                    <PersonCard
-                      key={`person-${item.id}`}
-                      person={item as Person}
-                    />
+                .map(item =>
+                  item.media_type === 'person' ? (
+                    <PersonCard key={`person-${item.id}`} person={item as Person} />
                   ) : (
                     <MovieCard
                       key={item.id}
                       item={item as Movie | TVShow}
-                      mediaType={
-                        item.media_type || ("title" in item ? "movie" : "tv")
-                      }
+                      mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
                     />
-                  ),
+                  )
                 )}
             </div>
           </div>
@@ -568,21 +538,16 @@ function HomeContent() {
               Search Results ({searchResults.length})
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {searchResults.map((item) =>
-                item.media_type === "person" ? (
-                  <PersonCard
-                    key={`person-${item.id}`}
-                    person={item as Person}
-                  />
+              {searchResults.map(item =>
+                item.media_type === 'person' ? (
+                  <PersonCard key={`person-${item.id}`} person={item as Person} />
                 ) : (
                   <MovieCard
                     key={item.id}
                     item={item as Movie | TVShow}
-                    mediaType={
-                      item.media_type || ("title" in item ? "movie" : "tv")
-                    }
+                    mediaType={item.media_type || ('title' in item ? 'movie' : 'tv')}
                   />
-                ),
+                )
               )}
             </div>
           </div>
@@ -594,10 +559,10 @@ function HomeContent() {
           </div>
         )}
 
-        {/* Browse Content */}
+        {/* Browse Content - wait for auth + feed + (if user) history & watchlist so layout doesn't flash */}
         {!showResults && (
           <>
-            {loadingBrowse || authLoading ? (
+            {!initialBrowseReady ? (
               <div className="py-12 text-center">
                 <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent"></div>
               </div>
@@ -610,14 +575,12 @@ function HomeContent() {
                       <span className="text-red-500">▶</span> Recently Watched
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-fadeIn">
-                      {recentlyWatched.slice(0, 6).map((item) => (
+                      {recentlyWatched.slice(0, 6).map(item => (
                         <ContinueWatchingCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}
                           mediaType={item.media_type}
-                          onRemove={() =>
-                            removeFromHistory(item.media_type, item.media_id)
-                          }
+                          onRemove={() => removeFromHistory(item.media_type, item.media_id)}
                         />
                       ))}
                     </div>
@@ -639,11 +602,11 @@ function HomeContent() {
                           onClick={() => setShowAllWatchlist(!showAllWatchlist)}
                           className="text-sm text-blue-400 hover:text-blue-300 active:text-blue-200 transition-colors flex items-center gap-1.5 py-2 px-3 -mr-3 touch-manipulation rounded-lg"
                         >
-                          {showAllWatchlist
-                            ? "Show Less"
-                            : `See All (${watchlist.length})`}
+                          {showAllWatchlist ? 'Show Less' : `See All (${watchlist.length})`}
                           <svg
-                            className={`w-4 h-4 transition-transform duration-200 ${showAllWatchlist ? "rotate-180" : ""}`}
+                            className={`w-4 h-4 transition-transform duration-200 ${
+                              showAllWatchlist ? 'rotate-180' : ''
+                            }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -659,17 +622,12 @@ function HomeContent() {
                       )}
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-fadeIn">
-                      {(showAllWatchlist
-                        ? watchlist
-                        : watchlist.slice(0, 6)
-                      ).map((item) => (
+                      {(showAllWatchlist ? watchlist : watchlist.slice(0, 6)).map(item => (
                         <WatchlistCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}
                           mediaType={item.media_type}
-                          onRemove={() =>
-                            removeFromWatchlist(item.media_type, item.media_id)
-                          }
+                          onRemove={() => removeFromWatchlist(item.media_type, item.media_id)}
                         />
                       ))}
                     </div>
@@ -679,9 +637,7 @@ function HomeContent() {
                 {/* Mixed Feed - Movies, TV Shows, Anime */}
                 {feed.length > 0 && (
                   <div className="mb-10">
-                    <h2 className="text-xl font-bold text-white mb-4">
-                      Discover
-                    </h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Discover</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {feed.map((entry, index) => (
                         <MovieCard
@@ -712,15 +668,17 @@ function HomeContent() {
 // Wrapper with Suspense boundary for useSearchParams
 export default function Home() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent"></div>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent"></div>
+            </div>
           </div>
-        </div>
-      </main>
-    }>
+        </main>
+      }
+    >
       <HomeContent />
     </Suspense>
   );
