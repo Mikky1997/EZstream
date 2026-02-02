@@ -29,7 +29,7 @@ export function useWatchHistory() {
     
     setLoading(true);
     try {
-      const response = await fetch('/api/user/history?limit=20');
+      const response = await fetch('/api/user/history?limit=6');
       if (response.ok) {
         const data = await response.json();
         setHistory(data.history || []);

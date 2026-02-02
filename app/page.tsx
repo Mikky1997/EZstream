@@ -12,7 +12,7 @@ import { useWatchHistory } from "@/app/hooks/useUserLists";
 import type { Movie, TVShow, Person } from "@/types";
 import PersonCard from "@/app/components/PersonCard";
 
-// Memoized helper component for Continue Watching cards
+// Memoized helper component for Recently Watched cards
 const ContinueWatchingCard = memo(function ContinueWatchingCard({
   item,
   mediaType,
@@ -251,12 +251,11 @@ function HomeContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
 
-  // Expand states for user lists
-  const [showAllContinue, setShowAllContinue] = useState(false);
+  // Expand state for watchlist only (Recently Watched is always 6 items max)
   const [showAllWatchlist, setShowAllWatchlist] = useState(false);
 
-  // Memoized continue watching - filter items with > 60s progress
-  const continueWatching = useMemo(
+  // Memoized recently watched - filter items with > 60s progress
+  const recentlyWatched = useMemo(
     () => history.filter((item) => item.progress_seconds > 60),
     [history],
   );
@@ -604,46 +603,14 @@ function HomeContent() {
               </div>
             ) : (
               <>
-                {/* Continue Watching */}
-                {user && continueWatching.length > 0 && (
+                {/* Recently Watched - always shows max 6 items */}
+                {user && recentlyWatched.length > 0 && (
                   <div className="mb-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <span className="text-red-500">▶</span> Continue
-                        Watching
-                        <span className="text-sm font-normal text-gray-400">
-                          ({continueWatching.length})
-                        </span>
-                      </h2>
-                      {continueWatching.length > 6 && (
-                        <button
-                          onClick={() => setShowAllContinue(!showAllContinue)}
-                          className="text-sm text-blue-400 hover:text-blue-300 active:text-blue-200 transition-colors flex items-center gap-1.5 py-2 px-3 -mr-3 touch-manipulation rounded-lg"
-                        >
-                          {showAllContinue
-                            ? "Show Less"
-                            : `See All (${continueWatching.length})`}
-                          <svg
-                            className={`w-4 h-4 transition-transform duration-200 ${showAllContinue ? "rotate-180" : ""}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
+                      <span className="text-red-500">▶</span> Recently Watched
+                    </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-fadeIn">
-                      {(showAllContinue
-                        ? continueWatching
-                        : continueWatching.slice(0, 6)
-                      ).map((item) => (
+                      {recentlyWatched.slice(0, 6).map((item) => (
                         <ContinueWatchingCard
                           key={`${item.media_type}-${item.media_id}`}
                           item={item}

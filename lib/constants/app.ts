@@ -114,8 +114,8 @@ export const JAPANESE_LANGUAGE = "ja";
 /** Default items per page for grids */
 export const ITEMS_PER_PAGE = 20;
 
-/** Max history items to show in Continue Watching */
-export const MAX_CONTINUE_WATCHING = 20;
+/** Max history items to show in Recently Watched */
+export const MAX_RECENTLY_WATCHED = 6;
 
 /** Max watchlist items to fetch */
 export const MAX_WATCHLIST_ITEMS = 100;
