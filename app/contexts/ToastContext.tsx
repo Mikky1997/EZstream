@@ -43,12 +43,12 @@ interface ToastProviderProps {
 export function ToastProvider({
   children,
   defaultDuration = 4000,
-  maxToasts = 5,
+  maxToasts = 1,
 }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
   const showToast = useCallback(
@@ -56,7 +56,7 @@ export function ToastProvider({
       const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const toastDuration = duration ?? defaultDuration;
 
-      setToasts((prev) => {
+      setToasts(prev => {
         // Limit number of toasts
         const newToasts = [...prev, { id, message, type, duration: toastDuration }];
         if (newToasts.length > maxToasts) {
@@ -89,11 +89,7 @@ export function ToastProvider({
     [toasts, showToast, dismissToast, clearToasts]
   );
 
-  return (
-    <ToastContext.Provider value={contextValue}>
-      {children}
-    </ToastContext.Provider>
-  );
+  return <ToastContext.Provider value={contextValue}>{children}</ToastContext.Provider>;
 }
 
 // ============================================================================

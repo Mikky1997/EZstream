@@ -21,19 +21,16 @@ const ToastItem = memo(function ToastItem({ toast, onDismiss }: ToastItemProps) 
     setTimeout(() => onDismiss(toast.id), 200);
   };
 
-  // Get styles based on type
+  // Get styles based on type (black background, colored border)
   const getTypeStyles = (type: ToastVariant): string => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-600 border-green-500';
-      case 'error':
-        return 'bg-red-600 border-red-500';
-      case 'warning':
-        return 'bg-yellow-600 border-yellow-500';
-      case 'info':
-      default:
-        return 'bg-blue-600 border-blue-500';
-    }
+    const border =
+      {
+        success: 'border-green-500',
+        error: 'border-red-500',
+        warning: 'border-yellow-500',
+        info: 'border-blue-500',
+      }[type] ?? 'border-gray-600';
+    return `bg-black ${border}`;
   };
 
   const getIcon = (type: ToastVariant) => {
@@ -70,9 +67,9 @@ const ToastItem = memo(function ToastItem({ toast, onDismiss }: ToastItemProps) 
     <div
       role="alert"
       aria-live="polite"
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg text-white transition-all duration-200 ${
-        getTypeStyles(toast.type)
-      } ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg text-white transition-all duration-200 ${getTypeStyles(
+        toast.type
+      )} ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'}`}
     >
       <span className="flex-shrink-0">{getIcon(toast.type)}</span>
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
@@ -82,7 +79,12 @@ const ToastItem = memo(function ToastItem({ toast, onDismiss }: ToastItemProps) 
         aria-label="Dismiss notification"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
@@ -97,7 +99,13 @@ interface ToastContainerProps {
   toasts: ToastType[];
   onDismiss: (id: string) => void;
   /** Position of the toast container */
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  position?:
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-center'
+    | 'bottom-center';
 }
 
 const positionClasses: Record<string, string> = {
@@ -121,7 +129,7 @@ export const ToastContainer = memo(function ToastContainer({
       className={`fixed z-50 flex flex-col gap-2 max-w-sm w-full ${positionClasses[position]}`}
       aria-label="Notifications"
     >
-      {toasts.map((toast) => (
+      {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
     </div>
