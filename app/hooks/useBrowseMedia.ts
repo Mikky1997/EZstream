@@ -1,13 +1,9 @@
-"use client";
+'use client';
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import type { BrowseOptions, BrowseResponse, MediaItem } from "@/types";
-import {
-  fetchBrowsePage,
-  fetchRatingSortedResults,
-  isRatingSort,
-} from "@/lib/api/browse";
-import { ITEMS_PER_PAGE } from "@/lib/constants/browse";
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type { BrowseOptions, BrowseResponse, MediaItem } from '@/types';
+import { fetchBrowsePage, fetchRatingSortedResults, isRatingSort } from '@/lib/api/browse';
+import { ITEMS_PER_PAGE } from '@/lib/constants/browse';
 
 export interface UseBrowseMediaOptions extends BrowseOptions {
   /** Whether the query is enabled */
@@ -47,18 +43,16 @@ export interface UseBrowseMediaResult {
  * });
  * ```
  */
-export function useBrowseMedia(
-  options: UseBrowseMediaOptions
-): UseBrowseMediaResult {
+export function useBrowseMedia(options: UseBrowseMediaOptions): UseBrowseMediaResult {
   const { enabled = true, ...browseOptions } = options;
   const isRatingSortMode = isRatingSort(browseOptions.sortBy);
 
   // Query key includes all filter options to cache different combinations
-  const queryKey = ["browse", browseOptions] as const;
+  const queryKey = ['browse', browseOptions] as const;
 
   // For rating sort: fetch all pages upfront and sort client-side
   const ratingQuery = useQuery({
-    queryKey: [...queryKey, "rating-sorted"],
+    queryKey: [...queryKey, 'rating-sorted'],
     queryFn: () => fetchRatingSortedResults(browseOptions),
     enabled: enabled && isRatingSortMode,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -70,11 +64,11 @@ export function useBrowseMedia(
     queryFn: ({ pageParam }) => fetchBrowsePage(browseOptions, pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage: BrowseResponse) => {
-      // Check if there are more pages
-      if (lastPage.page < lastPage.total_pages) {
+      const totalPages = lastPage.total_pages ?? 0;
+      if (totalPages > 0 && lastPage.page < totalPages) {
         return lastPage.page + 1;
       }
-      // Fallback: check if we got a full page of results
+      // Fallback: if we got a full page, try next (handles API omitting total_pages or filtering)
       if (lastPage.results.length >= ITEMS_PER_PAGE) {
         return lastPage.page + 1;
       }
@@ -98,7 +92,7 @@ export function useBrowseMedia(
   }
 
   // Flatten all pages into a single array
-  const items = infiniteQuery.data?.pages.flatMap((page) => page.results) || [];
+  const items = infiniteQuery.data?.pages.flatMap(page => page.results) || [];
 
   return {
     items,
