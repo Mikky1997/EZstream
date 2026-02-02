@@ -736,7 +736,7 @@ select option:hover {
 
 /* Shared dropdown item hover - use with source-active for selection (custom dropdowns) */
 .dropdown-item-hover:hover {
-  background-color: color-mix(in srgb, var(--danger) 25%, var(--bg-elevated)) !important;
+  background-color: color-mix(in srgb, var(--danger) 40%, var(--bg-elevated)) !important;
 }
 
 /* Mobile-specific select fixes */

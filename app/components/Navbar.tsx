@@ -169,30 +169,30 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               href="/browse/movies"
-              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/movies')
-                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
               }`}
             >
               Movies
             </Link>
             <Link
               href="/browse/tv"
-              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/tv')
-                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
               }`}
             >
               TV Shows
             </Link>
             <Link
               href="/browse/anime"
-              className={`px-4 py-2.5 rounded-lg transition-all duration-200 font-medium ${
+              className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/anime')
-                  ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
               }`}
             >
               Anime
@@ -520,10 +520,10 @@ export default function Navbar() {
               <Link
                 href="/browse/movies"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/movies')
-                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
                 }`}
               >
                 Movies
@@ -531,10 +531,10 @@ export default function Navbar() {
               <Link
                 href="/browse/tv"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/tv')
-                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
                 }`}
               >
                 TV Shows
@@ -542,10 +542,10 @@ export default function Navbar() {
               <Link
                 href="/browse/anime"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/anime')
-                    ? 'bg-accent text-white font-semibold ring-2 ring-red-300/60 shadow-md'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/20'
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
                 }`}
               >
                 Anime
