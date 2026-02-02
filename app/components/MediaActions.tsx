@@ -68,7 +68,7 @@ export default function MediaActions({ mediaType, mediaId, title, posterPath }: 
       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors flex-shrink-0 ${
         inWatchlist
           ? 'bg-red-600 hover:bg-red-700 text-white'
-          : 'bg-[#4b5563] text-gray-200 hover:bg-[#6b7280]'
+          : 'bg-black text-gray-200 hover:bg-[#1a1a1a]'
       } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
       title={buttonLabel}
       aria-label={buttonLabel}
