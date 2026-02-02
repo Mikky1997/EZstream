@@ -1,12 +1,7 @@
-import { NextResponse } from "next/server";
-import { historyQueries } from "@/lib/db";
-import { safeParseInt, sanitizeString } from "@/lib/security";
-import {
-  requireAuth,
-  isAuthError,
-  validateMediaType,
-  handleError,
-} from "@/lib/api-helpers";
+import { NextResponse } from 'next/server';
+import { historyQueries } from '@/lib/db';
+import { safeParseInt, sanitizeString } from '@/lib/security';
+import { requireAuth, isAuthError, validateMediaType, handleError } from '@/lib/api-helpers';
 
 // GET - Get user's watch history
 export async function GET(request: Request) {
@@ -16,21 +11,23 @@ export async function GET(request: Request) {
     const { user } = authResult;
 
     const { searchParams } = new URL(request.url);
-    const limit = safeParseInt(searchParams.get("limit"), 20, 1, 100);
+    const limit = safeParseInt(searchParams.get('limit'), 20, 1, 100);
 
     const rows = historyQueries.getForUser.all(user.id, user.id, limit * 2);
     // One row per show: keep first (most recent last_watched_at); ties can return duplicate shows
     const seen = new Set<string>();
-    const history = rows.filter((row) => {
-      const key = `${row.media_type}-${row.media_id}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, limit);
+    const history = rows
+      .filter(row => {
+        const key = `${row.media_type}-${row.media_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, limit);
 
     return NextResponse.json({ history });
   } catch (error) {
-    return handleError(error, "Get history error", "Failed to get history");
+    return handleError(error, 'Get history error', 'Failed to get history');
   }
 }
 
@@ -55,31 +52,18 @@ export async function POST(request: Request) {
 
     // Input validation
     if (!mediaType || !mediaId || !title) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Validate mediaType
     if (!validateMediaType(mediaType)) {
-      return NextResponse.json(
-        { error: "Invalid media type" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
     }
 
     // Validate and sanitize inputs
     const sanitizedTitle = sanitizeString(title, 500);
-    const sanitizedPosterPath = posterPath
-      ? sanitizeString(posterPath, 500)
-      : null;
-    const validatedMediaId = safeParseInt(
-      String(mediaId),
-      0,
-      1,
-      Number.MAX_SAFE_INTEGER
-    );
+    const sanitizedPosterPath = posterPath ? sanitizeString(posterPath, 500) : null;
+    const validatedMediaId = safeParseInt(String(mediaId), 0, 1, Number.MAX_SAFE_INTEGER);
     const validatedSeason: number | null = season
       ? safeParseInt(String(season), undefined, 1, 1000) ?? null
       : null;
@@ -100,7 +84,7 @@ export async function POST(request: Request) {
     );
 
     if (validatedMediaId === 0) {
-      return NextResponse.json({ error: "Invalid media ID" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
     }
 
     historyQueries.upsert.run(
@@ -117,11 +101,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return handleError(
-      error,
-      "Update history error",
-      "Failed to update history"
-    );
+    return handleError(error, 'Update history error', 'Failed to update history');
   }
 }
 
@@ -133,42 +113,27 @@ export async function DELETE(request: Request) {
     const { user } = authResult;
 
     const { searchParams } = new URL(request.url);
-    const mediaType = searchParams.get("mediaType");
-    const mediaId = searchParams.get("mediaId");
+    const mediaType = searchParams.get('mediaType');
+    const mediaId = searchParams.get('mediaId');
 
     if (!mediaType || !mediaId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Validate mediaType
     if (!validateMediaType(mediaType)) {
-      return NextResponse.json(
-        { error: "Invalid media type" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid media type' }, { status: 400 });
     }
 
-    const validatedMediaId = safeParseInt(
-      mediaId,
-      0,
-      1,
-      Number.MAX_SAFE_INTEGER
-    );
+    const validatedMediaId = safeParseInt(mediaId, 0, 1, Number.MAX_SAFE_INTEGER);
     if (validatedMediaId === 0) {
-      return NextResponse.json({ error: "Invalid media ID" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid media ID' }, { status: 400 });
     }
 
     historyQueries.delete.run(user.id, mediaType, validatedMediaId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return handleError(
-      error,
-      "Delete history error",
-      "Failed to delete history"
-    );
+    return handleError(error, 'Delete history error', 'Failed to delete history');
   }
 }

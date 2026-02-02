@@ -1,6 +1,6 @@
 # EZstream - Agent Guidelines
 
-> **Last Updated:** January 2025 
+> **Last Updated:** January 2025
 > **Stack:** Next.js 14, React 18, TypeScript, Tailwind CSS, SQLite (better-sqlite3)
 
 ---
@@ -8,6 +8,7 @@
 ## 🎯 Project Overview
 
 EZstream is a streaming platform that aggregates video content from various embed sources. It uses:
+
 - **TMDB API** for movie/TV metadata
 - **OMDb API** for IMDb ratings
 - **Multiple video sources** (VidSrc.cc, VidSrc.me, Embed.su, etc.)
@@ -58,24 +59,28 @@ scripts/
 ## 🎨 Coding Standards
 
 ### TypeScript
+
 - **Strict mode enabled** - no implicit any
 - Use explicit return types for exported functions
 - Prefer interfaces over type aliases for objects
 - Use `as const` for constant arrays/objects
 
 ### Components
+
 - Use functional components with hooks
 - Name files with PascalCase (`TVShowControls.tsx`)
 - Export default for page components, named exports for reusable components
 - Use `memo()` for expensive renders
 
 ### Styling
+
 - **Tailwind CSS only** - no CSS modules
 - Use custom CSS variables for theming (see `globals.css`)
 - Mobile-first responsive design
 - Consistent spacing (multiples of 4px)
 
 ### Imports Order
+
 ```typescript
 // 1. React/Next
 import { useState } from 'react';
@@ -100,6 +105,7 @@ import type { Movie, TVShow } from '@/types';
 ## 🔧 Common Patterns
 
 ### Database Queries
+
 All database operations use prepared statements from `lib/db.ts`:
 
 ```typescript
@@ -113,6 +119,7 @@ historyQueries.upsert.run(userId, mediaType, mediaId, ...);
 ```
 
 ### API Routes
+
 Standard structure from `lib/api-helpers.ts`:
 
 ```typescript
@@ -123,11 +130,10 @@ export async function POST(request: Request) {
     const authResult = await requireAuth();
     if (isAuthError(authResult)) return authResult;
     const { user } = authResult;
-    
+
     // ... handler logic
-    
   } catch (error) {
-    return handleError(error, "Context", "User-friendly message");
+    return handleError(error, 'Context', 'User-friendly message');
   }
 }
 ```
@@ -144,6 +150,7 @@ const { data, isLoading, error } = useQuery({
 ```
 
 ### Form Handling
+
 Always validate inputs using `lib/security.ts`:
 
 ```typescript
@@ -159,28 +166,32 @@ if (!validateUsername(username)) {
 ## ⚠️ Critical Implementation Details
 
 ### Video Sources
+
 - Sources are defined in `lib/vidsrc.ts` with priority ordering
 - User's preferred source is saved in `localStorage` key: `preferred_video_source`
 - Auto-fallback happens if preferred source fails
 
 ### Watch History / Continue Watching
+
 - Saved to `watch_history` table via `/api/user/history`
 - **Important:** The 90% watched filter was removed - all items show in Continue Watching
-- Only removed when:
-  - User clicks "Mark as Watched" for movies
-  - User watches final episode of final season for TV shows
+- **No "Mark as Watched" UI** - Continue Watching is the only indicator. Items are removed automatically only for **TV shows:** when the user watches the last episode of the last season (streaming source loads), the entry is deleted from history.
+- **Movies:** We cannot read playback progress from the embed (cross-origin iframe). As a heuristic, a movie is **auto-removed** from Continue Watching when the user has had the **watch page visible** (tab focused, Page Visibility API) for 90% of the movie's runtime. Runtime comes from TMDB when available, else defaults to 2 hours. Time is only counted when the tab is visible, so leaving the tab in the background does not count.
 
 ### Episode Tracking
+
 - Watched episodes stored in `watch_history` with `season` and `episode` columns
 - Auto-marked as watched when user starts playing (streaming source loads)
-- Season checkbox shows green when ALL episodes in that season are watched
+- Episodes appear as watched in UI based on this data; there is no manual mark/unmark
 
 ### Rate Limiting
+
 - In-memory rate limiting (resets on server restart)
 - Login: 10 attempts per IP per 15min, 10 per username per hour
 - Uses `lib/security.ts` - `checkRateLimit()` and `checkLoginRateLimit()`
 
 ### Content Filtering
+
 - Adult anime blocklist in `lib/tmdb.ts` (`BLOCKED_ANIME_IDS`)
 - Uses both ID blocklist and title pattern matching
 
@@ -207,6 +218,7 @@ pm2 restart mikkystream --update-env
 ```
 
 Environment variables in `.env.local` on server:
+
 - `TMDB_API_KEY`
 - `OMDB_API_KEY`
 - `JWT_SECRET`
@@ -217,22 +229,27 @@ Environment variables in `.env.local` on server:
 ## 📋 Common Tasks
 
 ### Add a new video source
+
 1. Add to `VIDEO_SOURCES_ORDERED` in `lib/vidsrc.ts`
 2. Update priority maps (`ANIME_SOURCE_PRIORITY`, etc.)
 3. Test with different content types
 
 ### Add a new user
+
 Run on server:
+
 ```bash
 npx tsx scripts/seed-users.ts
 ```
 
 Or manually insert with bcrypt hash:
+
 ```bash
 node -e "const bcrypt=require('bcryptjs'); bcrypt.hash('password',10).then(console.log)"
 ```
 
 ### Database schema changes
+
 1. Edit schema in `lib/db.ts` (CREATE TABLE IF NOT EXISTS)
 2. For migrations, use `ALTER TABLE` or create migration script
 3. Backup first: `sqlite3 data/mikkystream.db ".backup data/backup.db"`
