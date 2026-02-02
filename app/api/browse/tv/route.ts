@@ -2,14 +2,16 @@ import { discoverTVWithFilters } from '@/lib/tmdb';
 import { processBrowseRequest } from '@/lib/browse-utils';
 import { BROWSE_CACHE_SECONDS } from '@/lib/constants';
 
-// Cache browse results for 5 minutes
+// API uses request.url for query params — must be dynamic
+export const dynamic = 'force-dynamic';
+// Cache browse results for 5 minutes (via Cache-Control in response)
 export const revalidate = BROWSE_CACHE_SECONDS;
 
 export async function GET(request: Request) {
   return processBrowseRequest({
     request,
     mediaType: 'tv',
-    fetchData: (params) =>
+    fetchData: params =>
       discoverTVWithFilters({
         page: params.page,
         genre: params.genre,
