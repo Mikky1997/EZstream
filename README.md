@@ -106,8 +106,8 @@ ezstream/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ezstream.git
-   cd ezstream
+   git clone https://github.com/Mikky1997/EZstream.git
+   cd EZstream
    ```
 
 2. **Install dependencies**
