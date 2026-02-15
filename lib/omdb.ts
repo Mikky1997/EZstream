@@ -40,6 +40,8 @@ interface OMDbResponse {
 // In-memory cache to reduce API calls (OMDb has 1000/day limit on free tier)
 const dataCache = new Map<string, { data: OMDbData; timestamp: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const MAX_CACHE_SIZE = 500; // Cap cache to prevent unbounded memory growth
+let lastCleanup = Date.now();
 
 /**
  * Fetch full data from OMDb API using IMDB ID
@@ -53,6 +55,12 @@ export async function getOMDbData(imdbId: string): Promise<OMDbData | null> {
 
   if (!imdbId || !imdbId.startsWith("tt")) {
     return null;
+  }
+
+  // Auto-clean expired entries every hour
+  if (Date.now() - lastCleanup > 60 * 60 * 1000) {
+    cleanDataCache();
+    lastCleanup = Date.now();
   }
 
   // Check cache first
@@ -107,7 +115,11 @@ export async function getOMDbData(imdbId: string): Promise<OMDbData | null> {
       plot: data.Plot !== "N/A" ? data.Plot || null : null,
     };
 
-    // Cache the result
+    // Cache the result (evict oldest if at capacity)
+    if (dataCache.size >= MAX_CACHE_SIZE) {
+      const oldestKey = dataCache.keys().next().value;
+      if (oldestKey) dataCache.delete(oldestKey);
+    }
     dataCache.set(imdbId, { data: omdbData, timestamp: Date.now() });
 
     return omdbData;

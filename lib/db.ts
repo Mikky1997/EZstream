@@ -82,9 +82,11 @@ db.exec(`
 
   -- Create indexes for faster queries
   CREATE INDEX IF NOT EXISTS idx_watch_history_user ON watch_history(user_id, last_watched_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_watch_history_user_media ON watch_history(user_id, media_type, media_id);
   CREATE INDEX IF NOT EXISTS idx_watchlist_user ON watchlist(user_id, added_at DESC);
   CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id, added_at DESC);
   CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 `);
 
 export default db;
@@ -205,6 +207,21 @@ export const historyQueries = {
   delete: db.prepare<[number, string, number]>(
     'DELETE FROM watch_history WHERE user_id = ? AND media_type = ? AND media_id = ?'
   ),
+  // Keep only the 5 most recently watched shows per user (by latest episode per show)
+  // Deletes older entries to prevent database growth
+  cleanup: db.prepare<[number, number, number]>(`
+    DELETE FROM watch_history WHERE user_id = ? AND id NOT IN (
+      SELECT id FROM watch_history WHERE user_id = ? AND (media_type, media_id) IN (
+        SELECT media_type, media_id FROM (
+          SELECT media_type, media_id, MAX(last_watched_at) as latest
+          FROM watch_history WHERE user_id = ?
+          GROUP BY media_type, media_id
+          ORDER BY latest DESC
+          LIMIT 5
+        )
+      )
+    )
+  `),
 };
 
 // Watchlist queries

@@ -153,16 +153,12 @@ export default function Navbar() {
           {/* Home Icon - Left */}
           <Link
             href="/"
-            className="group p-2 rounded-lg hover:bg-gray-800 transition-all flex-shrink-0"
+            className="group px-2 py-1 rounded-lg transition-all flex-shrink-0"
             title="Home"
           >
-            <svg
-              className="w-8 h-8 text-blue-500 group-hover:text-blue-400 group-hover:scale-110 transition-all duration-200"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-            </svg>
+            <span className="text-2xl font-bold text-red-500 group-hover:text-red-400 group-hover:scale-110 transition-all duration-200 inline-block">
+              EZ
+            </span>
           </Link>
 
           {/* Desktop Navigation - Center */}
@@ -172,7 +168,7 @@ export default function Navbar() {
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/movies')
                   ? 'bg-accent text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                  : 'text-gray-300 hover:text-white dropdown-item-hover'
               }`}
             >
               Movies
@@ -182,7 +178,7 @@ export default function Navbar() {
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/tv')
                   ? 'bg-accent text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                  : 'text-gray-300 hover:text-white dropdown-item-hover'
               }`}
             >
               TV Shows
@@ -192,7 +188,7 @@ export default function Navbar() {
               className={`px-3 py-2 rounded-lg transition-all duration-200 ${
                 pathname.startsWith('/browse/anime')
                   ? 'bg-accent text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                  : 'text-gray-300 hover:text-white dropdown-item-hover'
               }`}
             >
               Anime
@@ -264,7 +260,7 @@ export default function Navbar() {
                         <button
                           key={`${item.media_type}-${item.id}`}
                           onClick={() => handleSelectResult(item)}
-                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-left"
+                          className="w-full flex items-center gap-3 p-3 dropdown-item-hover transition-colors border-b border-gray-700 last:border-b-0 text-left"
                         >
                           {item.poster_path ? (
                             <div className="relative w-10 h-14 flex-shrink-0">
@@ -308,7 +304,7 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={() => setShowNavSearch(true)}
-                  className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-2 text-gray-300 hover:text-white dropdown-item-hover rounded-lg transition-colors"
                   title="Search"
                   aria-label="Open search"
                 >
@@ -331,7 +327,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg dropdown-item-hover text-white transition-colors"
                 >
                   <span>{user.displayName}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,14 +341,10 @@ export default function Navbar() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                    <div className="px-4 py-3 border-b border-gray-700">
-                      <p className="text-white font-medium">{user.displayName}</p>
-                      <p className="text-gray-400 text-sm">@{user.username}</p>
-                    </div>
+                  <div className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-red-400 dropdown-item-hover transition-colors rounded-b-lg"
+                      className="px-4 py-2.5 text-red-400 dropdown-item-hover transition-colors rounded-lg whitespace-nowrap"
                     >
                       Sign Out
                     </button>
@@ -477,7 +469,7 @@ export default function Navbar() {
                   <button
                     key={`${item.media_type}-${item.id}`}
                     onClick={() => handleSelectResult(item)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 text-left"
+                    className="w-full flex items-center gap-3 p-3 dropdown-item-hover transition-colors border-b border-gray-700 last:border-b-0 text-left"
                   >
                     {item.poster_path ? (
                       <div className="relative w-10 h-14 flex-shrink-0">
@@ -523,7 +515,7 @@ export default function Navbar() {
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/movies')
                     ? 'bg-accent text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                    : 'text-gray-300 hover:text-white dropdown-item-hover'
                 }`}
               >
                 Movies
@@ -534,7 +526,7 @@ export default function Navbar() {
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/tv')
                     ? 'bg-accent text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                    : 'text-gray-300 hover:text-white dropdown-item-hover'
                 }`}
               >
                 TV Shows
@@ -545,7 +537,7 @@ export default function Navbar() {
                 className={`px-4 py-3 rounded-lg transition-all duration-200 ${
                   pathname.startsWith('/browse/anime')
                     ? 'bg-accent text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-accent/50'
+                    : 'text-gray-300 hover:text-white dropdown-item-hover'
                 }`}
               >
                 Anime

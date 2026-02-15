@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import VideoPlayer from '@/app/components/VideoPlayer';
@@ -100,8 +99,6 @@ export default function WatchPage() {
 
   // Ref for source selector dropdown
   const sourceSelectorRef = useRef<HTMLDivElement>(null);
-  const sourcePanelRef = useRef<HTMLDivElement>(null);
-  const [sourceDropdownRect, setSourceDropdownRect] = useState<DOMRect | null>(null);
 
   // Movie auto-remove: remove from Continue Watching after tab has been visible for 90% of runtime
   const movieVisibleSecondsRef = useRef(0);
@@ -229,27 +226,23 @@ export default function WatchPage() {
     }
   }, [item, updateSourcesForEpisode]);
 
-  // Update source dropdown position when opened (for portal)
+  // Close source selector when clicking outside
   useEffect(() => {
-    if (showSourceSelector && sourceSelectorRef.current) {
-      setSourceDropdownRect(sourceSelectorRef.current.getBoundingClientRect());
-    } else {
-      setSourceDropdownRect(null);
-    }
-  }, [showSourceSelector]);
-
-  // Close source selector when clicking outside (include portaled panel)
-  useEffect(() => {
+    if (!showSourceSelector) return;
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      const inSource =
-        sourceSelectorRef.current?.contains(target) || sourcePanelRef.current?.contains(target);
-      if (!inSource) setShowSourceSelector(false);
+      if (!sourceSelectorRef.current?.contains(target)) setShowSourceSelector(false);
     }
-    if (showSourceSelector) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSourceSelector]);
+
+  // Close source selector when user scrolls
+  useEffect(() => {
+    if (!showSourceSelector) return;
+    const handleScroll = () => setShowSourceSelector(false);
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, [showSourceSelector]);
 
   const handleSelectEpisode = (newSeason: number, newEpisode: number) => {
@@ -334,38 +327,25 @@ export default function WatchPage() {
               />
             </svg>
           </button>
-          {showSourceSelector &&
-            sourceDropdownRect &&
-            typeof document !== 'undefined' &&
-            createPortal(
-              <div
-                ref={sourcePanelRef}
-                className="fixed border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto w-max min-w-[100px] max-w-[180px] bg-gray-900"
-                style={{
-                  top: sourceDropdownRect.bottom + 8,
-                  right:
-                    typeof window !== 'undefined'
-                      ? window.innerWidth - sourceDropdownRect.right
-                      : undefined,
-                  left: undefined,
-                }}
-              >
-                {availableSources.map((source, index) => (
-                  <button
-                    key={source.source}
-                    onMouseDown={() => switchSource(index)}
-                    className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
-                      index === currentSourceIndex
-                        ? 'source-active'
-                        : 'text-white dropdown-item-hover'
-                    }`}
-                  >
-                    {source.name}
-                  </button>
-                ))}
-              </div>,
-              document.body
-            )}
+          {showSourceSelector && (
+            <div
+              className="absolute top-full right-0 mt-1 border border-gray-700 rounded-lg shadow-2xl z-[9999] max-h-80 overflow-y-auto w-max min-w-[100px] max-w-[180px] bg-gray-900"
+            >
+              {availableSources.map((source, index) => (
+                <button
+                  key={source.source}
+                  onMouseDown={() => switchSource(index)}
+                  className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
+                    index === currentSourceIndex
+                      ? 'source-active'
+                      : 'text-white dropdown-item-hover'
+                  }`}
+                >
+                  {source.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {/* Next Source button - hidden on mobile */}
         {availableSources.length > 1 && (

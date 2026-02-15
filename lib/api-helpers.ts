@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, cleanupExpiredSessions } from "@/lib/auth";
 import { type User } from "@/lib/db";
 import { getIMDbId } from "@/lib/tmdb";
 import { getOMDbData } from "@/lib/omdb";
+
+// Cleanup expired sessions every 30 minutes (lightweight, runs inline)
+let lastSessionCleanup = Date.now();
+const SESSION_CLEANUP_INTERVAL = 30 * 60 * 1000;
 
 // Re-export User type for convenience
 export type { User };
@@ -43,6 +47,13 @@ export interface IMDBData {
  * ```
  */
 export async function requireAuth(): Promise<AuthResult | NextResponse> {
+  // Periodically clean up expired sessions
+  const now = Date.now();
+  if (now - lastSessionCleanup > SESSION_CLEANUP_INTERVAL) {
+    lastSessionCleanup = now;
+    try { cleanupExpiredSessions(); } catch { /* non-critical */ }
+  }
+
   const user = await getCurrentUser();
 
   if (!user) {

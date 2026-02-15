@@ -264,6 +264,8 @@ node -e "const bcrypt=require('bcryptjs'); bcrypt.hash('password',10).then(conso
 4. **Don't add console.log** in production code (use error logging instead)
 5. **Don't modify `tsconfig.json`** without testing build
 6. **Don't change database schema** without backup
+7. **NEVER use `INSERT OR REPLACE` on the `users` table** - all related tables (`watch_history`, `watchlist`, `favorites`, `sessions`) have `ON DELETE CASCADE` foreign keys. `REPLACE` does DELETE + INSERT which triggers cascade and **permanently destroys all user data**. Always use `INSERT OR IGNORE` for new users.
+8. **Always backup the database** before running seed scripts or migrations: `sqlite3 data/mikkystream.db ".backup data/backup.db"`
 
 ---
 

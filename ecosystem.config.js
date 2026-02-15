@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'mikkystream',
-      script: 'npm',
+      script: 'node_modules/next/dist/bin/next',
       args: 'start',
       cwd: '/var/www/mikkystream',
       env: {
@@ -10,7 +10,7 @@ module.exports = {
         PORT: 3000,
       },
       instances: 1,
-      exec_mode: 'cluster',
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '500M',

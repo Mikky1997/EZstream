@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 
 // Custom dropdown arrow SVG as data URI
 const DROPDOWN_ARROW = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E`;
@@ -46,31 +45,27 @@ export const FilterDropdown = memo(function FilterDropdown({
   className = '',
 }: FilterDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [panelRect, setPanelRect] = useState<DOMRect | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find(o => o.value === value);
   const displayLabel = selectedOption?.label ?? value;
 
   useEffect(() => {
-    if (open && triggerRef.current) {
-      setPanelRect(triggerRef.current.getBoundingClientRect());
-    } else {
-      setPanelRect(null);
-    }
-  }, [open]);
-
-  useEffect(() => {
     if (!open) return;
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      const inTrigger = triggerRef.current?.contains(target);
-      const inPanel = panelRef.current?.contains(target);
-      if (!inTrigger && !inPanel) setOpen(false);
+      if (!wrapperRef.current?.contains(target)) setOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  // Close dropdown when user scrolls so it doesn't overlap the navbar
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = () => setOpen(false);
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, [open]);
 
   const handleSelect = (optionValue: string) => {
@@ -81,7 +76,7 @@ export const FilterDropdown = memo(function FilterDropdown({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {label && <span className="text-gray-400 text-sm">{label}:</span>}
-      <div ref={triggerRef} className="relative">
+      <div ref={wrapperRef} className="relative">
         <button
           type="button"
           onClick={() => setOpen(!open)}
@@ -97,35 +92,26 @@ export const FilterDropdown = memo(function FilterDropdown({
         >
           <span className="text-sm truncate max-w-[140px] sm:max-w-[200px]">{displayLabel}</span>
         </button>
-        {open &&
-          panelRect &&
-          typeof document !== 'undefined' &&
-          createPortal(
-            <div
-              ref={panelRef}
-              role="listbox"
-              className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-w-[240px] max-h-60 overflow-y-auto"
-              style={{
-                top: panelRect.bottom + 4,
-                left: panelRect.left,
-              }}
-            >
-              {options.map(option => (
-                <div
-                  key={option.value}
-                  role="option"
-                  aria-selected={option.value === value}
-                  className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
-                    option.value === value ? 'source-active' : 'text-white dropdown-item-hover'
-                  }`}
-                  onMouseDown={() => handleSelect(option.value)}
-                >
-                  <span className="flex-1 min-w-0 truncate">{option.label}</span>
-                </div>
-              ))}
-            </div>,
-            document.body
-          )}
+        {open && (
+          <div
+            role="listbox"
+            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-w-[240px] max-h-60 overflow-y-auto"
+          >
+            {options.map(option => (
+              <div
+                key={option.value}
+                role="option"
+                aria-selected={option.value === value}
+                className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
+                  option.value === value ? 'source-active' : 'text-white dropdown-item-hover'
+                }`}
+                onMouseDown={() => handleSelect(option.value)}
+              >
+                <span className="flex-1 min-w-0 truncate">{option.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

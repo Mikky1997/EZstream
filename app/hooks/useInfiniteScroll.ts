@@ -38,7 +38,7 @@ export function useInfiniteScroll(
   onLoadMore: () => void,
   options: UseInfiniteScrollOptions
 ) {
-  const { enabled, threshold = 0.1, rootMargin = "0px" } = options;
+  const { enabled, threshold = 0.1, rootMargin = "0px 0px 800px 0px" } = options;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Stable callback ref to avoid recreating observer

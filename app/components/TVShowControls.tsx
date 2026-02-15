@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
-import { createPortal } from 'react-dom';
 import MediaActions from './MediaActions';
 
 interface Season {
@@ -40,12 +39,8 @@ export const TVShowControls = memo(function TVShowControls({
 }: TVShowControlsProps) {
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [showEpisodeDropdown, setShowEpisodeDropdown] = useState(false);
-  const [seasonDropdownRect, setSeasonDropdownRect] = useState<DOMRect | null>(null);
-  const [episodeDropdownRect, setEpisodeDropdownRect] = useState<DOMRect | null>(null);
   const seasonRef = useRef<HTMLDivElement>(null);
   const episodeRef = useRef<HTMLDivElement>(null);
-  const seasonPanelRef = useRef<HTMLDivElement>(null);
-  const episodePanelRef = useRef<HTMLDivElement>(null);
 
   // Filter out specials
   const filteredSeasons = seasons
@@ -55,36 +50,27 @@ export const TVShowControls = memo(function TVShowControls({
   const currentSeasonData = filteredSeasons.find(s => s.season_number === currentSeason);
   const episodeCount = currentSeasonData?.episode_count || 0;
 
-  // Update dropdown positions when opened (for portal)
-  useEffect(() => {
-    if (showSeasonDropdown && seasonRef.current) {
-      setSeasonDropdownRect(seasonRef.current.getBoundingClientRect());
-    } else {
-      setSeasonDropdownRect(null);
-    }
-  }, [showSeasonDropdown]);
-  useEffect(() => {
-    if (showEpisodeDropdown && episodeRef.current) {
-      setEpisodeDropdownRect(episodeRef.current.getBoundingClientRect());
-    } else {
-      setEpisodeDropdownRect(null);
-    }
-  }, [showEpisodeDropdown]);
-
-  // Close dropdowns when clicking outside (include portaled panels)
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      const inSeason =
-        seasonRef.current?.contains(target) || seasonPanelRef.current?.contains(target);
-      const inEpisode =
-        episodeRef.current?.contains(target) || episodePanelRef.current?.contains(target);
-      if (!inSeason) setShowSeasonDropdown(false);
-      if (!inEpisode) setShowEpisodeDropdown(false);
+      if (!seasonRef.current?.contains(target)) setShowSeasonDropdown(false);
+      if (!episodeRef.current?.contains(target)) setShowEpisodeDropdown(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close dropdowns when user scrolls
+  useEffect(() => {
+    if (!showSeasonDropdown && !showEpisodeDropdown) return;
+    const handleScroll = () => {
+      setShowSeasonDropdown(false);
+      setShowEpisodeDropdown(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+  }, [showSeasonDropdown, showEpisodeDropdown]);
 
   // Get next episode info
   const getNextEpisodeInfo = () => {
@@ -131,37 +117,28 @@ export const TVShowControls = memo(function TVShowControls({
         >
           <span className="text-sm">S{currentSeason}</span>
         </button>
-        {showSeasonDropdown &&
-          seasonDropdownRect &&
-          typeof document !== 'undefined' &&
-          createPortal(
-            <div
-              ref={seasonPanelRef}
-              className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[180px] max-h-60 overflow-y-auto"
-              style={{
-                top: seasonDropdownRect.bottom + 4,
-                left: seasonDropdownRect.left,
-              }}
-            >
-              {filteredSeasons.map(season => (
-                <div
-                  key={season.season_number}
-                  className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
-                    season.season_number === currentSeason
-                      ? 'source-active'
-                      : 'text-white dropdown-item-hover'
-                  }`}
-                  onMouseDown={() => {
-                    onSeasonChange(season.season_number);
-                    setShowSeasonDropdown(false);
-                  }}
-                >
-                  <span className="flex-1 min-w-0">S{season.season_number}</span>
-                </div>
-              ))}
-            </div>,
-            document.body
-          )}
+        {showSeasonDropdown && (
+          <div
+            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[180px] max-h-60 overflow-y-auto"
+          >
+            {filteredSeasons.map(season => (
+              <div
+                key={season.season_number}
+                className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
+                  season.season_number === currentSeason
+                    ? 'source-active'
+                    : 'text-white dropdown-item-hover'
+                }`}
+                onMouseDown={() => {
+                  onSeasonChange(season.season_number);
+                  setShowSeasonDropdown(false);
+                }}
+              >
+                <span className="flex-1 min-w-0">S{season.season_number}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Episode Dropdown */}
@@ -178,35 +155,26 @@ export const TVShowControls = memo(function TVShowControls({
         >
           <span className="text-sm">E{currentEpisode}</span>
         </button>
-        {showEpisodeDropdown &&
-          episodeDropdownRect &&
-          typeof document !== 'undefined' &&
-          createPortal(
-            <div
-              ref={episodePanelRef}
-              className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-h-60 overflow-y-auto"
-              style={{
-                top: episodeDropdownRect.bottom + 4,
-                left: episodeDropdownRect.left,
-              }}
-            >
-              {Array.from({ length: episodeCount }, (_, i) => i + 1).map(epNum => (
-                <div
-                  key={epNum}
-                  className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
-                    epNum === currentEpisode ? 'source-active' : 'text-white dropdown-item-hover'
-                  }`}
-                  onMouseDown={() => {
-                    onEpisodeChange(epNum);
-                    setShowEpisodeDropdown(false);
-                  }}
-                >
-                  <span className="flex-1 min-w-0">E{epNum}</span>
-                </div>
-              ))}
-            </div>,
-            document.body
-          )}
+        {showEpisodeDropdown && (
+          <div
+            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-h-60 overflow-y-auto"
+          >
+            {Array.from({ length: episodeCount }, (_, i) => i + 1).map(epNum => (
+              <div
+                key={epNum}
+                className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
+                  epNum === currentEpisode ? 'source-active' : 'text-white dropdown-item-hover'
+                }`}
+                onMouseDown={() => {
+                  onEpisodeChange(epNum);
+                  setShowEpisodeDropdown(false);
+                }}
+              >
+                <span className="flex-1 min-w-0">E{epNum}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Next Episode - Just Arrow */}

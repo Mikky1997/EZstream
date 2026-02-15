@@ -38,7 +38,12 @@ export async function POST(request: Request) {
     if (isAuthError(authResult)) return authResult;
     const { user } = authResult;
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
     const {
       mediaType,
       mediaId,
@@ -98,6 +103,9 @@ export async function POST(request: Request) {
       validatedProgress,
       validatedDuration
     );
+
+    // Keep only the 5 most recent shows per user
+    historyQueries.cleanup.run(user.id, user.id, user.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
