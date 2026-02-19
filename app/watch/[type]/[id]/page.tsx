@@ -208,13 +208,14 @@ export default function WatchPage() {
         : -1;
 
       if (matchingIndex >= 0) {
-        // Keep the same source
         setStreamingSource({ type: 'vidsrc', url: sources[matchingIndex].url });
         setCurrentSourceIndex(matchingIndex);
       } else {
-        // Fall back to first source
         setStreamingSource({ type: 'vidsrc', url: sources[0].url });
         setCurrentSourceIndex(0);
+        if (savedSourceKey) {
+          localStorage.removeItem('preferred_video_source');
+        }
       }
     }
   }, [imdbId, tmdbId, type, season, episode, item]);
@@ -237,10 +238,13 @@ export default function WatchPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSourceSelector]);
 
-  // Close source selector when user scrolls
+  // Close source selector when user scrolls outside the dropdown
   useEffect(() => {
     if (!showSourceSelector) return;
-    const handleScroll = () => setShowSourceSelector(false);
+    const handleScroll = (e: Event) => {
+      if (sourceSelectorRef.current?.contains(e.target as Node)) return;
+      setShowSourceSelector(false);
+    };
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, [showSourceSelector]);
@@ -476,7 +480,7 @@ export default function WatchPage() {
                 )}
 
                 {/* Action buttons row */}
-                <div className="flex items-center justify-between gap-2 mb-4 flex-nowrap overflow-x-auto">
+                <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
                   {/* Left side: Controls */}
                   {isTVShow ? (
                     seasons.length > 0 && (

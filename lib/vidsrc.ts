@@ -48,14 +48,14 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
       `https://vidsrc.to/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
   },
-  // #4 - Embed.su (very reliable)
+  // #4 - VidLink.pro
   {
-    key: "embedsu",
-    name: "Embed.su",
-    baseUrl: "https://embed.su",
-    getMovieUrl: (id: string) => `https://embed.su/embed/movie/${id}`,
+    key: "vidlink",
+    name: "VidLink",
+    baseUrl: "https://vidlink.pro",
+    getMovieUrl: (id: string) => `https://vidlink.pro/movie/${id}`,
     getTvUrl: (id: string, season: number, episode: number) =>
-      `https://embed.su/embed/tv/${id}/${season}/${episode}`,
+      `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
   // #5 - MoviesAPI
   {
@@ -80,14 +80,14 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
         ? `https://autoembed.cc/embed/tv/${id}/${season}/${episode}`
         : `https://autoembed.cc/embed/tv/tmdb/${id}/${season}/${episode}`,
   },
-  // #7 - VidSrc.pro
+  // #7 - VidSrc.icu
   {
-    key: "vidsrcpro",
-    name: "VidSrc.pro",
-    baseUrl: "https://vidsrc.pro",
-    getMovieUrl: (id: string) => `https://vidsrc.pro/embed/movie/${id}`,
+    key: "vidsrcicu",
+    name: "VidSrc.icu",
+    baseUrl: "https://vidsrc.icu",
+    getMovieUrl: (id: string) => `https://vidsrc.icu/embed/movie/${id}`,
     getTvUrl: (id: string, season: number, episode: number) =>
-      `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`,
+      `https://vidsrc.icu/embed/tv/${id}/${season}/${episode}`,
   },
   // #8 - SuperEmbed (multiembed.mov)
   {
@@ -108,14 +108,14 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://2embed.cc/embedtv/${id}&s=${season}&e=${episode}`,
   },
-  // #10 - StreamSRC (last resort)
+  // #10 - VidSrc.rip (last resort)
   {
-    key: "streamsrc",
-    name: "StreamSRC",
-    baseUrl: "https://streamsrc.cc",
-    getMovieUrl: (id: string) => `https://streamsrc.cc/embed/movie/${id}`,
+    key: "vidsrcrip",
+    name: "VidSrc.rip",
+    baseUrl: "https://vidsrc.rip",
+    getMovieUrl: (id: string) => `https://vidsrc.rip/embed/movie/${id}`,
     getTvUrl: (id: string, season: number, episode: number) =>
-      `https://streamsrc.cc/embed/tv/${id}/${season}/${episode}`,
+      `https://vidsrc.rip/embed/tv/${id}/${season}/${episode}`,
   },
 ];
 
@@ -136,42 +136,42 @@ export interface EmbedUrl {
 // Keys are source keys, values are priority (lower = better)
 // VidSrc.cc is #1 - fewer ads
 const ANIME_SOURCE_PRIORITY: Record<string, number> = {
-  vidsrc: 1, // VidSrc.cc - fewer ads
-  vidsrcme: 2, // VidSrc.me - good anime coverage
-  vidsrcto: 3, // Mirror
-  twoembed: 4, // 2Embed good for anime
-  embedsu: 5, // Embed.su reliable
-  superembed: 6, // MultiEmbed has wide coverage
-  vidsrcpro: 7,
+  vidsrc: 1,
+  vidsrcme: 2,
+  vidsrcto: 3,
+  twoembed: 4,
+  vidlink: 5,
+  superembed: 6,
+  vidsrcicu: 7,
   moviesapi: 8,
   autoembed: 9,
-  streamsrc: 10,
+  vidsrcrip: 10,
 };
 
 const MOVIE_SOURCE_PRIORITY: Record<string, number> = {
-  vidsrc: 1, // VidSrc.cc - fewer ads
-  vidsrcme: 2, // VidSrc.me - 87K movies, 1080p
-  vidsrcto: 3, // Mirror
-  moviesapi: 4, // MoviesAPI - movie focused
-  embedsu: 5, // Embed.su reliable
-  vidsrcpro: 6,
+  vidsrc: 1,
+  vidsrcme: 2,
+  vidsrcto: 3,
+  moviesapi: 4,
+  vidlink: 5,
+  vidsrcicu: 6,
   superembed: 7,
   twoembed: 8,
   autoembed: 9,
-  streamsrc: 10,
+  vidsrcrip: 10,
 };
 
 const TV_SOURCE_PRIORITY: Record<string, number> = {
-  vidsrc: 1, // VidSrc.cc - fewer ads
-  vidsrcme: 2, // VidSrc.me - 19K series
-  vidsrcto: 3, // Mirror
-  vidsrcpro: 4, // VidSrc.pro - TV focused
-  embedsu: 5, // Embed.su reliable
+  vidsrc: 1,
+  vidsrcme: 2,
+  vidsrcto: 3,
+  vidlink: 4,
+  vidsrcicu: 5,
   superembed: 6,
   twoembed: 7,
-  moviesapi: 8, // MoviesAPI - less TV focused
+  moviesapi: 8,
   autoembed: 9,
-  streamsrc: 10,
+  vidsrcrip: 10,
 };
 
 // Get sources ordered for specific content type

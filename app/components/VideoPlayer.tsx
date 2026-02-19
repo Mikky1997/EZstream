@@ -16,13 +16,14 @@ const ALLOWED_VIDEO_DOMAINS = [
   "vidsrc.to",
   // Other sources
   "vidsrc.cc",
-  "vidsrc.pro",
+  "vidsrc.icu",
+  "vidsrc.rip",
+  "vidlink.pro",
   "moviesapi.club",
-  "embed.su",
   "autoembed.cc",
   "multiembed.mov",
+  "streamingnow.mov",
   "2embed.cc",
-  "streamsrc.cc",
 ];
 
 // Validate that URL is from an allowed domain
