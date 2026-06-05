@@ -23,32 +23,38 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     key: "vidsrcme",
     name: "VidSrc.me",
     baseUrl: "https://vidsrcme.ru",
-    getMovieUrl: (id: string, isImdb: boolean) =>
-      `https://vidsrcme.ru/embed/movie/${isImdb ? id : `tmdb/${id}`}`,
-    getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
-      `https://vidsrcme.ru/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
+    getMovieUrl: (id: string) => `https://vidsrcme.ru/embed/movie/${id}`,
+    getTvUrl: (id: string, season: number, episode: number) =>
+      `https://vidsrcme.ru/embed/tv/${id}/${season}/${episode}`,
   },
   // #2 - VidSrc.cc (fewer ads)
   {
     key: "vidsrc",
     name: "VidSrc.cc",
     baseUrl: "https://vidsrc.cc",
-    getMovieUrl: (id: string, isImdb: boolean) =>
-      `https://vidsrc.cc/v2/embed/movie/${isImdb ? id : `tmdb/${id}`}`,
-    getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
-      `https://vidsrc.cc/v2/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
+    getMovieUrl: (id: string) => `https://vidsrc.cc/v2/embed/movie/${id}`,
+    getTvUrl: (id: string, season: number, episode: number) =>
+      `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`,
   },
   // #3 - VidSrc.to (common mirror)
   {
     key: "vidsrcto",
     name: "VidSrc.to",
     baseUrl: "https://vidsrc.to",
-    getMovieUrl: (id: string, isImdb: boolean) =>
-      `https://vidsrc.to/embed/movie/${isImdb ? id : `tmdb/${id}`}`,
-    getTvUrl: (id: string, season: number, episode: number, isImdb: boolean) =>
-      `https://vidsrc.to/embed/tv/${isImdb ? id : `tmdb/${id}`}/${season}/${episode}`,
+    getMovieUrl: (id: string) => `https://vidsrc.to/embed/movie/${id}`,
+    getTvUrl: (id: string, season: number, episode: number) =>
+      `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`,
   },
-  // #4 - VidLink.pro
+  // #4 - VidSrc.in (stable mirror)
+  {
+    key: "vidsrcin",
+    name: "VidSrc.in",
+    baseUrl: "https://vidsrc.in",
+    getMovieUrl: (id: string) => `https://vidsrc.in/embed/movie/${id}`,
+    getTvUrl: (id: string, season: number, episode: number) =>
+      `https://vidsrc.in/embed/tv/${id}/${season}/${episode}`,
+  },
+  // #5 - VidLink.pro
   {
     key: "vidlink",
     name: "VidLink",
@@ -57,7 +63,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
-  // #5 - MoviesAPI
+  // #6 - MoviesAPI
   {
     key: "moviesapi",
     name: "MoviesAPI",
@@ -66,7 +72,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://moviesapi.club/tv/${id}/${season}/${episode}`,
   },
-  // #6 - AutoEmbed
+  // #7 - AutoEmbed
   {
     key: "autoembed",
     name: "AutoEmbed",
@@ -80,7 +86,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
         ? `https://autoembed.cc/embed/tv/${id}/${season}/${episode}`
         : `https://autoembed.cc/embed/tv/tmdb/${id}/${season}/${episode}`,
   },
-  // #7 - VidSrc.icu
+  // #8 - VidSrc.icu
   {
     key: "vidsrcicu",
     name: "VidSrc.icu",
@@ -89,7 +95,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://vidsrc.icu/embed/tv/${id}/${season}/${episode}`,
   },
-  // #8 - SuperEmbed (multiembed.mov)
+  // #9 - SuperEmbed (multiembed.mov)
   {
     key: "superembed",
     name: "SuperEmbed",
@@ -99,7 +105,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`,
   },
-  // #9 - 2Embed
+  // #10 - 2Embed
   {
     key: "twoembed",
     name: "2Embed",
@@ -108,7 +114,7 @@ export const VIDEO_SOURCES_ORDERED: VideoSource[] = [
     getTvUrl: (id: string, season: number, episode: number) =>
       `https://2embed.cc/embedtv/${id}&s=${season}&e=${episode}`,
   },
-  // #10 - VidSrc.rip (last resort)
+  // #11 - VidSrc.rip (last resort)
   {
     key: "vidsrcrip",
     name: "VidSrc.rip",
@@ -137,41 +143,44 @@ export interface EmbedUrl {
 // VidSrc.me is #1 default
 const ANIME_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,
-  vidsrc: 2,
-  vidsrcto: 3,
-  twoembed: 4,
-  vidlink: 5,
-  superembed: 6,
-  vidsrcicu: 7,
-  moviesapi: 8,
-  autoembed: 9,
-  vidsrcrip: 10,
+  vidsrcin: 2,
+  vidsrc: 3,
+  vidsrcto: 4,
+  twoembed: 5,
+  vidlink: 6,
+  superembed: 7,
+  vidsrcicu: 8,
+  moviesapi: 9,
+  autoembed: 10,
+  vidsrcrip: 11,
 };
 
 const MOVIE_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,
-  vidsrc: 2,
-  vidsrcto: 3,
-  moviesapi: 4,
-  vidlink: 5,
-  vidsrcicu: 6,
-  superembed: 7,
-  twoembed: 8,
-  autoembed: 9,
-  vidsrcrip: 10,
+  vidsrcin: 2,
+  vidsrc: 3,
+  vidsrcto: 4,
+  moviesapi: 5,
+  vidlink: 6,
+  vidsrcicu: 7,
+  superembed: 8,
+  twoembed: 9,
+  autoembed: 10,
+  vidsrcrip: 11,
 };
 
 const TV_SOURCE_PRIORITY: Record<string, number> = {
   vidsrcme: 1,
-  vidsrc: 2,
-  vidsrcto: 3,
-  vidlink: 4,
-  vidsrcicu: 5,
-  superembed: 6,
-  twoembed: 7,
-  moviesapi: 8,
-  autoembed: 9,
-  vidsrcrip: 10,
+  vidsrcin: 2,
+  vidsrc: 3,
+  vidsrcto: 4,
+  vidlink: 5,
+  vidsrcicu: 6,
+  superembed: 7,
+  twoembed: 8,
+  moviesapi: 9,
+  autoembed: 10,
+  vidsrcrip: 11,
 };
 
 // Get sources ordered for specific content type
