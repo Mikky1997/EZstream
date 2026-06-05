@@ -61,16 +61,27 @@ export const TVShowControls = memo(function TVShowControls({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close dropdowns when user scrolls
+  // Close dropdowns on page scroll, but not when scrolling inside the dropdown panel
   useEffect(() => {
     if (!showSeasonDropdown && !showEpisodeDropdown) return;
-    const handleScroll = () => {
+    const handleScroll = (event: Event) => {
+      const target = event.target as Node;
+      if (seasonRef.current?.contains(target) || episodeRef.current?.contains(target)) return;
       setShowSeasonDropdown(false);
       setShowEpisodeDropdown(false);
     };
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, [showSeasonDropdown, showEpisodeDropdown]);
+
+  const handleDropdownWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const el = e.currentTarget;
+    if (el.scrollHeight <= el.clientHeight) return;
+    // Trap wheel inside the panel so the page does not scroll and close the menu
+    e.preventDefault();
+    el.scrollTop += e.deltaY;
+  }, []);
 
   // Get next episode info
   const getNextEpisodeInfo = () => {
@@ -119,7 +130,8 @@ export const TVShowControls = memo(function TVShowControls({
         </button>
         {showSeasonDropdown && (
           <div
-            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[180px] max-h-60 overflow-y-auto"
+            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[180px] max-h-60 overflow-y-auto overscroll-contain"
+            onWheel={handleDropdownWheel}
           >
             {filteredSeasons.map(season => (
               <div
@@ -157,7 +169,8 @@ export const TVShowControls = memo(function TVShowControls({
         </button>
         {showEpisodeDropdown && (
           <div
-            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-h-60 overflow-y-auto"
+            className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-h-60 overflow-y-auto overscroll-contain"
+            onWheel={handleDropdownWheel}
           >
             {Array.from({ length: episodeCount }, (_, i) => i + 1).map(epNum => (
               <div
