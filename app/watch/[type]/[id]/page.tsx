@@ -254,6 +254,19 @@ export default function WatchPage() {
     setEpisode(newEpisode);
   };
 
+  // Keep the URL in sync with the current season/episode so a page refresh
+  // restores the same episode instead of resetting to S1 E1.
+  useEffect(() => {
+    if (type !== 'tv' || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('s') === String(season) && url.searchParams.get('e') === String(episode)) {
+      return;
+    }
+    url.searchParams.set('s', String(season));
+    url.searchParams.set('e', String(episode));
+    window.history.replaceState(window.history.state, '', url.toString());
+  }, [type, season, episode]);
+
   // Auto-mark TV episode as watched when streaming starts
   useEffect(() => {
     if (type === 'tv' && user && streamingSource && item && 'name' in item) {
