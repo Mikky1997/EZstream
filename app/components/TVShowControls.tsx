@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import MediaActions from './MediaActions';
+import { getEpisodeOptions, usesContinuousEpisodes } from '@/lib/episodes';
 
 interface Season {
   season_number: number;
@@ -17,8 +18,7 @@ interface TVShowControlsProps {
   currentSeason: number;
   currentEpisode: number;
   trailerKey?: string | null;
-  onSeasonChange: (season: number) => void;
-  onEpisodeChange: (episode: number) => void;
+  onSelectEpisode: (season: number, episode: number) => void;
   onNextEpisode: () => void;
 }
 
@@ -33,8 +33,7 @@ export const TVShowControls = memo(function TVShowControls({
   currentSeason,
   currentEpisode,
   trailerKey,
-  onSeasonChange,
-  onEpisodeChange,
+  onSelectEpisode,
   onNextEpisode,
 }: TVShowControlsProps) {
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
@@ -47,8 +46,16 @@ export const TVShowControls = memo(function TVShowControls({
     .filter(s => s.season_number > 0)
     .sort((a, b) => a.season_number - b.season_number);
 
-  const currentSeasonData = filteredSeasons.find(s => s.season_number === currentSeason);
-  const episodeCount = currentSeasonData?.episode_count || 0;
+  const continuous = usesContinuousEpisodes(mediaId);
+  const episodeOptions = getEpisodeOptions(seasons, continuous);
+  const currentIndex = episodeOptions.findIndex(
+    option => option.season === currentSeason && option.episode === currentEpisode,
+  );
+  const displayEpisode = episodeOptions[currentIndex]?.displayNumber ?? currentEpisode;
+  const visibleEpisodes = continuous
+    ? episodeOptions
+    : episodeOptions.filter(option => option.season === currentSeason);
+  const nextEpisodeInfo = currentIndex >= 0 ? episodeOptions[currentIndex + 1] : undefined;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -83,17 +90,6 @@ export const TVShowControls = memo(function TVShowControls({
     el.scrollTop += e.deltaY;
   }, []);
 
-  // Get next episode info
-  const getNextEpisodeInfo = () => {
-    if (currentEpisode < episodeCount) {
-      return { season: currentSeason, episode: currentEpisode + 1 };
-    }
-    const nextSeason = filteredSeasons.find(s => s.season_number === currentSeason + 1);
-    if (nextSeason) return { season: nextSeason.season_number, episode: 1 };
-    return null;
-  };
-
-  const nextEpisodeInfo = getNextEpisodeInfo();
 
   return (
     <div className="flex items-center gap-1.5 flex-nowrap flex-shrink-0">
@@ -114,8 +110,8 @@ export const TVShowControls = memo(function TVShowControls({
       {/* Watchlist */}
       <MediaActions mediaType="tv" mediaId={mediaId} title={title} posterPath={posterPath} />
 
-      {/* Season Dropdown */}
-      <div ref={seasonRef} className="relative flex-shrink-0">
+      {/* Continuous shows use one episode list across all season groups. */}
+      {!continuous && <div ref={seasonRef} className="relative flex-shrink-0">
         <button
           onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
           className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-red-500 outline-none min-w-[60px]"
@@ -134,28 +130,31 @@ export const TVShowControls = memo(function TVShowControls({
             onWheel={handleDropdownWheel}
           >
             {filteredSeasons.map(season => (
-              <div
+              <button
+                type="button"
                 key={season.season_number}
-                className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
+                className={`flex w-full text-left items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
                   season.season_number === currentSeason
                     ? 'source-active'
                     : 'text-white dropdown-item-hover'
                 }`}
-                onMouseDown={() => {
-                  onSeasonChange(season.season_number);
+                onClick={() => {
+                  onSelectEpisode(season.season_number, 1);
                   setShowSeasonDropdown(false);
                 }}
               >
                 <span className="flex-1 min-w-0">S{season.season_number}</span>
-              </div>
+              </button>
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Episode Dropdown */}
       <div ref={episodeRef} className="relative flex-shrink-0">
         <button
+          aria-label={`Select episode, current episode ${displayEpisode}`}
+          aria-expanded={showEpisodeDropdown}
           onClick={() => setShowEpisodeDropdown(!showEpisodeDropdown)}
           className="flex items-center bg-gray-800 text-white pl-2 pr-8 h-9 rounded-lg border border-gray-700 text-sm focus:border-red-500 outline-none min-w-[60px]"
           style={{
@@ -165,26 +164,27 @@ export const TVShowControls = memo(function TVShowControls({
             backgroundRepeat: 'no-repeat',
           }}
         >
-          <span className="text-sm">E{currentEpisode}</span>
+          <span className="text-sm">E{displayEpisode}</span>
         </button>
         {showEpisodeDropdown && (
           <div
             className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-[9999] min-w-[160px] max-h-60 overflow-y-auto overscroll-contain"
             onWheel={handleDropdownWheel}
           >
-            {Array.from({ length: episodeCount }, (_, i) => i + 1).map(epNum => (
-              <div
-                key={epNum}
-                className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
-                  epNum === currentEpisode ? 'source-active' : 'text-white dropdown-item-hover'
+            {visibleEpisodes.map(option => (
+              <button
+                type="button"
+                key={`${option.season}-${option.episode}`}
+                className={`flex w-full text-left items-center gap-2 px-2.5 py-1.5 cursor-pointer border-b border-gray-700 last:border-0 text-sm ${
+                  option.season === currentSeason && option.episode === currentEpisode ? 'source-active' : 'text-white dropdown-item-hover'
                 }`}
-                onMouseDown={() => {
-                  onEpisodeChange(epNum);
+                onClick={() => {
+                  onSelectEpisode(option.season, option.episode);
                   setShowEpisodeDropdown(false);
                 }}
               >
-                <span className="flex-1 min-w-0">E{epNum}</span>
-              </div>
+                <span className="flex-1 min-w-0">E{option.displayNumber}</span>
+              </button>
             ))}
           </div>
         )}
@@ -195,7 +195,9 @@ export const TVShowControls = memo(function TVShowControls({
         <button
           onClick={onNextEpisode}
           className="flex items-center justify-center w-9 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
-          title={`Next: S${nextEpisodeInfo.season} E${nextEpisodeInfo.episode}`}
+          title={continuous
+            ? `Next: E${nextEpisodeInfo.displayNumber}`
+            : `Next: S${nextEpisodeInfo.season} E${nextEpisodeInfo.episode}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

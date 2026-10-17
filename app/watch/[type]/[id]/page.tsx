@@ -10,6 +10,7 @@ import { TVShowControls } from '@/app/components/TVShowControls';
 import { LoadingState, ErrorState, NotFoundState } from '@/app/components/watch';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getAllEmbedUrls, type EmbedUrl } from '@/lib/vidsrc';
+import { getEpisodeOptions, usesContinuousEpisodes } from '@/lib/episodes';
 import {
   MOVIE_DURATION_SECONDS,
   TV_EPISODE_DURATION_SECONDS,
@@ -83,6 +84,7 @@ export default function WatchPage() {
   const [availableSources, setAvailableSources] = useState<EmbedUrl[]>([]);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [showSourceSelector, setShowSourceSelector] = useState(false);
+  const failedSourceKeys = useRef(new Set<string>());
 
   // Get season/episode from URL query params or default to 1
   const searchParams = useSearchParams();
@@ -92,6 +94,16 @@ export default function WatchPage() {
   // Season/episode for TV shows
   const [season, setSeason] = useState(initialSeason);
   const [episode, setEpisode] = useState(initialEpisode);
+
+  const continuousEpisodes = type === 'tv' && usesContinuousEpisodes(Number(id));
+  const episodeOptions = useMemo(
+    () => getEpisodeOptions(seasons, continuousEpisodes),
+    [seasons, continuousEpisodes],
+  );
+  const currentEpisodeIndex = episodeOptions.findIndex(
+    option => option.season === season && option.episode === episode,
+  );
+  const displayEpisode = episodeOptions[currentEpisodeIndex]?.displayNumber ?? episode;
 
   // For saving watch progress
   const lastSavedProgress = useRef<number>(0);
@@ -198,11 +210,16 @@ export default function WatchPage() {
 
     const sources = getAllEmbedUrls(imdbId || '', tmdbId, type, season, episode, isAnime);
     setAvailableSources(sources);
+    failedSourceKeys.current.clear();
 
     if (sources.length > 0) {
       // Try to keep the same source if it exists in the new list (persisted in localStorage)
-      const savedSourceKey =
-        typeof window !== 'undefined' ? localStorage.getItem('preferred_video_source') : null;
+      let savedSourceKey: string | null = null;
+      try {
+        savedSourceKey = localStorage.getItem('preferred_video_source');
+      } catch {
+        // Use the default source when browser storage is unavailable.
+      }
       const matchingIndex = savedSourceKey
         ? sources.findIndex(s => s.source === savedSourceKey)
         : -1;
@@ -214,7 +231,11 @@ export default function WatchPage() {
         setStreamingSource({ type: 'vidsrc', url: sources[0].url });
         setCurrentSourceIndex(0);
         if (savedSourceKey) {
-          localStorage.removeItem('preferred_video_source');
+          try {
+            localStorage.removeItem('preferred_video_source');
+          } catch {
+            // A retired preference must not prevent playback.
+          }
         }
       }
     }
@@ -285,16 +306,33 @@ export default function WatchPage() {
     }
   }, [type, user, streamingSource, season, episode, item, id]);
 
-  const switchSource = (index: number) => {
+  const switchSource = (index: number, savePreference = true) => {
     if (index >= 0 && index < availableSources.length) {
       const sourceKey = availableSources[index].source;
       setCurrentSourceIndex(index);
       setStreamingSource({ type: 'vidsrc', url: availableSources[index].url });
       // Persist source preference in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('preferred_video_source', sourceKey);
+      if (savePreference && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('preferred_video_source', sourceKey);
+        } catch {
+          // Playback still works when browser storage is unavailable.
+        }
       }
       setShowSourceSelector(false);
+    }
+  };
+
+  const handleSourceError = () => {
+    const failedSource = availableSources[currentSourceIndex];
+    if (!failedSource) return;
+    failedSourceKeys.current.add(failedSource.source);
+    for (let offset = 1; offset < availableSources.length; offset++) {
+      const index = (currentSourceIndex + offset) % availableSources.length;
+      if (!failedSourceKeys.current.has(availableSources[index].source)) {
+        switchSource(index, false);
+        return;
+      }
     }
   };
 
@@ -351,7 +389,7 @@ export default function WatchPage() {
               {availableSources.map((source, index) => (
                 <button
                   key={source.source}
-                  onMouseDown={() => switchSource(index)}
+                  onClick={() => switchSource(index)}
                   className={`w-full text-left px-3 py-1.5 truncate transition-colors border-b border-gray-800 last:border-b-0 text-sm ${
                     index === currentSourceIndex
                       ? 'source-active'
@@ -424,7 +462,7 @@ export default function WatchPage() {
                   {title}
                   {isTVShow && (
                     <span className="text-blue-400 ml-2 text-xl">
-                      S{season} E{episode}
+                      {continuousEpisodes ? `E${displayEpisode}` : `S${season} E${episode}`}
                     </span>
                   )}
                 </h1>
@@ -505,22 +543,12 @@ export default function WatchPage() {
                         currentSeason={season}
                         currentEpisode={episode}
                         trailerKey={item.trailerKey}
-                        onSeasonChange={newSeason => {
-                          setSeason(newSeason);
-                          setEpisode(1);
-                        }}
-                        onEpisodeChange={setEpisode}
+                        onSelectEpisode={handleSelectEpisode}
                         onNextEpisode={() => {
-                          const currentSeasonData = seasons.find(s => s.season_number === season);
-                          if (currentSeasonData && episode < currentSeasonData.episode_count) {
-                            setEpisode(ep => ep + 1);
-                          } else {
-                            const nextSeason = seasons.find(s => s.season_number === season + 1);
-                            if (nextSeason) {
-                              setSeason(nextSeason.season_number);
-                              setEpisode(1);
-                            }
-                          }
+                          const next = currentEpisodeIndex >= 0
+                            ? episodeOptions[currentEpisodeIndex + 1]
+                            : undefined;
+                          if (next) handleSelectEpisode(next.season, next.episode);
                         }}
                       />
                     )
@@ -558,7 +586,19 @@ export default function WatchPage() {
                   className="bg-black rounded-lg overflow-hidden mb-4"
                   style={{ position: 'relative', width: '100%' }}
                 >
-                  <VideoPlayer source={streamingSource} title={title} />
+                  <VideoPlayer key={streamingSource.url} source={streamingSource} title={title} onSourceError={handleSourceError} />
+                </div>
+              )}
+
+              {availableSources.length > 1 && (
+                <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
+                  <p className="text-gray-400">Blank player or episode unavailable?</p>
+                  <button
+                    onClick={nextSource}
+                    className="rounded-lg bg-gray-800 px-3 py-2 text-white hover:bg-gray-700"
+                  >
+                    Try another source
+                  </button>
                 </div>
               )}
 

@@ -5,6 +5,7 @@ import type { StreamingSource } from "@/types";
 
 // Allowed video source domains for security
 const ALLOWED_VIDEO_DOMAINS = [
+  "vidsrc.sh",
   // VidSrc.me domains (primary + new domains from their announcement)
   "vidsrc.me",
   "vidsrc-embed.me",
@@ -31,6 +32,7 @@ const ALLOWED_VIDEO_DOMAINS = [
 function isAllowedVideoUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
     const hostname = parsed.hostname.toLowerCase();
 
     // Check exact match or subdomain match
@@ -45,9 +47,10 @@ function isAllowedVideoUrl(url: string): boolean {
 interface VideoPlayerProps {
   source: StreamingSource;
   title: string;
+  onSourceError?: () => void;
 }
 
-export default function VideoPlayer({ source, title }: VideoPlayerProps) {
+export default function VideoPlayer({ source, title, onSourceError }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +72,21 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
       }
     }
   }, [source, isValidUrl]);
+
+  // Use a native listener: React does not attach its non-bubbling error
+  // listener to iframes. Providers' internal errors remain cross-origin,
+  // so the watch page also offers a manual source switch.
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !isValidUrl) return;
+    const handleError = () => {
+      setError("Failed to load video player");
+      setLoading(false);
+      onSourceError?.();
+    };
+    iframe.addEventListener("error", handleError);
+    return () => iframe.removeEventListener("error", handleError);
+  }, [source.url, isValidUrl, onSourceError]);
 
   // Mobile Safari fallback: Hide loading spinner after timeout
   // Mobile Safari sometimes doesn't fire onLoad for iframes properly
@@ -98,17 +116,19 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
         style={{ paddingBottom: "56.25%" }}
       >
         <iframe
+          key={source.url}
+          title={`${title} video player`}
           ref={iframeRef}
           src={source.url}
           className="video-player-iframe absolute top-0 left-0 w-full h-full rounded-lg"
           allowFullScreen
           // iOS/macOS Safari requires webkit prefix for fullscreen
           {...({
-            webkitAllowFullScreen: true,
+            webkitallowfullscreen: "true",
           } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           // Firefox mobile requires moz prefix
           {...({
-            mozallowfullscreen: true,
+            mozallowfullscreen: "true",
           } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           // Extended permissions for video playback across all browsers
           // Wildcards (*) allow cross-origin iframes (and their nested iframes) to use these features
@@ -120,10 +140,6 @@ export default function VideoPlayer({ source, title }: VideoPlayerProps) {
           referrerPolicy="no-referrer-when-downgrade"
           // Note: Do NOT use sandbox attribute - it breaks video embed functionality
           onLoad={() => setLoading(false)}
-          onError={() => {
-            setError("Failed to load video player");
-            setLoading(false);
-          }}
         />
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-lg">
